@@ -1,4 +1,4 @@
-import parse, { PrimitiveType } from "../parse";
+import { PrimitiveType } from "../toParser";
 
 export type Field = {
   name: string | null;

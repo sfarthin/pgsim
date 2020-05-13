@@ -1,29 +1,34 @@
-import toResultType, { fromSelect } from "../src/toResultType";
-import toSchema from "../src/toSchema";
-import { parseSelect } from "../src/parse";
+import toResultType from "../src/toResultType";
+import { getSingleQuery, toSchemaFromString } from "../src";
 
-const expectSelectType = (schema: string, selectQuery: string) =>
-  expect(fromSelect(toSchema(schema), parseSelect(selectQuery)));
+const expectResultType = (schema: string, selectString: string) =>
+  expect(
+    toResultType(
+      getSingleQuery(selectString),
+      selectString,
+      toSchemaFromString(schema)
+    )
+  );
 
 describe("toResultType", () => {
   it("Simple string select", () => {
-    expectSelectType("", `SELECT 'foo'`).toEqual([
+    expectResultType("", `SELECT 'foo'`).toEqual([
       { isNullable: false, name: null, type: "varchar" },
     ]);
   });
   it("Simple integer select", () => {
-    expectSelectType("", `SELECT 4`).toEqual([
+    expectResultType("", `SELECT 4`).toEqual([
       { isNullable: false, name: null, type: "integer" },
     ]);
   });
   it("Simple float select", () => {
-    expectSelectType("", `SELECT 4.4`).toEqual([
+    expectResultType("", `SELECT 4.4`).toEqual([
       { isNullable: false, name: null, type: "real" },
     ]);
   });
 
   it("Simple named fields", () => {
-    expectSelectType("", `SELECT 4 as foo, 'foo' as bar`).toEqual([
+    expectResultType("", `SELECT 4 as foo, 'foo' as bar`).toEqual([
       { isNullable: false, name: "foo", type: "integer" },
       { isNullable: false, name: "bar", type: "varchar" },
     ]);
@@ -31,7 +36,7 @@ describe("toResultType", () => {
 
   // TODO star select, SELECT * FROM users
   it("Multiple tables", () => {
-    expectSelectType(
+    expectResultType(
       `
           CREATE TABLE users (
               id BIGSERIAL PRIMARY KEY
@@ -50,7 +55,7 @@ describe("toResultType", () => {
     ]);
   });
   it("LEFT JOIN", () => {
-    expectSelectType(
+    expectResultType(
       `
           CREATE TABLE users (
               id BIGSERIAL PRIMARY KEY
@@ -69,7 +74,7 @@ describe("toResultType", () => {
     ]);
   });
   it("Multiple tables and LEFT JOIN", () => {
-    expectSelectType(
+    expectResultType(
       `
           CREATE TABLE accounts (
               id BIGSERIAL PRIMARY KEY,
@@ -94,7 +99,7 @@ describe("toResultType", () => {
     ]);
   });
   it("Multiple tables and INNER JOIN", () => {
-    expectSelectType(
+    expectResultType(
       `
           CREATE TABLE accounts (
               id BIGSERIAL PRIMARY KEY,
@@ -119,7 +124,7 @@ describe("toResultType", () => {
     ]);
   });
   it("aliases", () => {
-    expectSelectType(
+    expectResultType(
       `
         CREATE TABLE accounts (
             id BIGSERIAL PRIMARY KEY,
@@ -131,7 +136,7 @@ describe("toResultType", () => {
     ).toEqual([{ isNullable: true, name: "joinedAt", type: "varchar" }]);
   });
   it("COUNT function", () => {
-    expectSelectType(
+    expectResultType(
       `
         CREATE TABLE accounts (
             id BIGSERIAL PRIMARY KEY,
@@ -144,7 +149,7 @@ describe("toResultType", () => {
   });
 
   it("COUNT star", () => {
-    expectSelectType(
+    expectResultType(
       `
           CREATE TABLE accounts (
               id BIGSERIAL PRIMARY KEY,
@@ -157,7 +162,7 @@ describe("toResultType", () => {
   });
 
   it("MIN/MAX function", () => {
-    expectSelectType(
+    expectResultType(
       `
           CREATE TABLE accounts (
               id BIGSERIAL PRIMARY KEY,
@@ -170,7 +175,7 @@ describe("toResultType", () => {
   });
 
   it("Nested query in WHERE", () => {
-    expectSelectType(
+    expectResultType(
       `
           CREATE TABLE users (
               id BIGSERIAL PRIMARY KEY
@@ -186,7 +191,7 @@ describe("toResultType", () => {
   });
 
   it("Nested query in FROM", () => {
-    expectSelectType(
+    expectResultType(
       `
           CREATE TABLE users (
               id BIGSERIAL PRIMARY KEY

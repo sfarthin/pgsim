@@ -96,6 +96,7 @@ export type TableField = {
 };
 
 export type TableSchema = {
+  name: string;
   def: CreateStmt;
   text: string[];
   fields: TableField[];
@@ -106,4 +107,5 @@ export type Schema = {
 };
 
 export type Queries = Query[];
+export type QueryWithText = { query: Query; text: string };
 export const queriesDecoder: Decoder<Queries> = array(queryDecoder);

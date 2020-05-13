@@ -2,8 +2,7 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es5",
-    "sourceMap": true,
-    "downlevelIteration": true
+    "sourceMap": true
   },
 
   "exclude": ["node_modules", "dist"]

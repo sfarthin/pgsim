@@ -1,12 +1,16 @@
 export enum PGErrorCode {
+  // Any error not explicitly thrown
   INTERNAL_ERROR = "INTERNAL_ERROR",
+
+  // The parser does not handle this case.
   NOT_UNDERSTOOD = "NOT_UNDERSTOOD",
-  SCHEMA_ERROR = "SCHEMA_ERROR",
-  NOT_ALLOWED = "NOT_ALLOWED",
-  ARBITRARY = "ARBITRARY",
-  NO_QUERIES = "NO_QUERIES",
-  NO_ALTER_TABLE = "NO_ALTER_TABLE",
-  NOT_EXISTS = "NOT_EXISTS",
+
+  // The statement has an invalid reference or option.
+  INVALID = "INVALID",
+
+  // Refers to LINT OPTIONS
+  NOT_QUERIES = "NOT_QUERIES",
+  NOT_SCHEMA = "NOT_SCHEMA",
 }
 
 export class PGError extends Error {

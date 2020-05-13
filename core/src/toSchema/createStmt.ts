@@ -1,4 +1,4 @@
-import { Schema, CreateStmt } from "../parse";
+import { Schema, CreateStmt } from "../toParser";
 import { PGErrorCode, PGError } from "../errors";
 import { toTableField, toTableName } from "./toTableField";
 
@@ -15,7 +15,7 @@ export default function createStmt(
 
   if (duplicateTable) {
     throw new PGError(
-      PGErrorCode.NOT_ALLOWED,
+      PGErrorCode.INVALID,
       `Cannot create the "${name}" table twice`
     );
   }
@@ -25,7 +25,7 @@ export default function createStmt(
     fields.push(toTableField(columnDef));
   }
 
-  const newTable = { fields, def: createStmt, text: [text] };
+  const newTable = { name, fields, def: createStmt, text: [text] };
 
   return {
     ...schema,

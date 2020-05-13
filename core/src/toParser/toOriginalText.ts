@@ -1,7 +1,7 @@
 import { string, compose, predicate, guard } from "decoders";
 // @ts-ignore - No declaration
 import { format } from "sql-formatter";
-import pgParse from "../parse/pgParse";
+import pgParse from "./pgParse";
 
 const textQueryDecoder = compose(
   string,

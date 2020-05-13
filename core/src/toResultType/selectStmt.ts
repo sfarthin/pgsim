@@ -1,4 +1,4 @@
-import parse, {
+import {
   Schema,
   FuncCall,
   SelectStmt,
@@ -11,7 +11,7 @@ import parse, {
   verifySelectStatement,
   A_Const,
   ColumnRef,
-} from "../parse";
+} from "../toParser";
 import { PGErrorCode, PGError } from "../errors";
 import { Source, Field } from "./types";
 
@@ -35,7 +35,7 @@ function fromFunctionCall(funcCall: FuncCall, sources: Source[]): Field {
       if ("args" in funcCall) {
         if (funcCall.args.length !== 1) {
           throw new PGError(
-            PGErrorCode.NOT_ALLOWED,
+            PGErrorCode.INVALID,
             `${name}() expects exactly one argument`
           );
         }
@@ -46,7 +46,7 @@ function fromFunctionCall(funcCall: FuncCall, sources: Source[]): Field {
         return { name, type, isNullable: true };
       } else {
         // This much mean star is used.
-        throw new PGError(PGErrorCode.NOT_ALLOWED, `${name}(*) not allowed`);
+        throw new PGError(PGErrorCode.INVALID, `${name}(*) not allowed`);
       }
     default:
       throw new PGError(PGErrorCode.NOT_UNDERSTOOD, `Unknown method ${name}`);
@@ -86,7 +86,7 @@ function fromColumnRef(columnRef: ColumnRef, sources: Source[]) {
 
     if (!source) {
       throw new PGError(
-        PGErrorCode.NOT_EXISTS,
+        PGErrorCode.INVALID,
         `${sourceName}.${fieldName} not found`
       );
     }
@@ -95,7 +95,7 @@ function fromColumnRef(columnRef: ColumnRef, sources: Source[]) {
 
     if (!field) {
       throw new PGError(
-        PGErrorCode.NOT_EXISTS,
+        PGErrorCode.INVALID,
         `${sourceName}.${fieldName} not found`
       );
     }
@@ -110,7 +110,7 @@ function fromColumnRef(columnRef: ColumnRef, sources: Source[]) {
 
     if (possibleSources.length !== 1) {
       throw new PGError(
-        PGErrorCode.NOT_EXISTS,
+        PGErrorCode.INVALID,
         `${fieldName} doesn't refer to a single source`
       );
     }
@@ -118,7 +118,7 @@ function fromColumnRef(columnRef: ColumnRef, sources: Source[]) {
     const field = possibleSources[0].fields.find((f) => f.name === fieldName);
 
     if (!field) {
-      throw new PGError(PGErrorCode.NOT_EXISTS, `${fieldName} not found`);
+      throw new PGError(PGErrorCode.INVALID, `${fieldName} not found`);
     }
 
     return field;
@@ -162,7 +162,7 @@ function getSourceFromTableName(schema: Schema, tablename: string): Source {
   }
 
   throw new PGError(
-    PGErrorCode.NOT_EXISTS,
+    PGErrorCode.INVALID,
     `Table "${tablename}" does not exisit`
   );
 }

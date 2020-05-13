@@ -1,6 +1,6 @@
-import { Schema, AlterTableStmt, AlterTableCmdSubType } from "../parse";
+import { Schema, AlterTableStmt, AlterTableCmdSubType } from "../toParser";
 import { PGErrorCode, PGError } from "../errors";
-import { toTableField, toTableName } from "./toTableField";
+import { toTableField, toTableName, addFieldToTable } from "./toTableField";
 
 export default function alterTableStmt(
   alterTableStmt: AlterTableStmt,
@@ -12,11 +12,11 @@ export default function alterTableStmt(
    * Make sure we have the table to update
    */
   const tableToUpdate = toTableName(alterTableStmt);
-  const indexOfTable = tables
-    .map(({ def }) => toTableName(def))
-    .indexOf(tableToUpdate);
+  const indexOfTable = tables.map(({ name }) => name).indexOf(tableToUpdate);
+
   if (indexOfTable === -1 || !tables[indexOfTable]) {
-    throw new Error(
+    throw new PGError(
+      PGErrorCode.INVALID,
       `Cannot alter "${tableToUpdate}" table because it does not exist`
     );
   }
@@ -25,10 +25,12 @@ export default function alterTableStmt(
    */
   for (let cmd of alterTableStmt.cmds) {
     if (cmd.AlterTableCmd.subtype === AlterTableCmdSubType.ADD) {
-      tables[indexOfTable].def.tableElts.push({
-        ColumnDef: cmd.AlterTableCmd.def.ColumnDef,
-      });
-      tables[indexOfTable].text.push(text);
+      const columnDef = cmd.AlterTableCmd.def.ColumnDef;
+      tables[indexOfTable] = addFieldToTable(
+        tables[indexOfTable],
+        text,
+        columnDef
+      );
     } else {
       throw new PGError(
         PGErrorCode.NOT_UNDERSTOOD,

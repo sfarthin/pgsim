@@ -1,7 +1,9 @@
-import toSchema from "../src/toSchema";
+import { toSchemaFromString, PGErrorCode } from "../src";
 
 const expectTableFields = (sql: string) =>
-  expect(toSchema(sql).tables.map(({ fields }) => fields));
+  expect(
+    toSchemaFromString(sql).tables.map(({ name, fields }) => ({ name, fields }))
+  );
 
 describe("toSchema", () => {
   it("find duplicate create table definitions", () => {
@@ -19,42 +21,47 @@ describe("toSchema", () => {
       err = e;
     }
 
-    expect(err).toBeTruthy();
+    expect(err?.id).toEqual(PGErrorCode.INVALID);
   });
 
   it("finds ALTER TABLE statements without references", () => {
     let err;
     try {
       expectTableFields(`
-        ALTER TABLE users ADD COLUMN email VARCHAR(250);
+        ALTER TABLE users ADD email VARCHAR(250);
     `);
     } catch (e) {
       err = e;
     }
 
-    expect(err).toBeTruthy();
+    expect(err?.id).toEqual(PGErrorCode.INVALID);
   });
 
   it("can use ALTER TABLE to add columns", () => {
     expectTableFields(`
-        CREATE TABLE users (
+        CREATE TABLE "foo" (
             id BIGSERIAL PRIMARY KEY
         );
-        ALTER TABLE users ADD COLUMN email VARCHAR(250);
+        ALTER TABLE "foo" ADD email VARCHAR(250);
     `).toEqual([
       {
-        name: "id",
-        type: "bigserial",
-        isNullable: true,
-        references: null,
-        isPrimaryKey: true,
-      },
-      {
-        name: "email",
-        type: "varchar",
-        isNullable: true,
-        references: null,
-        isPrimaryKey: false,
+        name: "foo",
+        fields: [
+          {
+            name: "id",
+            type: "bigserial",
+            isNullable: true,
+            references: null,
+            isPrimaryKey: true,
+          },
+          {
+            name: "email",
+            type: "varchar",
+            isNullable: true,
+            references: null,
+            isPrimaryKey: false,
+          },
+        ],
       },
     ]);
   });
