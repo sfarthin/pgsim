@@ -3,20 +3,19 @@ import createStmt from "./createStmt";
 import alterTableStmt from "./alterTableStmt";
 import { PGError, PGErrorCode } from "../errors";
 
+export { toTableFields } from "./toTableField";
+
 export const emptySchema = {
   tables: [],
+  constraints: [],
 };
 
-export function modifySchema(
-  query: Query,
-  text: string = "",
-  _schema: Schema | void
-): Schema {
+export function modifySchema(query: Query, _schema: Schema | void): Schema {
   const schema = _schema ? _schema : emptySchema;
   if ("CreateStmt" in query) {
-    return createStmt(query.CreateStmt, text, schema);
+    return createStmt(query.CreateStmt, schema);
   } else if ("AlterTableStmt" in query) {
-    return alterTableStmt(query.AlterTableStmt, text, schema);
+    return alterTableStmt(query.AlterTableStmt, schema);
   } else if ("SelectStmt" in query) {
     return schema;
   }
@@ -35,8 +34,8 @@ export default function toSchema(
   let curr = parser.next();
 
   while (!curr.done) {
-    const { query, text } = curr.value;
-    schema = modifySchema(query, text, schema);
+    const { query } = curr.value;
+    schema = modifySchema(query, schema);
     curr = parser.next();
   }
 

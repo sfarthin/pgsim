@@ -1,59 +1,73 @@
-import { optional, array, string, object, Decoder, number } from "decoders";
+import {
+  exact,
+  Decoder,
+  number,
+  constant,
+  either3,
+  string,
+  boolean,
+} from "decoders";
+import { RangeVar, rangeVarDecoder } from "./rangeVar";
+import { PGString, stringDecoder } from "./constant";
+import { tuple1 } from "./tuple1";
 
 export enum ConType {
-  "isNotNull" = 1,
-  "isPrimaryKey" = 4,
+  "NotNull" = 1,
+  "PrimaryKey" = 4,
+  "Reference" = 7,
 }
 
-export type Constraint = {
-  contype: number;
-  location: number;
-  fk_upd_action: string | undefined;
-  fk_del_action: string | undefined;
-  pktable:
-    | {
-        RangeVar: {
-          relname: string;
-          inhOpt: number;
-          relpersistence: string;
-          location: number;
-        };
-      }
-    | undefined;
-  pk_attrs:
-    | Array<{
-        String: {
-          str: string;
-        };
-      }>
-    | undefined;
-};
+const notNullDecoder: Decoder<ConType.NotNull> = constant(ConType.NotNull);
 
-export const constraintDecoder: Decoder<Constraint> = object({
-  contype: number,
-  location: number,
-  fk_upd_action: optional(string),
-  fk_del_action: optional(string),
-  pktable: optional(
-    object({
-      RangeVar: object({
-        relname: string,
-        inhOpt: number,
-        relpersistence: string,
-        location: number,
-      }),
-    })
-  ),
-  pk_attrs: optional(
-    array(
-      object({
-        String: object({
-          str: string,
-        }),
-      })
-    )
-  ),
-});
+const primaryKeyDecoder: Decoder<ConType.PrimaryKey> = constant(
+  ConType.PrimaryKey
+);
+
+const referenceDecoder: Decoder<ConType.Reference> = constant(
+  ConType.Reference
+);
+
+export type Constraint =
+  | { contype: ConType.NotNull; location: number }
+  | {
+      contype: ConType.PrimaryKey;
+      location: number;
+    }
+  | {
+      contype: ConType.Reference;
+      location: number;
+      fk_upd_action: string;
+      fk_del_action: string;
+      fk_matchtype: string;
+      initially_valid: boolean;
+      pktable: {
+        RangeVar: RangeVar;
+      };
+      pk_attrs: [PGString];
+    };
+
+export const constraintDecoder: Decoder<Constraint> = either3(
+  exact({
+    contype: notNullDecoder,
+    location: number,
+  }),
+  exact({
+    contype: primaryKeyDecoder,
+    location: number,
+  }),
+  exact({
+    contype: referenceDecoder,
+    location: number,
+    fk_upd_action: string,
+    fk_del_action: string,
+    fk_matchtype: string,
+    initially_valid: boolean,
+    pktable: exact({
+      RangeVar: rangeVarDecoder,
+    }),
+    pk_attrs: tuple1(stringDecoder),
+  })
+);
 
 export function isPrimaryKey(
   constraints: { Constraint: Constraint }[] | void
@@ -62,8 +76,8 @@ export function isPrimaryKey(
     return false;
   }
 
-  for (let constraint of constraints) {
-    if (constraint.Constraint.contype === ConType.isPrimaryKey) {
+  for (const constraint of constraints) {
+    if (constraint.Constraint.contype === ConType.PrimaryKey) {
       return true;
     }
   }
@@ -72,16 +86,16 @@ export function isPrimaryKey(
 }
 
 export function getReference(
-  constraints: { Constraint: Constraint }[] | void
+  constraints: { Constraint: Constraint }[]
 ): { tablename: string; colname: string } | null {
   if (!constraints) {
     return null;
   }
 
-  for (let constraint of constraints) {
-    const tablename = constraint.Constraint?.pktable?.RangeVar?.relname ?? "";
-    const colname = constraint.Constraint?.pk_attrs?.[0]?.String?.str ?? "";
-    if (tablename && colname) {
+  for (const constraint of constraints) {
+    if (constraint.Constraint.contype === ConType.Reference) {
+      const tablename = constraint.Constraint.pktable.RangeVar.relname;
+      const colname = constraint.Constraint.pk_attrs[0].String.str;
       return { tablename, colname };
     }
   }
@@ -89,15 +103,9 @@ export function getReference(
   return null;
 }
 
-export function isNullable(
-  constraints: { Constraint: Constraint }[] | void
-): boolean {
-  if (!constraints) {
-    return true;
-  }
-
-  for (let constraint of constraints) {
-    if (constraint.Constraint.contype === ConType.isNotNull) {
+export function isNullable(constraints: { Constraint: Constraint }[]): boolean {
+  for (const constraint of constraints) {
+    if (constraint.Constraint.contype === ConType.NotNull) {
       return false;
     }
   }

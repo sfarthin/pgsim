@@ -1,6 +1,6 @@
 import {
   array,
-  object,
+  exact,
   Decoder,
   number,
   constant,
@@ -44,30 +44,30 @@ export type AlterTableCmd =
   | {
       subtype: AlterTableCmdSubType.ALTER_COLUMN;
       name: string;
-      def: any;
+      def: unknown;
       behavior: number;
     };
 
 export const alterTableCmdDecoder: Decoder<AlterTableCmd> = either4(
-  object({
+  exact({
     subtype: constant(0),
-    def: object({
+    def: exact({
       ColumnDef: columnDefDecoder,
     }),
     behavior: number,
   }),
-  object({
+  exact({
     subtype: constant(3),
     def: pojo,
     behavior: number,
   }),
-  object({
+  exact({
     subtype: constant(10),
     behavior: number,
   }),
-  object({
+  exact({
     subtype: constant(14),
-    def: object({
+    def: exact({
       Constraint: constraintDecoder,
     }),
     behavior: number,
@@ -80,8 +80,8 @@ export type AlterTableStmt = {
   relkind: number;
 };
 
-export const alterTableStmtDecoder: Decoder<AlterTableStmt> = object({
+export const alterTableStmtDecoder: Decoder<AlterTableStmt> = exact({
   relation: relationDecoder,
-  cmds: array(object({ AlterTableCmd: alterTableCmdDecoder })),
+  cmds: array(exact({ AlterTableCmd: alterTableCmdDecoder })),
   relkind: number,
 });

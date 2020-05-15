@@ -1,3 +1,3 @@
-import { Query, Schema } from "../toParser";
+import { Query, Schema, CreateStmt } from "../toParser";
 
-export function lintCreateStmt(schema: Schema, query: Query) {}
+export function lintCreateStmt(query: CreateStmt) {}

@@ -1,35 +1,40 @@
-import { array, object, pojo, Decoder, either9, either3 } from "decoders";
+import { array, exact, fail, Decoder, either9, either4 } from "decoders";
 import { CreateStmt, createStmtDecoder, ColumnDef } from "./createStmt";
 import { AlterTableStmt, alterTableStmtDecoder } from "./alterTableStmt";
 import { SelectStmt, selectStmtDecoder } from "./selectStmt";
 import { PGError, PGErrorCode } from "../errors";
+import { DropStmt, dropStmtDecoder } from "./dropTable";
 
 export type Query =
   | { CreateStmt: CreateStmt }
   | { AlterTableStmt: AlterTableStmt }
-  | { IndexStmt: any }
-  | { UpdateStmt: any }
-  | { InsertStmt: any }
+  | { IndexStmt: never }
+  | { UpdateStmt: never }
+  | { InsertStmt: unknown }
   | { SelectStmt: SelectStmt }
-  | { VariableSetStmt: any }
-  | { CreateEnumStmt: any }
-  | { CreateSeqStmt: any }
-  | { AlterSeqStmt: any }
-  | { ViewStmt: any };
+  | { VariableSetStmt: unknown }
+  | { CreateEnumStmt: unknown }
+  | { CreateSeqStmt: unknown }
+  | { AlterSeqStmt: unknown }
+  | { ViewStmt: unknown }
+  | { DropStmt: DropStmt };
+
+const todoDecoder: Decoder<never, unknown> = fail("TODO!");
 
 export const queryDecoder: Decoder<Query> = either9(
-  object({ CreateStmt: createStmtDecoder }),
-  object({ AlterTableStmt: alterTableStmtDecoder }),
-  object({ IndexStmt: pojo }),
-  object({ UpdateStmt: pojo }),
-  object({ InsertStmt: pojo }),
-  object({ SelectStmt: selectStmtDecoder }),
-  object({ VariableSetStmt: pojo }),
-  object({ CreateEnumStmt: pojo }),
-  either3(
-    object({ CreateSeqStmt: pojo }),
-    object({ AlterSeqStmt: pojo }),
-    object({ ViewStmt: pojo })
+  exact({ CreateStmt: createStmtDecoder }),
+  exact({ AlterTableStmt: alterTableStmtDecoder }),
+  exact({ IndexStmt: todoDecoder }),
+  exact({ UpdateStmt: todoDecoder }),
+  exact({ InsertStmt: todoDecoder }),
+  exact({ SelectStmt: selectStmtDecoder }),
+  exact({ VariableSetStmt: todoDecoder }),
+  exact({ CreateEnumStmt: todoDecoder }),
+  either4(
+    exact({ CreateSeqStmt: todoDecoder }),
+    exact({ AlterSeqStmt: todoDecoder }),
+    exact({ ViewStmt: todoDecoder }),
+    exact({ DropStmt: dropStmtDecoder })
   )
 );
 
@@ -95,15 +100,9 @@ export type TableField = {
   isPrimaryKey: boolean;
 };
 
-export type TableSchema = {
-  name: string;
-  def: CreateStmt;
-  text: string[];
-  fields: TableField[];
-};
-
 export type Schema = {
-  tables: TableSchema[];
+  tables: CreateStmt[];
+  constraints: unknown; // <-- To be foreign key references and indicies
 };
 
 export type Queries = Query[];

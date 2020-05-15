@@ -202,17 +202,14 @@ const files: string[] = [
   "stats",
 ];
 
-function* fixtures(): Iterator<{ name: string; sql: string }, void> {
+function* fixtures(): Iterator<string, void> {
   for (const name of files) {
     const pathToFile = resolve(
       `${__dirname}/../../fixtures/regress/${name}.sql`
     );
-    try {
-      const sql = readFileSync(pathToFile).toString();
-      yield { name, sql };
-    } catch (e) {
-      console.log(name);
-    }
+
+    const sql = readFileSync(pathToFile).toString();
+    yield sql;
   }
 }
 

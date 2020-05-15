@@ -1,16 +1,26 @@
-import { optional, mixed, array, string, guard, exact, object } from "decoders";
+import { optional, mixed, array, string, guard, exact } from "decoders";
 import pgParse from "./pgParse";
 import { queryDecoder, QueryWithText } from "./query";
 import toOriginalText from "./toOriginalText";
-import { SelectStmt } from "./selectStmt";
 import { PGError, PGErrorCode } from "../errors";
 
-export * from "./selectStmt";
 export * from "./alterTableStmt";
-export * from "./createStmt";
-export * from "./constraint";
-export * from "./query";
+export * from "./boolExpr";
+export * from "./columnRef";
 export * from "./constant";
+export * from "./constraint";
+// export * from "./createEnumStmt";
+export * from "./createStmt";
+export * from "./fromClause";
+export * from "./funcCall";
+export * from "./joinExpr";
+export * from "./index";
+export * from "./pgParse";
+export * from "./query";
+export * from "./selectStmt";
+export * from "./targetValue";
+export * from "./toOriginalText";
+export * from "./typeCast";
 
 export const parserResultDecoder = exact({
   // This is mixed because Error messages are hard to read if we do this here, we validate each query seperately
@@ -55,7 +65,9 @@ export default function* toParser(sqlIterator: Iterator<string, void>): Parser {
       } catch (e) {
         throw new PGError(
           PGErrorCode.NOT_UNDERSTOOD,
-          `Unable to understand query ${`\n\n${text}\n\n`} ${e.message}`
+          `Unable to understand query ${index}: ${`\n\n${text}\n\n`} ${
+            e.message
+          }`
         );
       }
     }
@@ -63,13 +75,3 @@ export default function* toParser(sqlIterator: Iterator<string, void>): Parser {
     curr = sqlIterator.next();
   }
 }
-
-// export function parseSelect(str: string): SelectStmt {
-//   const queries = parse(str);
-
-//   if (queries.length !== 1 || !("SelectStmt" in queries[0].query)) {
-//     throw new PGError(PGErrorCode.INVALID, "Expected a single SELECT");
-//   }
-
-//   return queries[0].query.SelectStmt;
-// }

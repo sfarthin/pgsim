@@ -1,14 +1,16 @@
 import toResultType from "../src/toResultType";
 import { getSingleQuery, toSchemaFromString } from "../src";
 
-const expectResultType = (schema: string, selectString: string) =>
-  expect(
-    toResultType(
-      getSingleQuery(selectString),
-      selectString,
-      toSchemaFromString(schema)
-    )
-  );
+const expectResultType = (schema: string, selectString: string) => {
+  try {
+    return expect(
+      toResultType(getSingleQuery(selectString), toSchemaFromString(schema))
+    );
+  } catch (e) {
+    e.message = `${schema}\n\n${selectString}\n\n${e.message}`;
+    throw e;
+  }
+};
 
 describe("toResultType", () => {
   it("Simple string select", () => {
@@ -43,7 +45,7 @@ describe("toResultType", () => {
           );
           CREATE TABLE locations (
               id BIGSERIAL PRIMARY KEY,
-              user_id BIGSERIAL NOT NULL REFERENCES users(id) ON UPDATE CASCADE ON DELETE CASCADE,
+              user_id BIGSERIAL NOT NULL REFERENCES users(id),
               state VARCHAR(250) NOT NULL,
               country VARCHAR(250) NOT NULL
           );

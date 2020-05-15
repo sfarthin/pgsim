@@ -5,11 +5,10 @@ import { fromSelect } from "./selectStmt";
 
 export default function toResultType(
   query: Query,
-  text: string = "",
   schema: Schema = emptySchema
-): { type: Field[]; text: string } {
+): Field[] {
   if ("SelectStmt" in query) {
-    return { type: fromSelect(schema, query.SelectStmt), text };
+    return fromSelect(schema, query.SelectStmt);
   } else {
     throw new Error(`Todo ${Object.keys(query)[0]}`);
   }

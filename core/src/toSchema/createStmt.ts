@@ -1,17 +1,16 @@
 import { Schema, CreateStmt } from "../toParser";
 import { PGErrorCode, PGError } from "../errors";
-import { toTableField, toTableName } from "./toTableField";
+import { toTableName } from "./toTableField";
 
 export default function createStmt(
   createStmt: CreateStmt,
-  text: string,
   schema: Schema
 ): Schema {
   const tables = schema.tables;
   const name = toTableName(createStmt);
 
   // Make sure there are no other tables with this name
-  const duplicateTable = tables.find(({ def }) => toTableName(def) === name);
+  const duplicateTable = tables.find((def) => toTableName(def) === name);
 
   if (duplicateTable) {
     throw new PGError(
@@ -20,12 +19,9 @@ export default function createStmt(
     );
   }
 
-  const fields = [];
-  for (let { ColumnDef: columnDef } of createStmt.tableElts) {
-    fields.push(toTableField(columnDef));
-  }
-
-  const newTable = { name, fields, def: createStmt, text: [text] };
+  // TODO Remove foriegn keys and indeicies
+  // and put it in constraints.
+  const newTable = createStmt;
 
   return {
     ...schema,

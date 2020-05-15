@@ -39,22 +39,25 @@ export default function* toLinter(
   _options: LintOptions | void,
   existingSchema: Schema | void
 ): Iterator<LintError, void> {
-  let lintErrors: LintError[] = [];
   let index = 0;
   try {
     const parser = toParser(sqlIterator);
     let curr = parser.next();
     let schema = existingSchema ? existingSchema : emptySchema;
-    const options = _options ? _options : defaultOptions;
+    // const options = _options ? _options : defaultOptions;
 
     while (!curr.done) {
       try {
-        const { query, text } = curr.value;
-        const resultType = toResultType(query, text, schema);
+        const { query } = curr.value;
 
-        // TODO process query and resultType
+        if ("SelectStmt" in query) {
+          toResultType(query, schema);
+        }
 
-        schema = modifySchema(query, text, schema);
+        // TODO lint(query)
+        // WIll run appropiate resultType inside there.
+
+        schema = modifySchema(query, schema);
       } catch (e) {
         /**
          * This catch block catches errors when processing
@@ -66,7 +69,7 @@ export default function* toLinter(
         }
 
         yield {
-          sql: curr && typeof curr.value === "string" ? curr.value : null,
+          sql: curr ? curr.value.text : null,
           index,
           code: e.id,
           message: String(e.message),

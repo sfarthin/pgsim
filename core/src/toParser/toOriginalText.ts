@@ -10,7 +10,7 @@ const textQueryDecoder = compose(
 
 const verifyTextQuery = guard(textQueryDecoder);
 
-let cache = {};
+const cache = {};
 
 export default function getTextFromQuery(
   sql: string,

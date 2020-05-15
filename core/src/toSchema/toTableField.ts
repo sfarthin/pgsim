@@ -1,5 +1,4 @@
 import {
-  TableSchema,
   ColumnDef,
   isNullable,
   getReference,
@@ -8,6 +7,8 @@ import {
   TableField,
   CreateStmt,
   AlterTableStmt,
+  Schema,
+  verifyColumnDef,
 } from "../toParser";
 
 export function toTableName(c: CreateStmt | AlterTableStmt): string {
@@ -18,26 +19,30 @@ export function toTableField(columnDef: ColumnDef): TableField {
   return {
     name: columnDef.colname,
     type: getPrimitiveType(columnDef),
-    isNullable: isNullable(columnDef.constraints),
-    references: getReference(columnDef.constraints),
+    isNullable: isNullable(columnDef.constraints || []),
+    references: getReference(columnDef.constraints || []),
     isPrimaryKey: isPrimaryKey(columnDef.constraints),
   };
 }
 
-export function addFieldToTable(
-  tableSchema: TableSchema,
-  text: string,
-  columnDef: ColumnDef
-) {
-  const def = {
-    ...tableSchema.def,
-    tableElts: tableSchema.def.tableElts.concat({ ColumnDef: columnDef }),
-  };
+export function toTableFields(
+  schema: Schema
+): { name: string; fields: TableField[] }[] {
+  return schema.tables.map((def) => ({
+    name: toTableName(def),
+    fields: def.tableElts.map((col) => {
+      const columnDef = verifyColumnDef(col.ColumnDef);
+      return toTableField(columnDef);
+    }),
+  }));
+}
 
+export function addFieldToTable(
+  def: CreateStmt,
+  columnDef: ColumnDef
+): CreateStmt {
   return {
-    ...tableSchema,
-    text: tableSchema.text.concat(text),
-    fields: tableSchema.fields.concat(toTableField(columnDef)),
-    def,
+    ...def,
+    tableElts: def.tableElts.concat({ ColumnDef: columnDef }),
   };
 }

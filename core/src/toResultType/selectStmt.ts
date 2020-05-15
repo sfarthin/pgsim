@@ -11,6 +11,8 @@ import {
   verifySelectStatement,
   A_Const,
   ColumnRef,
+  verifyColumnDef,
+  verifyResTarget,
 } from "../toParser";
 import { PGErrorCode, PGError } from "../errors";
 import { Source, Field } from "./types";
@@ -77,9 +79,9 @@ function fromConstant(constant: A_Const): Field {
   };
 }
 
-function fromColumnRef(columnRef: ColumnRef, sources: Source[]) {
+function fromColumnRef(columnRef: ColumnRef, sources: Source[]): Field {
   const fields = columnRef.fields;
-  if (fields.length === 2) {
+  if (fields.length === 2 && "String" in fields[1]) {
     const sourceName = fields[0].String.str;
     const fieldName = fields[1].String.str;
     const source = sources.find((s) => s.name === sourceName);
@@ -126,7 +128,7 @@ function fromColumnRef(columnRef: ColumnRef, sources: Source[]) {
 
   throw new PGError(
     PGErrorCode.NOT_UNDERSTOOD,
-    `Unsure how to hanfle ${fields.length} fields`
+    `Unsure how to hanfle ${fields}`
   );
 }
 
@@ -146,17 +148,18 @@ function fromTargetValue(target: TargetValue, sources: Source[]): Field {
 }
 
 function getSourceFromTableName(schema: Schema, tablename: string): Source {
-  const tables = [];
-
-  for (let table of schema.tables) {
-    if (table.def.relation.RangeVar.relname === tablename) {
+  for (const table of schema.tables) {
+    if (table.relation.RangeVar.relname === tablename) {
       return {
         name: tablename,
-        fields: table.def.tableElts.map((t) => ({
-          name: t.ColumnDef.colname,
-          isNullable: isNullable(t.ColumnDef.constraints),
-          type: getPrimitiveType(t.ColumnDef),
-        })),
+        fields: table.tableElts.map((t) => {
+          const columnDef = verifyColumnDef(t.ColumnDef);
+          return {
+            name: columnDef.colname,
+            isNullable: isNullable(columnDef.constraints || []),
+            type: getPrimitiveType(columnDef),
+          };
+        }),
       };
     }
   }
@@ -169,7 +172,7 @@ function getSourceFromTableName(schema: Schema, tablename: string): Source {
 
 function getSources(schema: Schema, fromClauses: FromClause[]): Source[] {
   let sources: Source[] = [];
-  for (let fromClause of fromClauses) {
+  for (const fromClause of fromClauses) {
     if ("RangeVar" in fromClause) {
       sources = sources.concat(
         getSourceFromTableName(schema, fromClause.RangeVar.relname)
@@ -186,7 +189,7 @@ function getSources(schema: Schema, fromClauses: FromClause[]): Source[] {
         name: fromClause.RangeSubselect.alias.Alias.aliasname,
         fields: fromSelect(
           schema,
-          verifySelectStatement(fromClause.RangeSubselect.subquery.SelectStmt)
+          verifySelectStatement(fromClause.RangeSubselect.subquery).SelectStmt
         ),
       });
     } else {
@@ -201,11 +204,13 @@ function getSources(schema: Schema, fromClauses: FromClause[]): Source[] {
 }
 
 export function fromSelect(schema: Schema, query: SelectStmt): Field[] {
-  const sources = getSources(schema, query.fromClause || []);
+  const fromClauses = (query.fromClause || []).map(verifyFromClause);
+  const sources = getSources(schema, fromClauses);
 
-  let fields: Field[] = [];
+  const fields: Field[] = [];
 
-  for (const { ResTarget: target } of query.targetList) {
+  for (const { ResTarget: t } of query.targetList) {
+    const target = verifyResTarget(t);
     const { name, type, isNullable } = fromTargetValue(target.val, sources);
     fields.push({
       name: target.name ? target.name : name,

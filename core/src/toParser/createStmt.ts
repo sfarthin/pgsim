@@ -1,31 +1,17 @@
 import {
+  guard,
   optional,
   array,
   string,
-  object,
+  exact,
   Decoder,
   number,
   boolean,
+  mixed,
 } from "decoders";
 import { Constraint, constraintDecoder } from "./constraint";
-
-export type TypeName = {
-  names: Array<{
-    String: { str: string };
-  }>;
-  typemod: number;
-  location: number;
-};
-
-export const typeNameDecoder: Decoder<TypeName> = object({
-  names: array(
-    object({
-      String: object({ str: string }),
-    })
-  ),
-  typemod: number,
-  location: number,
-});
+import { TypeName, typeNameDecoder } from "./typeCast";
+import { RangeVar, rangeVarDecoder } from "./rangeVar";
 
 export type ColumnDef = {
   colname: string;
@@ -35,43 +21,32 @@ export type ColumnDef = {
   location: number;
 };
 
-export const columnDefDecoder: Decoder<ColumnDef> = object({
+export const columnDefDecoder: Decoder<ColumnDef> = exact({
   colname: string,
-  typeName: object({ TypeName: typeNameDecoder }),
-  constraints: optional(array(object({ Constraint: constraintDecoder }))),
+  typeName: exact({ TypeName: typeNameDecoder }),
+  constraints: optional(array(exact({ Constraint: constraintDecoder }))),
   is_local: boolean,
   location: number,
 });
 
+export const verifyColumnDef = guard(columnDefDecoder);
+
 export type Relation = {
-  RangeVar: {
-    relname: string;
-    // 0 = No, 1 = Yes, 2 = Default
-    // https://docs.huihoo.com/doxygen/postgresql/primnodes_8h.html#a3a00c823fb80690cdf8373d6cb30b9c8
-    inhOpt: number;
-    // p = permanent table, u = unlogged table, t = temporary table
-    relpersistence: string;
-    location: number;
-  };
+  RangeVar: RangeVar;
 };
 
-export const relationDecoder = object({
-  RangeVar: object({
-    relname: string,
-    inhOpt: number,
-    relpersistence: string,
-    location: number,
-  }),
+export const relationDecoder = exact({
+  RangeVar: rangeVarDecoder,
 });
 
 export type CreateStmt = {
   relation: Relation;
-  tableElts: Array<{ ColumnDef: ColumnDef }>;
+  tableElts: Array<{ ColumnDef: unknown }>;
   oncommit: number;
 };
 
-export const createStmtDecoder = object({
+export const createStmtDecoder = exact({
   relation: relationDecoder,
-  tableElts: array(object({ ColumnDef: columnDefDecoder })),
+  tableElts: array(exact({ ColumnDef: mixed })),
   oncommit: number,
 });

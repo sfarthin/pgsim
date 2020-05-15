@@ -1,28 +1,35 @@
 import { Schema, Query } from "./toParser";
-import toResultType from "./toResultType";
 import toLinter, { LintError, LintOptions } from "./toLinter";
 import toParser from "./toParser";
 import { fromFiles, fromString } from "./toSql";
 import toArray from "./iteratorToArray";
-import toSchema from "./toSchema";
+import toSchema, { toTableFields } from "./toSchema";
 import { PGError, PGErrorCode } from "./errors";
 
-export { PGErrorCode };
+export { PGErrorCode, toTableFields, LintOptions, toArray };
 
 export function lintString(
   str: string,
   options: LintOptions | void,
   schema: Schema | void
-): LintError[] {
-  return toArray(toLinter(fromString(str), options, schema));
+): Iterator<LintError, void> {
+  return toLinter(fromString(str), options, schema);
 }
 
 export function lintFiles(
   files: string[],
   options: LintOptions | void,
   schema: Schema | void
-): LintError[] {
-  return toArray(toLinter(fromFiles(files), options, schema));
+): Iterator<LintError, void> {
+  return toLinter(fromFiles(files), options, schema);
+}
+
+export function lintStream(
+  stream: Iterator<string>,
+  options: LintOptions | void,
+  schema: Schema | void
+): Iterator<LintError, void> {
+  return toLinter(stream, options, schema);
 }
 
 export function getSingleQuery(str: string): Query {
