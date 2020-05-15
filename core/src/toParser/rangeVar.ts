@@ -1,4 +1,5 @@
-import { string, exact, number } from "decoders";
+import { string, exact, number, optional } from "decoders";
+import { Alias, aliasDecoder } from "./alias";
 
 export type RangeVar = {
   relname: string;
@@ -8,6 +9,7 @@ export type RangeVar = {
   // p = permanent table, u = unlogged table, t = temporary table
   relpersistence: string;
   location: number;
+  alias?: { Alias: Alias };
 };
 
 export const rangeVarDecoder = exact({
@@ -15,4 +17,5 @@ export const rangeVarDecoder = exact({
   inhOpt: number,
   relpersistence: string,
   location: number,
+  alias: optional(exact({ Alias: aliasDecoder })),
 });

@@ -16,6 +16,7 @@ import {
 } from "../toParser";
 import { PGErrorCode, PGError } from "../errors";
 import { Source, Field } from "./types";
+import { RangeVar } from "../toParser/rangeVar";
 
 function fromFunctionCall(funcCall: FuncCall, sources: Source[]): Field {
   if (funcCall.funcname.length !== 1) {
@@ -43,9 +44,13 @@ function fromFunctionCall(funcCall: FuncCall, sources: Source[]): Field {
         }
 
         const target = verifyTargetValue(funcCall.args[0]);
-        const { type } = fromTargetValue(target, sources);
+        const fieldsFromTarget = fromTargetValue(target, sources);
 
-        return { name, type, isNullable: true };
+        if (fieldsFromTarget.length !== 1) {
+          throw new PGError(PGErrorCode.INVALID, `invalid argument to ${name}`);
+        }
+
+        return { name, type: fieldsFromTarget[0].type, isNullable: true };
       } else {
         // This much mean star is used.
         throw new PGError(PGErrorCode.INVALID, `${name}(*) not allowed`);
@@ -79,7 +84,7 @@ function fromConstant(constant: A_Const): Field {
   };
 }
 
-function fromColumnRef(columnRef: ColumnRef, sources: Source[]): Field {
+function fromColumnRef(columnRef: ColumnRef, sources: Source[]): Field[] {
   const fields = columnRef.fields;
   if (fields.length === 2 && "String" in fields[1]) {
     const sourceName = fields[0].String.str;
@@ -102,8 +107,17 @@ function fromColumnRef(columnRef: ColumnRef, sources: Source[]): Field {
       );
     }
 
-    return field;
-  } else if (fields.length === 1) {
+    return [field];
+  } else if (fields.length === 1 && "A_Star" in fields[0]) {
+    if (sources.length !== 1) {
+      throw new PGError(
+        PGErrorCode.INVALID,
+        `Cannot use * when multiple tables in FROM`
+      );
+    }
+
+    return sources[0].fields;
+  } else if (fields.length === 1 && "String" in fields[0]) {
     const fieldName = fields[0].String.str;
 
     const possibleSources = sources.filter(({ fields }) =>
@@ -123,7 +137,7 @@ function fromColumnRef(columnRef: ColumnRef, sources: Source[]): Field {
       throw new PGError(PGErrorCode.INVALID, `${fieldName} not found`);
     }
 
-    return field;
+    return [field];
   }
 
   throw new PGError(
@@ -132,13 +146,13 @@ function fromColumnRef(columnRef: ColumnRef, sources: Source[]): Field {
   );
 }
 
-function fromTargetValue(target: TargetValue, sources: Source[]): Field {
+function fromTargetValue(target: TargetValue, sources: Source[]): Field[] {
   if ("ColumnRef" in target) {
     return fromColumnRef(target.ColumnRef, sources);
   } else if ("FuncCall" in target) {
-    return fromFunctionCall(target.FuncCall, sources);
+    return [fromFunctionCall(target.FuncCall, sources)];
   } else if ("A_Const" in target) {
-    return fromConstant(target.A_Const);
+    return [fromConstant(target.A_Const)];
   }
 
   throw new PGError(
@@ -147,11 +161,15 @@ function fromTargetValue(target: TargetValue, sources: Source[]): Field {
   );
 }
 
-function getSourceFromTableName(schema: Schema, tablename: string): Source {
+function getSourceFromRangeVar(schema: Schema, rangeVar: RangeVar): Source {
+  const name = rangeVar.alias
+    ? rangeVar.alias.Alias.aliasname // is aliased table
+    : rangeVar.relname; // is table name
+
   for (const table of schema.tables) {
-    if (table.relation.RangeVar.relname === tablename) {
+    if (table.relation.RangeVar.relname === rangeVar.relname) {
       return {
-        name: tablename,
+        name,
         fields: table.tableElts.map((t) => {
           const columnDef = verifyColumnDef(t.ColumnDef);
           return {
@@ -166,7 +184,7 @@ function getSourceFromTableName(schema: Schema, tablename: string): Source {
 
   throw new PGError(
     PGErrorCode.INVALID,
-    `Table "${tablename}" does not exisit`
+    `Table "${rangeVar.relname}" does not exisit`
   );
 }
 
@@ -175,7 +193,7 @@ function getSources(schema: Schema, fromClauses: FromClause[]): Source[] {
   for (const fromClause of fromClauses) {
     if ("RangeVar" in fromClause) {
       sources = sources.concat(
-        getSourceFromTableName(schema, fromClause.RangeVar.relname)
+        getSourceFromRangeVar(schema, fromClause.RangeVar)
       );
     } else if ("JoinExpr" in fromClause) {
       const larg = verifyFromClause(fromClause.JoinExpr.larg);
@@ -209,15 +227,21 @@ export function fromSelect(schema: Schema, query: SelectStmt): Field[] {
 
   const fields: Field[] = [];
 
-  for (const { ResTarget: t } of query.targetList) {
-    const target = verifyResTarget(t);
-    const { name, type, isNullable } = fromTargetValue(target.val, sources);
-    fields.push({
-      name: target.name ? target.name : name,
-      type,
-      isNullable,
-    });
+  if ("targetList" in query) {
+    for (const { ResTarget: t } of query.targetList) {
+      const target = verifyResTarget(t);
+      const fieldsFromTarget = fromTargetValue(target.val, sources);
+      for (const { name, type, isNullable } of fieldsFromTarget) {
+        fields.push({
+          name: target.name ? target.name : name,
+          type,
+          isNullable,
+        });
+      }
+    }
+
+    return fields;
   }
 
-  return fields;
+  throw new PGError(PGErrorCode.NOT_UNDERSTOOD, `Do not understand valueLists`);
 }

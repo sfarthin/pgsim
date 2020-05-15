@@ -65,6 +65,9 @@ export default function* toLinter(
          */
 
         if (!e.id) {
+          if (curr.value.text) {
+            e.message = `\n\n${curr.value.text}\n${e.message}`;
+          }
           throw e;
         }
 

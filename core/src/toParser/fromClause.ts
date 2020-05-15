@@ -1,47 +1,29 @@
-import {
-  guard,
-  string,
-  number,
-  exact,
-  Decoder,
-  mixed,
-  either3,
-} from "decoders";
+import { guard, exact, Decoder, mixed, either4 } from "decoders";
 import { JoinExpr, joinExprDecoder } from "./joinExpr";
-
-export type RangeVar = {
-  relname: string;
-  inhOpt: number;
-  relpersistence: string;
-  location: number;
-};
-
-export const rangeVarDecoder: Decoder<RangeVar> = exact({
-  relname: string,
-  inhOpt: number,
-  relpersistence: string,
-  location: number,
-});
+import { aliasDecoder, Alias } from "./alias";
+import { RangeVar, rangeVarDecoder } from "./rangeVar";
 
 export type RangeSubselect = {
   subquery: unknown; // <--- Need to decode it at runtime,
-  alias: { Alias: { aliasname: string } }; // <-- Must have an alias when in from
+  alias: { Alias: Alias }; // <-- Must have an alias when in from
 };
 
 export const rangeSubselectDecoder = exact({
   subquery: mixed,
-  alias: exact({ Alias: exact({ aliasname: string }) }),
+  alias: exact({ Alias: aliasDecoder }),
 });
 
 export type FromClause =
   | { RangeVar: RangeVar }
   | { JoinExpr: JoinExpr }
-  | { RangeSubselect: RangeSubselect };
+  | { RangeSubselect: RangeSubselect }
+  | { RangeFunction: unknown };
 
-export const fromClauseDecoder: Decoder<FromClause> = either3(
+export const fromClauseDecoder: Decoder<FromClause> = either4(
   exact({ JoinExpr: joinExprDecoder }),
   exact({ RangeVar: rangeVarDecoder }),
-  exact({ RangeSubselect: rangeSubselectDecoder }) // nested queries
+  exact({ RangeSubselect: rangeSubselectDecoder }), // nested queries
+  exact({ RangeFunction: mixed }) // select * from generate_series(-5, 5) t(i)
 );
 
 export const verifyFromClause = guard(fromClauseDecoder);

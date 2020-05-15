@@ -14,12 +14,14 @@ export type JoinExpr =
       larg: unknown; // <-- Should be FromClause, but that is cyclic, so we have to do it at runtime
       rarg: unknown; // <-- Should be FromClause, but that is cyclic, so we have to do it at runtime
       quals: unknown;
+      isNatural?: unknown;
     }
   | {
       jointype: JoinType.Left;
       larg: unknown; // <-- Should be FromClause, but that is cyclic, so we have to do it at runtime
       rarg: unknown; // <-- Should be FromClause, but that is cyclic, so we have to do it at runtime
       quals: unknown;
+      isNatural?: unknown;
     };
 
 export const joinExprDecoder: Decoder<JoinExpr> = either(
@@ -28,11 +30,13 @@ export const joinExprDecoder: Decoder<JoinExpr> = either(
     larg: mixed,
     rarg: mixed,
     quals: mixed,
+    isNatural: mixed,
   }),
   exact({
     jointype: leftTypeDecoder,
     larg: mixed,
     rarg: mixed,
     quals: mixed,
+    isNatural: mixed,
   })
 );

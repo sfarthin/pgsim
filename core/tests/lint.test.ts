@@ -5,7 +5,7 @@ import {
   LintOptions,
   toArray,
 } from "../src";
-import fixtures from "./fixtures";
+import fixtures, { lintFiles } from "./fixtures";
 
 function expectLint(str: string, options: LintOptions = {}) {
   return expect(
@@ -31,8 +31,17 @@ describe("lintQuery", () => {
 describe("lint fixtures", () => {
   it.only("can lint regress fixtures", () => {
     // TODO allow processing of SQL together, with now schema.
-    const result = toArray(lintStream(fixtures()));
-    console.log(result.map((r) => r.message).join("\n"));
+    const iter = fixtures();
+    let curr = iter.next();
+    let index = 0;
+
+    while (!curr.done) {
+      console.log(lintFiles[index]);
+      toArray(lintString(curr.value));
+
+      curr = iter.next();
+      index++;
+    }
   });
 });
 

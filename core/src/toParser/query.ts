@@ -1,40 +1,55 @@
-import { array, exact, fail, Decoder, either9, either4 } from "decoders";
+import { array, exact, mixed, Decoder, either9, either3 } from "decoders";
 import { CreateStmt, createStmtDecoder, ColumnDef } from "./createStmt";
 import { AlterTableStmt, alterTableStmtDecoder } from "./alterTableStmt";
 import { SelectStmt, selectStmtDecoder } from "./selectStmt";
 import { PGError, PGErrorCode } from "../errors";
-import { DropStmt, dropStmtDecoder } from "./dropTable";
+// import { DropStmt, dropStmtDecoder } from "./dropTable";
+import { insertStmtDecoder, InsertStmt } from "./insertStmt";
 
 export type Query =
   | { CreateStmt: CreateStmt }
   | { AlterTableStmt: AlterTableStmt }
-  | { IndexStmt: never }
-  | { UpdateStmt: never }
-  | { InsertStmt: unknown }
+  | { InsertStmt: InsertStmt }
   | { SelectStmt: SelectStmt }
+  | { IndexStmt: unknown }
+  | { UpdateStmt: unknown }
   | { VariableSetStmt: unknown }
   | { CreateEnumStmt: unknown }
   | { CreateSeqStmt: unknown }
   | { AlterSeqStmt: unknown }
   | { ViewStmt: unknown }
-  | { DropStmt: DropStmt };
-
-const todoDecoder: Decoder<never, unknown> = fail("TODO!");
+  | { DropStmt: unknown }
+  | { DefineStmt: unknown }
+  | { CreateFunctionStmt: unknown }
+  | { CreateCastStmt: unknown }
+  | { DeleteStmt: unknown }
+  | { CreateRangeStmt: unknown }
+  | { TruncateStmt: unknown }
+  | { ExplainStmt: unknown };
 
 export const queryDecoder: Decoder<Query> = either9(
   exact({ CreateStmt: createStmtDecoder }),
   exact({ AlterTableStmt: alterTableStmtDecoder }),
-  exact({ IndexStmt: todoDecoder }),
-  exact({ UpdateStmt: todoDecoder }),
-  exact({ InsertStmt: todoDecoder }),
+  exact({ InsertStmt: insertStmtDecoder }),
   exact({ SelectStmt: selectStmtDecoder }),
-  exact({ VariableSetStmt: todoDecoder }),
-  exact({ CreateEnumStmt: todoDecoder }),
-  either4(
-    exact({ CreateSeqStmt: todoDecoder }),
-    exact({ AlterSeqStmt: todoDecoder }),
-    exact({ ViewStmt: todoDecoder }),
-    exact({ DropStmt: dropStmtDecoder })
+  exact({ IndexStmt: mixed }),
+  exact({ UpdateStmt: mixed }),
+  exact({ VariableSetStmt: mixed }),
+  exact({ CreateEnumStmt: mixed }),
+  either9(
+    exact({ CreateSeqStmt: mixed }),
+    exact({ AlterSeqStmt: mixed }),
+    exact({ ViewStmt: mixed }),
+    exact({ DropStmt: mixed }),
+    exact({ DefineStmt: mixed }),
+    exact({ CreateFunctionStmt: mixed }),
+    exact({ CreateCastStmt: mixed }),
+    exact({ DeleteStmt: mixed }),
+    either3(
+      exact({ CreateRangeStmt: mixed }),
+      exact({ TruncateStmt: mixed }),
+      exact({ ExplainStmt: mixed })
+    )
   )
 );
 

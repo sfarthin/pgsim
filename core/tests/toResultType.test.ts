@@ -150,6 +150,21 @@ describe("toResultType", () => {
     ).toEqual([{ isNullable: false, name: "count", type: "int8" }]);
   });
 
+  it("star", () => {
+    expectResultType(
+      `
+          CREATE TABLE accounts (
+              id BIGSERIAL PRIMARY KEY,
+              joined_at VARCHAR(250)
+          );
+      `,
+      `SELECT * FROM accounts`
+    ).toEqual([
+      { isNullable: true, name: "id", type: "bigserial" },
+      { isNullable: true, name: "joined_at", type: "varchar" },
+    ]);
+  });
+
   it("COUNT star", () => {
     expectResultType(
       `
@@ -206,5 +221,16 @@ describe("toResultType", () => {
       `,
       `SELECT foo.user_id FROM (SELECT user_id FROM accounts WHERE id = 1) as foo`
     ).toEqual([{ isNullable: false, name: "user_id", type: "bigserial" }]);
+  });
+
+  it("aliased table", () => {
+    expectResultType(
+      `
+          CREATE TABLE users (
+              id BIGSERIAL PRIMARY KEY
+          );
+      `,
+      `SELECT u.id FROM users u`
+    ).toEqual([{ isNullable: true, name: "id", type: "bigserial" }]);
   });
 });

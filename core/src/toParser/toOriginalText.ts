@@ -37,7 +37,7 @@ export default function getTextFromQuery(
     totalQueries !== parsedTextQueries.length ||
     !parsedTextQueries[indexOfQuery]
   ) {
-    throw new Error("Unexpected number of queries");
+    return "";
   }
 
   return parsedTextQueries[indexOfQuery];

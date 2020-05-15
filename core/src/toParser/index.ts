@@ -57,19 +57,10 @@ export default function* toParser(sqlIterator: Iterator<string, void>): Parser {
       const unSafeQuery = queries[index];
       const text = toOriginalText(sql, Number(index));
 
-      try {
-        yield {
-          query: validateQuery(unSafeQuery),
-          text,
-        };
-      } catch (e) {
-        throw new PGError(
-          PGErrorCode.NOT_UNDERSTOOD,
-          `Unable to understand query ${index}: ${`\n\n${text}\n\n`} ${
-            e.message
-          }`
-        );
-      }
+      yield {
+        query: validateQuery(unSafeQuery),
+        text,
+      };
     }
 
     curr = sqlIterator.next();

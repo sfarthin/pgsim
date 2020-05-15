@@ -1,12 +1,13 @@
 import {
-  guard,
   string,
   number,
   exact,
   Decoder,
-  array,
   optional,
+  guard,
   mixed,
+  array,
+  either,
 } from "decoders";
 import { targetValueDecoder, TargetValue } from "./targetValue";
 
@@ -16,28 +17,53 @@ export type ResTarget = {
   location: number;
 };
 
-const resTargetDecoder: Decoder<ResTarget> = exact({
+export const resTargetDecoder: Decoder<ResTarget> = exact({
   name: optional(string),
   val: targetValueDecoder,
   location: number,
 });
 
-export type SelectStmt = {
-  targetList: { ResTarget: unknown }[];
-  fromClause: unknown[] | void;
-  whereClause: unknown;
-  op: number;
-};
+export const verifyResTarget = guard(resTargetDecoder);
 
-export const selectStmtDecoder: Decoder<SelectStmt> = exact({
-  targetList: array(exact({ ResTarget: mixed })),
-  fromClause: optional(array(mixed)),
-  whereClause: optional(mixed),
-  op: number,
-});
+export type SelectStmt =
+  | {
+      targetList: { ResTarget: unknown }[];
+      fromClause: unknown[] | void;
+      whereClause: unknown;
+      withClause?: unknown;
+      limitOffset?: unknown;
+      distinctClause?: unknown;
+      sortClause: unknown;
+      op: number;
+    }
+  | {
+      valuesLists: unknown;
+      fromClause: unknown[] | void;
+      whereClause: unknown;
+      sortClause: unknown;
+      op: number;
+    };
+
+export const selectStmtDecoder: Decoder<SelectStmt> = either(
+  exact({
+    targetList: array(exact({ ResTarget: mixed })),
+    fromClause: optional(array(mixed)),
+    whereClause: optional(mixed),
+    withClause: mixed,
+    limitOffset: mixed,
+    distinctClause: optional(mixed),
+    sortClause: mixed,
+    op: number,
+  }),
+  exact({
+    valuesLists: mixed,
+    fromClause: optional(array(mixed)),
+    whereClause: optional(mixed),
+    sortClause: mixed,
+    op: number,
+  })
+);
 
 export const verifySelectStatement = guard(
   exact({ SelectStmt: selectStmtDecoder })
 );
-
-export const verifyResTarget = guard(resTargetDecoder);

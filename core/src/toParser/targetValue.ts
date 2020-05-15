@@ -1,4 +1,4 @@
-import { guard, exact, Decoder, either7 } from "decoders";
+import { guard, exact, Decoder, either8 } from "decoders";
 
 import { A_Const, aConstDecoder } from "./constant";
 import { TypeCast, typeCastDecoder } from "./typeCast";
@@ -7,6 +7,7 @@ import { ColumnRef, columnRefDecoder } from "./columnRef";
 import { BoolExpr, boolExprDecoder } from "./boolExpr";
 import { AExpr, aExprDecoder } from "./aExpr";
 import { BooleanTest, booleanTestDecoder } from "./booleanTest";
+import { NullTest, nullTestDecoder } from "./nullTest";
 
 export type TargetValue =
   | { ColumnRef: ColumnRef }
@@ -15,16 +16,18 @@ export type TargetValue =
   | { TypeCast: TypeCast }
   | { BoolExpr: BoolExpr }
   | { A_Expr: AExpr }
-  | { BooleanTest: BooleanTest };
+  | { BooleanTest: BooleanTest }
+  | { NullTest: NullTest };
 
-export const targetValueDecoder: Decoder<TargetValue> = either7(
+export const targetValueDecoder: Decoder<TargetValue> = either8(
   exact({ ColumnRef: columnRefDecoder }),
   exact({ FuncCall: funcCallDecoder }),
   exact({ A_Const: aConstDecoder }),
   exact({ TypeCast: typeCastDecoder }),
   exact({ BoolExpr: boolExprDecoder }),
   exact({ A_Expr: aExprDecoder }),
-  exact({ BooleanTest: booleanTestDecoder }) // someting IS true
+  exact({ BooleanTest: booleanTestDecoder }), // someting IS true
+  exact({ NullTest: nullTestDecoder }) // something is NULL
 );
 
 export const verifyTargetValue = guard(targetValueDecoder);

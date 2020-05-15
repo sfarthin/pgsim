@@ -45,6 +45,12 @@ export type Constraint =
       };
       pk_attrs: [PGString];
     };
+// | {
+//     contype: 6;
+//     access_method: unknown;
+//     exclusions: unknown;
+//     location: number;
+//   };
 
 export const constraintDecoder: Decoder<Constraint> = either3(
   exact({
@@ -67,6 +73,12 @@ export const constraintDecoder: Decoder<Constraint> = either3(
     }),
     pk_attrs: tuple1(stringDecoder),
   })
+  // exact({
+  //   contype: constant(6),
+  //   access_method: mixed,
+  //   exclusions: mixed,
+  //   location: number,
+  // })
 );
 
 export function isPrimaryKey(

@@ -1,11 +1,11 @@
 import { readFileSync } from "fs";
 import { resolve } from "path";
 
-const files: string[] = [
-  //"tablespace",
+export const lintFiles: string[] = [
+  //"tablespace", // missing
   "boolean",
   "char",
-  "name",
+  //"name", // NEED PEGJS to parse statements.
   "varchar",
   "text",
   "int2",
@@ -21,7 +21,7 @@ const files: string[] = [
   "uuid",
   "enum",
   "money",
-  "rangetypes",
+  // "rangetypes", // cannot get SQL text
   "pg_lsn",
   "regproc",
   "strings",
@@ -53,11 +53,11 @@ const files: string[] = [
   "comments",
   "expressions",
   "unicode",
-  // "create_function_1",
+  // "create_function_1", // missing
   "create_type",
   "create_table",
-  // "create_function_2",
-  // "copy",
+  // "create_function_2", // missing
+  // "copy", // missing
   "copyselect",
   "copydml",
   "insert",
@@ -73,7 +73,7 @@ const files: string[] = [
   "create_aggregate",
   "create_function_3",
   "create_cast",
-  // "constraints",
+  // "constraints", // missing
   "triggers",
   "select",
   "inherit",
@@ -129,7 +129,7 @@ const files: string[] = [
   "create_table_like",
   "alter_generic",
   "alter_operator",
-  // "misc",
+  // "misc", // missing
   "async",
   "dbsize",
   "misc_functions",
@@ -185,7 +185,7 @@ const files: string[] = [
   "polymorphism",
   "rowtypes",
   "returning",
-  // "largeobject",
+  // "largeobject", // missing
   "with",
   "xml",
   "partition_join",
@@ -203,7 +203,7 @@ const files: string[] = [
 ];
 
 function* fixtures(): Iterator<string, void> {
-  for (const name of files) {
+  for (const name of lintFiles) {
     const pathToFile = resolve(
       `${__dirname}/../../fixtures/regress/${name}.sql`
     );
