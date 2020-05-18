@@ -1,5 +1,5 @@
 {
-  "name": "@pgsim/dev",
+  "name": "@pgsim/core",
   "version": "0.0.1",
   "main": "index.js",
   "license": "MIT",
@@ -7,10 +7,8 @@
     "dist"
   ],
   "scripts": {
-    "build": "npm run clean && npm run compile",
-    "clean": "rm -rf ./dist",
-    "compile": "tsc -p tsconfig.build.json",
-    "test": "tsc -p . && jest && eslint --ext .ts"
+    "build": "rm -rf ./dist && tsc -p ./tsconfig.build.json",
+    "test": "tsc && jest && eslint --ext .ts ."
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",

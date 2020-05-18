@@ -1,10 +1,4 @@
 {
-  "extends": "../tsconfig.build.json",
-
-  "compilerOptions": {
-    "strict": true,
-    "outDir": "./dist"
-  },
-
-  "include": ["src/**/*", "tests/**/*", "../fixtures/regress/fixtures.ts"]
+  "extends": "./tsconfig.build.json",
+  "include": ["src/**/*", "tests/**/*"]
 }

@@ -5,7 +5,7 @@ import pgParse from "./pgParse";
 
 const textQueryDecoder = compose(
   string,
-  predicate((s) => s.length > 3, "Not a long enough query")
+  predicate((s) => s.length > 1, "Not a long enough query")
 );
 
 const verifyTextQuery = guard(textQueryDecoder);

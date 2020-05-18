@@ -29,18 +29,15 @@ describe("lintQuery", () => {
 });
 
 describe("lint fixtures", () => {
-  it.only("can lint regress fixtures", () => {
+  it("can lint regress fixtures", () => {
     // TODO allow processing of SQL together, with now schema.
     const iter = fixtures();
     let curr = iter.next();
-    let index = 0;
 
     while (!curr.done) {
-      console.log(lintFiles[index]);
       toArray(lintString(curr.value));
 
       curr = iter.next();
-      index++;
     }
   });
 });

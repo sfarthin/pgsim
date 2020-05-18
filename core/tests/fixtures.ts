@@ -72,7 +72,7 @@ export const lintFiles: string[] = [
   "index_including_gist",
   "create_aggregate",
   "create_function_3",
-  "create_cast",
+  "create_cast", // ^^^^ Not a long enough query
   // "constraints", // missing
   "triggers",
   "select",

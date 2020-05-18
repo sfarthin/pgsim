@@ -1,4 +1,12 @@
-import { guard, exact, Decoder, mixed, either4 } from "decoders";
+import {
+  guard,
+  exact,
+  Decoder,
+  mixed,
+  either4,
+  optional,
+  boolean,
+} from "decoders";
 import { JoinExpr, joinExprDecoder } from "./joinExpr";
 import { aliasDecoder, Alias } from "./alias";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
@@ -6,11 +14,13 @@ import { RangeVar, rangeVarDecoder } from "./rangeVar";
 export type RangeSubselect = {
   subquery: unknown; // <--- Need to decode it at runtime,
   alias: { Alias: Alias }; // <-- Must have an alias when in from
+  lateral?: boolean; // see gist.sql
 };
 
 export const rangeSubselectDecoder = exact({
   subquery: mixed,
   alias: exact({ Alias: aliasDecoder }),
+  lateral: optional(boolean),
 });
 
 export type FromClause =

@@ -4,6 +4,7 @@ import {
   array,
   string,
   exact,
+  either,
   Decoder,
   number,
   boolean,
@@ -41,12 +42,20 @@ export const relationDecoder = exact({
 
 export type CreateStmt = {
   relation: Relation;
-  tableElts: Array<{ ColumnDef: unknown }>;
+  tableElts: Array<{ ColumnDef: unknown } | { Constraint: unknown }> | void;
   oncommit: number;
+  inhRelations?: unknown; // CREATE TEMP TABLE t2c (primary key (ab)) INHERITS (t2);
+  options?: unknown;
+  if_not_exists?: boolean;
 };
 
-export const createStmtDecoder = exact({
+export const createStmtDecoder: Decoder<CreateStmt> = exact({
   relation: relationDecoder,
-  tableElts: array(exact({ ColumnDef: mixed })),
+  tableElts: optional(
+    array(either(exact({ ColumnDef: mixed }), exact({ Constraint: mixed })))
+  ),
   oncommit: number,
+  inhRelations: optional(mixed),
+  options: optional(mixed),
+  if_not_exists: optional(boolean),
 });

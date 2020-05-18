@@ -13,6 +13,7 @@ import {
   ColumnRef,
   verifyColumnDef,
   verifyResTarget,
+  CreateStmt,
 } from "../toParser";
 import { PGErrorCode, PGError } from "../errors";
 import { Source, Field } from "./types";
@@ -161,6 +162,23 @@ function fromTargetValue(target: TargetValue, sources: Source[]): Field[] {
   );
 }
 
+function getFieldsFromTable(table: CreateStmt): Field[] {
+  const fields: Field[] = [];
+  const tableElts = table.tableElts || [];
+  for (const t of tableElts) {
+    if ("ColumnDef" in t) {
+      const columnDef = verifyColumnDef(t.ColumnDef);
+      fields.push({
+        name: columnDef.colname,
+        isNullable: isNullable(columnDef.constraints || []),
+        type: getPrimitiveType(columnDef),
+      });
+    }
+  }
+
+  return fields;
+}
+
 function getSourceFromRangeVar(schema: Schema, rangeVar: RangeVar): Source {
   const name = rangeVar.alias
     ? rangeVar.alias.Alias.aliasname // is aliased table
@@ -170,14 +188,7 @@ function getSourceFromRangeVar(schema: Schema, rangeVar: RangeVar): Source {
     if (table.relation.RangeVar.relname === rangeVar.relname) {
       return {
         name,
-        fields: table.tableElts.map((t) => {
-          const columnDef = verifyColumnDef(t.ColumnDef);
-          return {
-            name: columnDef.colname,
-            isNullable: isNullable(columnDef.constraints || []),
-            type: getPrimitiveType(columnDef),
-          };
-        }),
+        fields: getFieldsFromTable(table),
       };
     }
   }
@@ -222,7 +233,9 @@ function getSources(schema: Schema, fromClauses: FromClause[]): Source[] {
 }
 
 export function fromSelect(schema: Schema, query: SelectStmt): Field[] {
-  const fromClauses = (query.fromClause || []).map(verifyFromClause);
+  const fromClauses = ("fromClause" in query ? query.fromClause || [] : []).map(
+    verifyFromClause
+  );
   const sources = getSources(schema, fromClauses);
 
   const fields: Field[] = [];

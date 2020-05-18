@@ -1,96 +1,96 @@
---
--- SELECT_DISTINCT
---
+-- --
+-- -- SELECT_DISTINCT
+-- --
 
---
--- awk '{print $3;}' onek.data | sort -n | uniq
---
-SELECT DISTINCT two FROM tmp ORDER BY 1;
+-- --
+-- -- awk '{print $3;}' onek.data | sort -n | uniq
+-- --
+-- SELECT DISTINCT two FROM tmp ORDER BY 1;
 
---
--- awk '{print $5;}' onek.data | sort -n | uniq
---
-SELECT DISTINCT ten FROM tmp ORDER BY 1;
+-- --
+-- -- awk '{print $5;}' onek.data | sort -n | uniq
+-- --
+-- SELECT DISTINCT ten FROM tmp ORDER BY 1;
 
---
--- awk '{print $16;}' onek.data | sort -d | uniq
---
-SELECT DISTINCT string4 FROM tmp ORDER BY 1;
+-- --
+-- -- awk '{print $16;}' onek.data | sort -d | uniq
+-- --
+-- SELECT DISTINCT string4 FROM tmp ORDER BY 1;
 
---
--- awk '{print $3,$16,$5;}' onek.data | sort -d | uniq |
--- sort +0n -1 +1d -2 +2n -3
---
-SELECT DISTINCT two, string4, ten
-   FROM tmp
-   ORDER BY two using <, string4 using <, ten using <;
+-- --
+-- -- awk '{print $3,$16,$5;}' onek.data | sort -d | uniq |
+-- -- sort +0n -1 +1d -2 +2n -3
+-- --
+-- SELECT DISTINCT two, string4, ten
+--    FROM tmp
+--    ORDER BY two using <, string4 using <, ten using <;
 
---
--- awk '{print $2;}' person.data |
--- awk '{if(NF!=1){print $2;}else{print;}}' - emp.data |
--- awk '{if(NF!=1){print $2;}else{print;}}' - student.data |
--- awk 'BEGIN{FS="      ";}{if(NF!=1){print $5;}else{print;}}' - stud_emp.data |
--- sort -n -r | uniq
---
-SELECT DISTINCT p.age FROM person* p ORDER BY age using >;
+-- --
+-- -- awk '{print $2;}' person.data |
+-- -- awk '{if(NF!=1){print $2;}else{print;}}' - emp.data |
+-- -- awk '{if(NF!=1){print $2;}else{print;}}' - student.data |
+-- -- awk 'BEGIN{FS="      ";}{if(NF!=1){print $5;}else{print;}}' - stud_emp.data |
+-- -- sort -n -r | uniq
+-- --
+-- SELECT DISTINCT p.age FROM person* p ORDER BY age using >;
 
---
--- Check mentioning same column more than once
---
+-- --
+-- -- Check mentioning same column more than once
+-- --
 
-EXPLAIN (VERBOSE, COSTS OFF)
-SELECT count(*) FROM
-  (SELECT DISTINCT two, four, two FROM tenk1) ss;
+-- EXPLAIN (VERBOSE, COSTS OFF)
+-- SELECT count(*) FROM
+--   (SELECT DISTINCT two, four, two FROM tenk1) ss;
 
-SELECT count(*) FROM
-  (SELECT DISTINCT two, four, two FROM tenk1) ss;
+-- SELECT count(*) FROM
+--   (SELECT DISTINCT two, four, two FROM tenk1) ss;
 
---
--- Compare results between plans using sorting and plans using hash
--- aggregation. Force spilling in both cases by setting work_mem low.
---
+-- --
+-- -- Compare results between plans using sorting and plans using hash
+-- -- aggregation. Force spilling in both cases by setting work_mem low.
+-- --
 
-SET work_mem='64kB';
+-- SET work_mem='64kB';
 
--- Produce results with sorting.
+-- -- Produce results with sorting.
 
-SET enable_hashagg=FALSE;
+-- SET enable_hashagg=FALSE;
 
-SET jit_above_cost=0;
+-- SET jit_above_cost=0;
 
-EXPLAIN (costs off)
-SELECT DISTINCT g%1000 FROM generate_series(0,9999) g;
+-- EXPLAIN (costs off)
+-- SELECT DISTINCT g%1000 FROM generate_series(0,9999) g;
 
-CREATE TABLE distinct_group_1 AS
-SELECT DISTINCT g%1000 FROM generate_series(0,9999) g;
+-- CREATE TABLE distinct_group_1 AS
+-- SELECT DISTINCT g%1000 FROM generate_series(0,9999) g;
 
-SET jit_above_cost TO DEFAULT;
+-- SET jit_above_cost TO DEFAULT;
 
-CREATE TABLE distinct_group_2 AS
-SELECT DISTINCT (g%1000)::text FROM generate_series(0,9999) g;
+-- CREATE TABLE distinct_group_2 AS
+-- SELECT DISTINCT (g%1000)::text FROM generate_series(0,9999) g;
 
-SET enable_hashagg=TRUE;
+-- SET enable_hashagg=TRUE;
 
--- Produce results with hash aggregation.
+-- -- Produce results with hash aggregation.
 
-SET enable_sort=FALSE;
+-- SET enable_sort=FALSE;
 
-SET jit_above_cost=0;
+-- SET jit_above_cost=0;
 
-EXPLAIN (costs off)
-SELECT DISTINCT g%1000 FROM generate_series(0,9999) g;
+-- EXPLAIN (costs off)
+-- SELECT DISTINCT g%1000 FROM generate_series(0,9999) g;
 
-CREATE TABLE distinct_hash_1 AS
-SELECT DISTINCT g%1000 FROM generate_series(0,9999) g;
+-- CREATE TABLE distinct_hash_1 AS
+-- SELECT DISTINCT g%1000 FROM generate_series(0,9999) g;
 
-SET jit_above_cost TO DEFAULT;
+-- SET jit_above_cost TO DEFAULT;
 
-CREATE TABLE distinct_hash_2 AS
-SELECT DISTINCT (g%1000)::text FROM generate_series(0,9999) g;
+-- CREATE TABLE distinct_hash_2 AS
+-- SELECT DISTINCT (g%1000)::text FROM generate_series(0,9999) g;
 
-SET enable_sort=TRUE;
+-- SET enable_sort=TRUE;
 
-SET work_mem TO DEFAULT;
+-- SET work_mem TO DEFAULT;
 
 -- Compare results
 

@@ -3,21 +3,28 @@ import {
   Decoder,
   number,
   constant,
-  either3,
+  either5,
   string,
   boolean,
+  optional,
+  array,
+  object,
 } from "decoders";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
-import { PGString, stringDecoder } from "./constant";
+import { PGString, stringDecoder, A_Const, aConstDecoder } from "./constant";
 import { tuple1 } from "./tuple1";
 
 export enum ConType {
   "NotNull" = 1,
+  "Default" = 2,
   "PrimaryKey" = 4,
+  "Unique" = 5,
   "Reference" = 7,
 }
 
 const notNullDecoder: Decoder<ConType.NotNull> = constant(ConType.NotNull);
+const defaultDecoder: Decoder<ConType.Default> = constant(ConType.Default);
+const uniqueDecoder: Decoder<ConType.Unique> = constant(ConType.Unique);
 
 const primaryKeyDecoder: Decoder<ConType.PrimaryKey> = constant(
   ConType.PrimaryKey
@@ -30,8 +37,18 @@ const referenceDecoder: Decoder<ConType.Reference> = constant(
 export type Constraint =
   | { contype: ConType.NotNull; location: number }
   | {
+      contype: ConType.Default;
+      location: number;
+      raw_expr: {
+        A_Const: A_Const;
+      };
+    }
+  | { contype: ConType.Unique; location: number }
+  | {
       contype: ConType.PrimaryKey;
       location: number;
+      conname?: string;
+      keys?: PGString[];
     }
   | {
       contype: ConType.Reference;
@@ -52,14 +69,27 @@ export type Constraint =
 //     location: number;
 //   };
 
-export const constraintDecoder: Decoder<Constraint> = either3(
+export const constraintDecoder: Decoder<Constraint> = either5(
   exact({
     contype: notNullDecoder,
+    location: number,
+  }),
+
+  exact({
+    contype: defaultDecoder,
+    location: number,
+    raw_expr: object({ A_Const: aConstDecoder }),
+  }),
+
+  exact({
+    contype: uniqueDecoder,
     location: number,
   }),
   exact({
     contype: primaryKeyDecoder,
     location: number,
+    conname: optional(string),
+    keys: optional(array(stringDecoder)),
   }),
   exact({
     contype: referenceDecoder,

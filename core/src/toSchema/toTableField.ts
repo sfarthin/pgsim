@@ -25,15 +25,24 @@ export function toTableField(columnDef: ColumnDef): TableField {
   };
 }
 
+function toTableFieldsFromTable(def: CreateStmt): TableField[] {
+  const fields: TableField[] = [];
+
+  for (let t of def.tableElts || []) {
+    if ("ColumnDef" in t) {
+      fields.push(toTableField(verifyColumnDef(t.ColumnDef)));
+    }
+  }
+
+  return fields;
+}
+
 export function toTableFields(
   schema: Schema
 ): { name: string; fields: TableField[] }[] {
   return schema.tables.map((def) => ({
     name: toTableName(def),
-    fields: def.tableElts.map((col) => {
-      const columnDef = verifyColumnDef(col.ColumnDef);
-      return toTableField(columnDef);
-    }),
+    fields: toTableFieldsFromTable(def),
   }));
 }
 
@@ -43,6 +52,6 @@ export function addFieldToTable(
 ): CreateStmt {
   return {
     ...def,
-    tableElts: def.tableElts.concat({ ColumnDef: columnDef }),
+    tableElts: (def.tableElts || []).concat({ ColumnDef: columnDef }),
   };
 }

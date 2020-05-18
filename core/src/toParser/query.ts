@@ -1,4 +1,4 @@
-import { array, exact, mixed, Decoder, either9, either3 } from "decoders";
+import { array, exact, mixed, Decoder, either9, either8 } from "decoders";
 import { CreateStmt, createStmtDecoder, ColumnDef } from "./createStmt";
 import { AlterTableStmt, alterTableStmtDecoder } from "./alterTableStmt";
 import { SelectStmt, selectStmtDecoder } from "./selectStmt";
@@ -16,6 +16,7 @@ export type Query =
   | { VariableSetStmt: unknown }
   | { CreateEnumStmt: unknown }
   | { CreateSeqStmt: unknown }
+  | { CreateRoleStmt: unknown }
   | { AlterSeqStmt: unknown }
   | { ViewStmt: unknown }
   | { DropStmt: unknown }
@@ -25,7 +26,45 @@ export type Query =
   | { DeleteStmt: unknown }
   | { CreateRangeStmt: unknown }
   | { TruncateStmt: unknown }
-  | { ExplainStmt: unknown };
+  | { ExplainStmt: unknown }
+  | { DropRoleStmt: unknown }
+  | { CreateTableAsStmt: unknown }
+  | { TransactionStmt: unknown } // BEGIN...END
+  | { VariableShowStmt: unknown } // SHOW DateStyle;
+  | { DoStmt: unknown }
+  | { VacuumStmt: unknown }
+  | { AlterRoleStmt: unknown }
+  | { CreateSchemaStmt: unknown }
+  | { CreateSchemaStmt: unknown }
+  | { AlterDefaultPrivilegesStmt: unknown }
+  | { GrantStmt: unknown }
+  | { DeclareCursorStmt: unknown }
+  | { CopyStmt: unknown }
+  | { CreateDomainStmt: unknown }
+  | { FetchStmt: unknown }
+  | { ClosePortalStmt: unknown }
+  | { PrepareStmt: unknown }
+  | { ExecuteStmt: unknown }
+  | { RuleStmt: unknown }
+  | { ReindexStmt: unknown }
+  | { SecLabelStmt: unknown }
+  | { AlterRoleSetStmt: unknown }
+  | { LockStmt: unknown }
+  | { RenameStmt: unknown }
+  | { NotifyStmt: unknown }
+  | { ListenStmt: unknown }
+  | { UnlistenStmt: unknown }
+  | { DiscardStmt: unknown }
+  | { AlterFunctionStmt: unknown }
+  | { AlterTSDictionaryStmt: unknown }
+  | { AlterTSConfigurationStmt: unknown }
+  | { CreateTrigStmt: unknown }
+  | { AlterOpFamilyStmt: unknown }
+  | { CreatePolicyStmt: unknown }
+  | { CompositeTypeStmt: unknown }
+  | { DeallocateStmt: unknown }
+  | { CreateConversionStmt: unknown }
+  | { CommentStmt: unknown };
 
 export const queryDecoder: Decoder<Query> = either9(
   exact({ CreateStmt: createStmtDecoder }),
@@ -45,10 +84,56 @@ export const queryDecoder: Decoder<Query> = either9(
     exact({ CreateFunctionStmt: mixed }),
     exact({ CreateCastStmt: mixed }),
     exact({ DeleteStmt: mixed }),
-    either3(
+    either9(
       exact({ CreateRangeStmt: mixed }),
       exact({ TruncateStmt: mixed }),
-      exact({ ExplainStmt: mixed })
+      exact({ ExplainStmt: mixed }),
+      exact({ CreateRoleStmt: mixed }),
+      exact({ DropRoleStmt: mixed }),
+      exact({ CreateTableAsStmt: mixed }),
+      exact({ TransactionStmt: mixed }),
+      exact({ VariableShowStmt: mixed }),
+      either9(
+        exact({ DoStmt: mixed }),
+        exact({ VacuumStmt: mixed }),
+        exact({ AlterRoleStmt: mixed }),
+        exact({ CreateSchemaStmt: mixed }),
+        exact({ AlterDefaultPrivilegesStmt: mixed }),
+        exact({ GrantStmt: mixed }),
+        exact({ DeclareCursorStmt: mixed }),
+        exact({ CopyStmt: mixed }),
+        either9(
+          exact({ CreateDomainStmt: mixed }),
+          exact({ FetchStmt: mixed }),
+          exact({ ClosePortalStmt: mixed }),
+          exact({ PrepareStmt: mixed }),
+          exact({ ExecuteStmt: mixed }),
+          exact({ RuleStmt: mixed }),
+          exact({ ReindexStmt: mixed }),
+          exact({ SecLabelStmt: mixed }),
+          either9(
+            exact({ AlterRoleSetStmt: mixed }),
+            exact({ LockStmt: mixed }),
+            exact({ RenameStmt: mixed }),
+            exact({ NotifyStmt: mixed }),
+            exact({ ListenStmt: mixed }),
+            exact({ UnlistenStmt: mixed }),
+            exact({ DiscardStmt: mixed }),
+            exact({ AlterFunctionStmt: mixed }),
+            either9(
+              exact({ AlterTSConfigurationStmt: mixed }),
+              exact({ AlterTSDictionaryStmt: mixed }),
+              exact({ CreateTrigStmt: mixed }),
+              exact({ AlterOpFamilyStmt: mixed }),
+              exact({ CreatePolicyStmt: mixed }),
+              exact({ CompositeTypeStmt: mixed }),
+              exact({ DeallocateStmt: mixed }),
+              exact({ CreateConversionStmt: mixed }),
+              exact({ CommentStmt: mixed })
+            )
+          )
+        )
+      )
     )
   )
 );

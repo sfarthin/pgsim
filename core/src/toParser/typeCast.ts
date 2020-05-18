@@ -7,6 +7,7 @@ export type TypeName = {
   typemod: number;
   typmods: [{ A_Const: A_Const }] | void;
   location: number;
+  arrayBounds?: unknown; // create table gin_test_tbl(i int4[]) with (autovacuum_enabled = off);
 };
 
 export const typeNameDecoder: Decoder<TypeName> = exact({
@@ -14,6 +15,7 @@ export const typeNameDecoder: Decoder<TypeName> = exact({
   typemod: number,
   typmods: optional(tuple1(exact({ A_Const: aConstDecoder }))),
   location: number,
+  arrayBounds: optional(mixed),
 });
 
 export type TypeCast = {

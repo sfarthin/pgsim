@@ -1,4 +1,4 @@
-import { guard, exact, Decoder, either8 } from "decoders";
+import { guard, exact, Decoder, either9, either, mixed } from "decoders";
 
 import { A_Const, aConstDecoder } from "./constant";
 import { TypeCast, typeCastDecoder } from "./typeCast";
@@ -17,9 +17,11 @@ export type TargetValue =
   | { BoolExpr: BoolExpr }
   | { A_Expr: AExpr }
   | { BooleanTest: BooleanTest }
-  | { NullTest: NullTest };
+  | { NullTest: NullTest }
+  | { CaseExpr: unknown }
+  | { SubLink: unknown };
 
-export const targetValueDecoder: Decoder<TargetValue> = either8(
+export const targetValueDecoder: Decoder<TargetValue> = either9(
   exact({ ColumnRef: columnRefDecoder }),
   exact({ FuncCall: funcCallDecoder }),
   exact({ A_Const: aConstDecoder }),
@@ -27,7 +29,8 @@ export const targetValueDecoder: Decoder<TargetValue> = either8(
   exact({ BoolExpr: boolExprDecoder }),
   exact({ A_Expr: aExprDecoder }),
   exact({ BooleanTest: booleanTestDecoder }), // someting IS true
-  exact({ NullTest: nullTestDecoder }) // something is NULL
+  exact({ NullTest: nullTestDecoder }), // something is NULL
+  either(exact({ CaseExpr: mixed }), exact({ SubLink: mixed }))
 );
 
 export const verifyTargetValue = guard(targetValueDecoder);

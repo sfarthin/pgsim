@@ -29,13 +29,16 @@ export type InsertStmt = {
       }[]
     | void;
 
-  selectStmt: {
+  selectStmt?: {
     SelectStmt: unknown;
   };
+
+  returningList?: unknown;
 };
 
 export const insertStmtDecoder = exact({
   relation: exact({ RangeVar: rangeVarDecoder }),
   cols: optional(array(exact({ ResTarget: resTargetDecoder }))),
-  selectStmt: exact({ SelectStmt: mixed }),
+  selectStmt: optional(exact({ SelectStmt: mixed })),
+  returningList: optional(mixed),
 });
