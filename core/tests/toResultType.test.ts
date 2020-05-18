@@ -1,6 +1,7 @@
 import toResultType from "../src/toResultType";
 import { getSingleQuery, toSchemaFromString } from "../src";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const expectResultType = (schema: string, selectString: string) => {
   try {
     return expect(

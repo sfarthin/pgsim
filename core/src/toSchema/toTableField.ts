@@ -28,7 +28,7 @@ export function toTableField(columnDef: ColumnDef): TableField {
 function toTableFieldsFromTable(def: CreateStmt): TableField[] {
   const fields: TableField[] = [];
 
-  for (let t of def.tableElts || []) {
+  for (const t of def.tableElts || []) {
     if ("ColumnDef" in t) {
       fields.push(toTableField(verifyColumnDef(t.ColumnDef)));
     }

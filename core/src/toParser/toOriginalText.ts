@@ -1,5 +1,5 @@
 import { string, compose, predicate, guard } from "decoders";
-// @ts-ignore - No declaration
+// @ts-expect-error - No declaration
 import { format } from "sql-formatter";
 import pgParse from "./pgParse";
 
@@ -9,8 +9,6 @@ const textQueryDecoder = compose(
 );
 
 const verifyTextQuery = guard(textQueryDecoder);
-
-const cache = {};
 
 export default function getTextFromQuery(
   sql: string,

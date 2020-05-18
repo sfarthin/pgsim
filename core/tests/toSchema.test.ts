@@ -1,5 +1,6 @@
 import { toSchemaFromString, PGErrorCode, toTableFields } from "../src";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const expectTableFields = (sql: string) =>
   expect(toTableFields(toSchemaFromString(sql)));
 

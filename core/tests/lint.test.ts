@@ -1,12 +1,7 @@
-import {
-  lintString,
-  PGErrorCode,
-  lintStream,
-  LintOptions,
-  toArray,
-} from "../src";
-import fixtures, { lintFiles } from "./fixtures";
+import { lintString, PGErrorCode, LintOptions, toArray } from "../src";
+import fixtures from "./fixtures";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function expectLint(str: string, options: LintOptions = {}) {
   return expect(
     toArray(lintString(str, options)).map(({ code, index }) => ({

@@ -27,12 +27,12 @@ export type LintOptions = {
   onlyJoinOnIndex?: true;
 };
 
-const defaultOptions: LintOptions = {
-  case: "SNAKE",
-  constraintName: true,
-  validateFieldReferences: true,
-  onlyJoinOnIndex: true,
-};
+// const defaultOptions: LintOptions = {
+//   case: "SNAKE",
+//   constraintName: true,
+//   validateFieldReferences: true,
+//   onlyJoinOnIndex: true,
+// };
 
 export default function* toLinter(
   sqlIterator: Iterator<string, void>,

@@ -1,4 +1,4 @@
-import { array, exact, mixed, Decoder, either9, either8 } from "decoders";
+import { array, exact, mixed, Decoder, either9 } from "decoders";
 import { CreateStmt, createStmtDecoder, ColumnDef } from "./createStmt";
 import { AlterTableStmt, alterTableStmtDecoder } from "./alterTableStmt";
 import { SelectStmt, selectStmtDecoder } from "./selectStmt";

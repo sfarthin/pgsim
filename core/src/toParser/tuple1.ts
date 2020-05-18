@@ -2,6 +2,7 @@ import { Decoder, compose, poja, predicate } from "decoders";
 import { Err, Ok } from "lemons/Result";
 import { annotate } from "debrief";
 
+// eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const ntuple = (n: number) =>
   compose(
     poja,

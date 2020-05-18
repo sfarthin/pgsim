@@ -13,6 +13,6 @@ export function* fromString(str: string): SqlIterator {
   yield str;
 }
 
-export function* fromStandardInput() {
-  // TODO
-}
+// export function* fromStandardInput() {
+//   // TODO
+// }
