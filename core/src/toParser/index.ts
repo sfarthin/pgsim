@@ -11,6 +11,7 @@ export * from "./constant";
 export * from "./constraint";
 // export * from "./createEnumStmt";
 export * from "./createStmt";
+export * from "./createSeqStmt";
 export * from "./fromClause";
 export * from "./funcCall";
 export * from "./joinExpr";

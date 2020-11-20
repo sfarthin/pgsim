@@ -1,0 +1,33 @@
+#!/bin/sh
+set -e
+
+# NOTE This script will only work within a Dockerfile, see pgsim-local-test
+# This script will load fixutres into postgres and dump the results for use in tests.
+export PGHOST=$PG_PORT_5432_TCP_ADDR
+export PGPORT=$PG_PORT_5432_TCP_PORT
+export PGPASSWORD=1234
+export PGUSER="postgres"
+
+# waiting for server to start up
+sleep 1
+
+# TODO
+# Read regress, schema and query directory and validate PEG.js parser produces same AST as postgres
+
+# Lets do a pg_dump of each SQL file in schema and save it.
+# PGSIM should be able to produce the same output.
+dropdb test --if-exists
+rm /pgsim/fixtures/schema/pg_dump/*
+for f in $(ls /pgsim/fixtures/schema/*.sql | sort -n); do
+    createdb test 
+    echo $f
+    psql test < $f > /dev/null
+    NAME=$(basename $f)
+    pg_dump --schema-only -O -x -s --quote-all-identifiers test 1> /pgsim/fixtures/schema/pg_dump/$NAME
+    dropdb test
+done
+
+# TODO
+# Lets execute each SQL file in a query directory with PSQL and save it.
+# PGSIM should be able to produce the same output. Will need
+# to understand FROM conditions.

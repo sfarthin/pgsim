@@ -1,5 +1,5 @@
 import { lintString, PGErrorCode, LintOptions, toArray } from "../src";
-import fixtures from "./fixtures";
+import fixtures, { tbFixtures } from "./fixtures";
 
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 function expectLint(str: string, options: LintOptions = {}) {
@@ -18,7 +18,7 @@ describe("lintQuery", () => {
           id BIGSERIAL PRIMARY KEY
       );
       ALTER TABLE users ADD COLUMN email FOO(250);
-      SELECT id, foo FROM users
+      SELECT id, foo FROM users;
     `).toEqual([{ index: 2, code: PGErrorCode.NOT_UNDERSTOOD }]);
   });
 });
@@ -30,9 +30,39 @@ describe("lint fixtures", () => {
     let curr = iter.next();
 
     while (!curr.done) {
-      toArray(lintString(curr.value));
-
       curr = iter.next();
+
+      if (curr.value) {
+        // console.log();
+        try {
+          toArray(lintString(curr.value.sql));
+        } catch (e) {
+          console.log(curr.value.name);
+          throw e;
+        }
+      }
+    }
+  });
+});
+
+describe("lint fixtures", () => {
+  it("can lint tb", () => {
+    // TODO allow processing of SQL together, with now schema.
+    const iter = tbFixtures();
+    let curr = iter.next();
+
+    while (!curr.done) {
+      curr = iter.next();
+
+      if (curr.value) {
+        // console.log();
+        try {
+          toArray(lintString(curr.value.sql));
+        } catch (e) {
+          console.log(curr.value.name);
+          throw e;
+        }
+      }
     }
   });
 });

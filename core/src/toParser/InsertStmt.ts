@@ -5,40 +5,48 @@ import {
   Decoder,
   optional,
   array,
-  mixed,
+  unknown,
 } from "decoders";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 
 export type ResTarget = {
-  name: string | void;
+  name?: string;
   location: number;
+  indirection?: unknown;
 };
 
 export const resTargetDecoder: Decoder<ResTarget> = exact({
   name: optional(string),
   location: number,
+  indirection: unknown,
 });
 
 export type InsertStmt = {
   relation: {
     RangeVar: RangeVar;
   };
-  cols:
+  cols?:
     | {
         ResTarget: ResTarget;
       }[]
     | void;
 
   selectStmt?: {
-    SelectStmt: unknown;
+    SelectStmt?: unknown;
   };
 
   returningList?: unknown;
+
+  override?: unknown;
+
+  onConflictClause?: unknown;
 };
 
-export const insertStmtDecoder = exact({
+export const insertStmtDecoder: Decoder<InsertStmt> = exact({
   relation: exact({ RangeVar: rangeVarDecoder }),
   cols: optional(array(exact({ ResTarget: resTargetDecoder }))),
-  selectStmt: optional(exact({ SelectStmt: mixed })),
-  returningList: optional(mixed),
+  selectStmt: optional(exact({ SelectStmt: unknown })),
+  returningList: unknown,
+  override: unknown,
+  onConflictClause: unknown,
 });

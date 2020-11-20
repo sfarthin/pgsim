@@ -1,9 +1,10 @@
-import { Schema, Query } from "./toParser";
+import { Query } from "./toParser";
 import toLinter, { LintError, LintOptions } from "./toLinter";
 import toParser from "./toParser";
+import toDDL from "./toDDL";
 import { fromFiles, fromString } from "./toSql";
 import toArray from "./iteratorToArray";
-import toSchema, { toTableFields } from "./toSchema";
+import toSchema, { toTableFields, Schema } from "./toSchema";
 import { PGError, PGErrorCode } from "./errors";
 
 export { PGErrorCode, toTableFields, LintOptions, toArray };
@@ -45,4 +46,8 @@ export function getSingleQuery(str: string): Query {
 
 export function toSchemaFromString(str: string): Schema {
   return toSchema(toParser(fromString(str)));
+}
+
+export function toDDLFromString(str: string): string {
+  return toDDL(toSchemaFromString(str));
 }

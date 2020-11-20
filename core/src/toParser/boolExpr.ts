@@ -1,4 +1,4 @@
-import { number, mixed, Decoder, exact } from "decoders";
+import { number, Decoder, exact, unknown } from "decoders";
 
 export enum BoolOp {
   "AND" = 0,
@@ -8,12 +8,12 @@ export enum BoolOp {
 
 export type BoolExpr = {
   boolop: number;
-  args: unknown;
+  args?: unknown;
   location: number;
 };
 
 export const boolExprDecoder: Decoder<BoolExpr> = exact({
   boolop: number,
-  args: mixed,
+  args: unknown,
   location: number,
 });

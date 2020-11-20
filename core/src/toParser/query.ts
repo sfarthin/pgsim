@@ -1,135 +1,174 @@
-import { array, exact, mixed, Decoder, either9 } from "decoders";
+import {
+  array,
+  object,
+  inexact,
+  pojo,
+  Decoder,
+  either9,
+  either5,
+} from "decoders";
 import { CreateStmt, createStmtDecoder, ColumnDef } from "./createStmt";
 import { AlterTableStmt, alterTableStmtDecoder } from "./alterTableStmt";
 import { SelectStmt, selectStmtDecoder } from "./selectStmt";
+import { CreateSeqStmt, createSeqStmtDecoder } from "./createSeqStmt";
 import { PGError, PGErrorCode } from "../errors";
 // import { DropStmt, dropStmtDecoder } from "./dropTable";
 import { insertStmtDecoder, InsertStmt } from "./insertStmt";
 
-export type Query =
-  | { CreateStmt: CreateStmt }
-  | { AlterTableStmt: AlterTableStmt }
-  | { InsertStmt: InsertStmt }
-  | { SelectStmt: SelectStmt }
-  | { IndexStmt: unknown }
-  | { UpdateStmt: unknown }
-  | { VariableSetStmt: unknown }
-  | { CreateEnumStmt: unknown }
-  | { CreateSeqStmt: unknown }
-  | { CreateRoleStmt: unknown }
-  | { AlterSeqStmt: unknown }
-  | { ViewStmt: unknown }
-  | { DropStmt: unknown }
-  | { DefineStmt: unknown }
-  | { CreateFunctionStmt: unknown }
-  | { CreateCastStmt: unknown }
-  | { DeleteStmt: unknown }
-  | { CreateRangeStmt: unknown }
-  | { TruncateStmt: unknown }
-  | { ExplainStmt: unknown }
-  | { DropRoleStmt: unknown }
-  | { CreateTableAsStmt: unknown }
-  | { TransactionStmt: unknown } // BEGIN...END
-  | { VariableShowStmt: unknown } // SHOW DateStyle;
-  | { DoStmt: unknown }
-  | { VacuumStmt: unknown }
-  | { AlterRoleStmt: unknown }
-  | { CreateSchemaStmt: unknown }
-  | { CreateSchemaStmt: unknown }
-  | { AlterDefaultPrivilegesStmt: unknown }
-  | { GrantStmt: unknown }
-  | { DeclareCursorStmt: unknown }
-  | { CopyStmt: unknown }
-  | { CreateDomainStmt: unknown }
-  | { FetchStmt: unknown }
-  | { ClosePortalStmt: unknown }
-  | { PrepareStmt: unknown }
-  | { ExecuteStmt: unknown }
-  | { RuleStmt: unknown }
-  | { ReindexStmt: unknown }
-  | { SecLabelStmt: unknown }
-  | { AlterRoleSetStmt: unknown }
-  | { LockStmt: unknown }
-  | { RenameStmt: unknown }
-  | { NotifyStmt: unknown }
-  | { ListenStmt: unknown }
-  | { UnlistenStmt: unknown }
-  | { DiscardStmt: unknown }
-  | { AlterFunctionStmt: unknown }
-  | { AlterTSDictionaryStmt: unknown }
-  | { AlterTSConfigurationStmt: unknown }
-  | { CreateTrigStmt: unknown }
-  | { AlterOpFamilyStmt: unknown }
-  | { CreatePolicyStmt: unknown }
-  | { CompositeTypeStmt: unknown }
-  | { DeallocateStmt: unknown }
-  | { CreateConversionStmt: unknown }
-  | { CommentStmt: unknown };
+export type Stmt =
+  // SUPPORTED START
+  | { CreateStmt: CreateStmt } // 1
+  | { AlterTableStmt: AlterTableStmt } // 2
+  | { InsertStmt: InsertStmt } // 3
+  | { SelectStmt: SelectStmt } // 4
+  | { CreateSeqStmt: CreateSeqStmt }
+  | { IndexStmt: Record<string, unknown> } // 5
+  | { UpdateStmt: Record<string, unknown> } // 6
+  | { CreateEnumStmt: Record<string, unknown> } // 7
+  | { CommentStmt: Record<string, unknown> } // 8
+  | { ViewStmt: Record<string, unknown> } // 9
+  // SUPPORTED END
+  | { TransactionStmt: Record<string, unknown> } // BEGIN...END
+  | { VariableSetStmt: Record<string, unknown> }
+  | { CreateRoleStmt: Record<string, unknown> }
+  | { AlterSeqStmt: Record<string, unknown> }
+  | { DropStmt: Record<string, unknown> }
+  | { DefineStmt: Record<string, unknown> }
+  | { CreateFunctionStmt: Record<string, unknown> }
+  | { CreateCastStmt: Record<string, unknown> }
+  | { DeleteStmt: Record<string, unknown> }
+  | { CreateRangeStmt: Record<string, unknown> }
+  | { TruncateStmt: Record<string, unknown> }
+  | { ExplainStmt: Record<string, unknown> }
+  | { DropRoleStmt: Record<string, unknown> }
+  | { CreateTableAsStmt: Record<string, unknown> }
+  | { VariableShowStmt: Record<string, unknown> } // SHOW DateStyle;
+  | { DoStmt: Record<string, unknown> }
+  | { VacuumStmt: Record<string, unknown> }
+  | { AlterRoleStmt: Record<string, unknown> }
+  | { CreateSchemaStmt: Record<string, unknown> }
+  | { CreateSchemaStmt: Record<string, unknown> }
+  | { AlterDefaultPrivilegesStmt: Record<string, unknown> }
+  | { GrantStmt: Record<string, unknown> }
+  | { DeclareCursorStmt: Record<string, unknown> }
+  | { CopyStmt: Record<string, unknown> }
+  | { CreateDomainStmt: Record<string, unknown> }
+  | { FetchStmt: Record<string, unknown> }
+  | { ClosePortalStmt: Record<string, unknown> }
+  | { PrepareStmt: Record<string, unknown> }
+  | { ExecuteStmt: Record<string, unknown> }
+  | { RuleStmt: Record<string, unknown> }
+  | { ReindexStmt: Record<string, unknown> }
+  | { SecLabelStmt: Record<string, unknown> }
+  | { AlterRoleSetStmt: Record<string, unknown> }
+  | { LockStmt: Record<string, unknown> }
+  | { RenameStmt: Record<string, unknown> }
+  | { NotifyStmt: Record<string, unknown> }
+  | { ListenStmt: Record<string, unknown> }
+  | { UnlistenStmt: Record<string, unknown> }
+  | { DiscardStmt: Record<string, unknown> }
+  | { AlterFunctionStmt: Record<string, unknown> }
+  | { AlterTSDictionaryStmt: Record<string, unknown> }
+  | { AlterTSConfigurationStmt: Record<string, unknown> }
+  | { CreateTrigStmt: Record<string, unknown> }
+  | { AlterOpFamilyStmt: Record<string, unknown> }
+  | { CreatePolicyStmt: Record<string, unknown> }
+  | { CompositeTypeStmt: Record<string, unknown> }
+  | { DeallocateStmt: Record<string, unknown> }
+  | { CreateConversionStmt: Record<string, unknown> }
+  | { AlterOwnerStmt: Record<string, unknown> }
+  | { AlterObjectSchemaStmt: Record<string, unknown> }
+  | { CreateFdwStmt: Record<string, unknown> }
+  | { CreateForeignServerStmt: Record<string, unknown> }
+  | { CreatePLangStmt: Record<string, unknown> }
+  | { CreateOpFamilyStmt: Record<string, unknown> }
+  | { CreateOpClassStmt: Record<string, unknown> }
+  | { CreateStatsStmt: Record<string, unknown> }
+  | { AlterOperatorStmt: Record<string, unknown> }
+  | { ClusterStmt: Record<string, unknown> }
+  | { CreateEventTrigStmt: Record<string, unknown> }
+  | { AlterEnumStmt: Record<string, unknown> };
 
-export const queryDecoder: Decoder<Query> = either9(
-  exact({ CreateStmt: createStmtDecoder }),
-  exact({ AlterTableStmt: alterTableStmtDecoder }),
-  exact({ InsertStmt: insertStmtDecoder }),
-  exact({ SelectStmt: selectStmtDecoder }),
-  exact({ IndexStmt: mixed }),
-  exact({ UpdateStmt: mixed }),
-  exact({ VariableSetStmt: mixed }),
-  exact({ CreateEnumStmt: mixed }),
+export const stmtDecoder: Decoder<Stmt> = either9(
+  inexact({ CreateStmt: createStmtDecoder }),
+  inexact({ AlterTableStmt: alterTableStmtDecoder }),
+  inexact({ InsertStmt: insertStmtDecoder }),
+  inexact({ SelectStmt: selectStmtDecoder }),
+  inexact({ CreateSeqStmt: createSeqStmtDecoder }),
+  inexact({ UpdateStmt: pojo }),
+  inexact({ VariableSetStmt: pojo }),
+  inexact({ CreateEnumStmt: pojo }),
   either9(
-    exact({ CreateSeqStmt: mixed }),
-    exact({ AlterSeqStmt: mixed }),
-    exact({ ViewStmt: mixed }),
-    exact({ DropStmt: mixed }),
-    exact({ DefineStmt: mixed }),
-    exact({ CreateFunctionStmt: mixed }),
-    exact({ CreateCastStmt: mixed }),
-    exact({ DeleteStmt: mixed }),
+    inexact({ IndexStmt: pojo }),
+    inexact({ AlterSeqStmt: pojo }),
+    inexact({ ViewStmt: pojo }),
+    inexact({ DropStmt: pojo }),
+    inexact({ DefineStmt: pojo }),
+    inexact({ CreateFunctionStmt: pojo }),
+    inexact({ CreateCastStmt: pojo }),
+    inexact({ DeleteStmt: pojo }),
     either9(
-      exact({ CreateRangeStmt: mixed }),
-      exact({ TruncateStmt: mixed }),
-      exact({ ExplainStmt: mixed }),
-      exact({ CreateRoleStmt: mixed }),
-      exact({ DropRoleStmt: mixed }),
-      exact({ CreateTableAsStmt: mixed }),
-      exact({ TransactionStmt: mixed }),
-      exact({ VariableShowStmt: mixed }),
+      inexact({ CreateRangeStmt: pojo }),
+      inexact({ TruncateStmt: pojo }),
+      inexact({ ExplainStmt: pojo }),
+      inexact({ CreateRoleStmt: pojo }),
+      inexact({ DropRoleStmt: pojo }),
+      inexact({ CreateTableAsStmt: pojo }),
+      inexact({ TransactionStmt: pojo }),
+      inexact({ VariableShowStmt: pojo }),
       either9(
-        exact({ DoStmt: mixed }),
-        exact({ VacuumStmt: mixed }),
-        exact({ AlterRoleStmt: mixed }),
-        exact({ CreateSchemaStmt: mixed }),
-        exact({ AlterDefaultPrivilegesStmt: mixed }),
-        exact({ GrantStmt: mixed }),
-        exact({ DeclareCursorStmt: mixed }),
-        exact({ CopyStmt: mixed }),
+        inexact({ DoStmt: pojo }),
+        inexact({ VacuumStmt: pojo }),
+        inexact({ AlterRoleStmt: pojo }),
+        inexact({ CreateSchemaStmt: pojo }),
+        inexact({ AlterDefaultPrivilegesStmt: pojo }),
+        inexact({ GrantStmt: pojo }),
+        inexact({ DeclareCursorStmt: pojo }),
+        inexact({ CopyStmt: pojo }),
         either9(
-          exact({ CreateDomainStmt: mixed }),
-          exact({ FetchStmt: mixed }),
-          exact({ ClosePortalStmt: mixed }),
-          exact({ PrepareStmt: mixed }),
-          exact({ ExecuteStmt: mixed }),
-          exact({ RuleStmt: mixed }),
-          exact({ ReindexStmt: mixed }),
-          exact({ SecLabelStmt: mixed }),
+          inexact({ CreateDomainStmt: pojo }),
+          inexact({ FetchStmt: pojo }),
+          inexact({ ClosePortalStmt: pojo }),
+          inexact({ PrepareStmt: pojo }),
+          inexact({ ExecuteStmt: pojo }),
+          inexact({ RuleStmt: pojo }),
+          inexact({ ReindexStmt: pojo }),
+          inexact({ SecLabelStmt: pojo }),
           either9(
-            exact({ AlterRoleSetStmt: mixed }),
-            exact({ LockStmt: mixed }),
-            exact({ RenameStmt: mixed }),
-            exact({ NotifyStmt: mixed }),
-            exact({ ListenStmt: mixed }),
-            exact({ UnlistenStmt: mixed }),
-            exact({ DiscardStmt: mixed }),
-            exact({ AlterFunctionStmt: mixed }),
+            inexact({ AlterRoleSetStmt: pojo }),
+            inexact({ LockStmt: pojo }),
+            inexact({ RenameStmt: pojo }),
+            inexact({ NotifyStmt: pojo }),
+            inexact({ ListenStmt: pojo }),
+            inexact({ UnlistenStmt: pojo }),
+            inexact({ DiscardStmt: pojo }),
+            inexact({ AlterFunctionStmt: pojo }),
             either9(
-              exact({ AlterTSConfigurationStmt: mixed }),
-              exact({ AlterTSDictionaryStmt: mixed }),
-              exact({ CreateTrigStmt: mixed }),
-              exact({ AlterOpFamilyStmt: mixed }),
-              exact({ CreatePolicyStmt: mixed }),
-              exact({ CompositeTypeStmt: mixed }),
-              exact({ DeallocateStmt: mixed }),
-              exact({ CreateConversionStmt: mixed }),
-              exact({ CommentStmt: mixed })
+              inexact({ AlterTSConfigurationStmt: pojo }),
+              inexact({ AlterTSDictionaryStmt: pojo }),
+              inexact({ CreateTrigStmt: pojo }),
+              inexact({ AlterOpFamilyStmt: pojo }),
+              inexact({ CreatePolicyStmt: pojo }),
+              inexact({ CompositeTypeStmt: pojo }),
+              inexact({ DeallocateStmt: pojo }),
+              inexact({ CreateConversionStmt: pojo }),
+              either9(
+                inexact({ CommentStmt: pojo }),
+                inexact({ AlterOwnerStmt: pojo }),
+                inexact({ AlterObjectSchemaStmt: pojo }),
+                inexact({ CreateFdwStmt: pojo }),
+                inexact({ CreateForeignServerStmt: pojo }),
+                inexact({ CreatePLangStmt: pojo }),
+                inexact({ CreateOpFamilyStmt: pojo }),
+                inexact({ CreateOpClassStmt: pojo }),
+                either5(
+                  inexact({ CreateStatsStmt: pojo }),
+                  inexact({ AlterOperatorStmt: pojo }),
+                  inexact({ ClusterStmt: pojo }),
+                  inexact({ CreateEventTrigStmt: pojo }),
+                  inexact({ AlterEnumStmt: pojo })
+                )
+              )
             )
           )
         )
@@ -166,7 +205,8 @@ export function getPrimitiveType(columnDef: ColumnDef): PrimitiveType {
   }
 
   const name = names[0];
-
+  // TODO Add https://www.postgresql.org/docs/9.5/datatype.html
+  // and pojo.
   switch (name) {
     case "smallint": // 2 bytes	small-range integer	-32768 to +32767
     case "integer": // 4 bytes	typical choice for integer	-2147483648 to +2147483647
@@ -200,10 +240,13 @@ export type TableField = {
   isPrimaryKey: boolean;
 };
 
-export type Schema = {
-  tables: CreateStmt[];
-  constraints: unknown; // <-- To be foreign key references and indicies
+export type Query = {
+  RawStmt: { stmt: Stmt };
 };
+
+export const queryDecoder: Decoder<Query> = object({
+  RawStmt: object({ stmt: stmtDecoder }),
+});
 
 export type Queries = Query[];
 export type QueryWithText = { query: Query; text: string };

@@ -1,13 +1,13 @@
-import { mixed, Decoder, exact, number } from "decoders";
+import { Decoder, exact, number, unknown } from "decoders";
 
 export type BooleanTest = {
-  arg: unknown;
+  arg?: unknown;
   booltesttype: number;
   location: number;
 };
 
 export const booleanTestDecoder: Decoder<BooleanTest> = exact({
-  arg: mixed,
+  arg: unknown,
   booltesttype: number,
   location: number,
 });

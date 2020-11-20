@@ -3,112 +3,165 @@ import {
   Decoder,
   number,
   constant,
-  either5,
+  either6,
   string,
   boolean,
   optional,
   array,
-  object,
+  either,
+  unknown,
 } from "decoders";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
-import { PGString, stringDecoder, A_Const, aConstDecoder } from "./constant";
+import { PGString, stringDecoder } from "./constant";
 import { tuple1 } from "./tuple1";
+import { TargetValue, targetValueDecoder } from "./targetValue";
 
 export enum ConType {
-  "NotNull" = 1,
-  "Default" = 2,
-  "PrimaryKey" = 4,
-  "Unique" = 5,
-  "Reference" = 7,
+  NOT_NULL = 1,
+  DEFAULT = 2,
+  CHECK = 4,
+  PRIMARY_KEY = 5,
+  UNIQUE = 6,
+  REFERENCE = 7,
+  FOREIGN_KEY = 8,
 }
 
-const notNullDecoder: Decoder<ConType.NotNull> = constant(ConType.NotNull);
-const defaultDecoder: Decoder<ConType.Default> = constant(ConType.Default);
-const uniqueDecoder: Decoder<ConType.Unique> = constant(ConType.Unique);
+/**
+ * Primary Key
+ */
+export type PrimaryKeyConstraint = {
+  contype: ConType.PRIMARY_KEY;
+  location: number;
+  conname?: string;
+  keys?: PGString[];
+};
 
-const primaryKeyDecoder: Decoder<ConType.PrimaryKey> = constant(
-  ConType.PrimaryKey
-);
-
-const referenceDecoder: Decoder<ConType.Reference> = constant(
-  ConType.Reference
-);
-
-export type Constraint =
-  | { contype: ConType.NotNull; location: number }
-  | {
-      contype: ConType.Default;
-      location: number;
-      raw_expr: {
-        A_Const: A_Const;
-      };
-    }
-  | { contype: ConType.Unique; location: number }
-  | {
-      contype: ConType.PrimaryKey;
-      location: number;
-      conname?: string;
-      keys?: PGString[];
-    }
-  | {
-      contype: ConType.Reference;
-      location: number;
-      fk_upd_action: string;
-      fk_del_action: string;
-      fk_matchtype: string;
-      initially_valid: boolean;
-      pktable: {
-        RangeVar: RangeVar;
-      };
-      pk_attrs: [PGString];
-    };
-// | {
-//     contype: 6;
-//     access_method: unknown;
-//     exclusions: unknown;
-//     location: number;
-//   };
-
-export const constraintDecoder: Decoder<Constraint> = either5(
-  exact({
-    contype: notNullDecoder,
-    location: number,
-  }),
-
-  exact({
-    contype: defaultDecoder,
-    location: number,
-    raw_expr: object({ A_Const: aConstDecoder }),
-  }),
-
-  exact({
-    contype: uniqueDecoder,
-    location: number,
-  }),
-  exact({
-    contype: primaryKeyDecoder,
+export const primaryKeyConstraintDecoder: Decoder<PrimaryKeyConstraint> = exact(
+  {
+    contype: constant(ConType.PRIMARY_KEY) as Decoder<ConType.PRIMARY_KEY>,
     location: number,
     conname: optional(string),
     keys: optional(array(stringDecoder)),
+  }
+);
+
+/**
+ * Not Null
+ */
+export type NotNullConstraint = { contype: ConType.NOT_NULL; location: number };
+
+export const notNullConstraintDecoder: Decoder<NotNullConstraint> = exact({
+  contype: constant(ConType.NOT_NULL) as Decoder<ConType.NOT_NULL>,
+  location: number,
+});
+
+/**
+ * Default
+ */
+export type DefaultConstraint = {
+  contype: ConType.DEFAULT;
+  location: number;
+  raw_expr: TargetValue;
+};
+
+export const defaultConstraintDecoder: Decoder<DefaultConstraint> = exact({
+  contype: constant(ConType.DEFAULT) as Decoder<ConType.DEFAULT>,
+  location: number,
+  raw_expr: targetValueDecoder,
+});
+
+/**
+ * Unique
+ */
+
+export type UniqueConstraint = {
+  contype: ConType.UNIQUE;
+  location: number;
+  conname?: string;
+  keys?: [PGString];
+};
+
+export const uniqueConstraintDecoder = exact({
+  contype: constant(ConType.UNIQUE) as Decoder<ConType.UNIQUE>,
+  location: number,
+  conname: optional(string),
+  keys: optional(tuple1(stringDecoder)),
+});
+
+/**
+ * Foreign Key
+ */
+
+export type ForeignKeyConstraint = {
+  contype: ConType.REFERENCE | ConType.FOREIGN_KEY;
+  location: number;
+  fk_upd_action: string;
+  fk_del_action: string;
+  fk_matchtype: string;
+  initially_valid: boolean;
+  pktable: {
+    RangeVar: RangeVar;
+  };
+  pk_attrs?: [PGString];
+  conname?: unknown;
+  fk_attrs?: unknown;
+};
+
+export const foreignKeyConstraint: Decoder<ForeignKeyConstraint> = exact({
+  contype: either(
+    constant(ConType.REFERENCE) as Decoder<ConType.REFERENCE>,
+    constant(ConType.FOREIGN_KEY) as Decoder<ConType.FOREIGN_KEY>
+  ),
+  location: number,
+  fk_upd_action: string,
+  fk_del_action: string,
+  fk_matchtype: string,
+  initially_valid: boolean,
+  pktable: exact({
+    RangeVar: rangeVarDecoder,
   }),
-  exact({
-    contype: referenceDecoder,
-    location: number,
-    fk_upd_action: string,
-    fk_del_action: string,
-    fk_matchtype: string,
-    initially_valid: boolean,
-    pktable: exact({
-      RangeVar: rangeVarDecoder,
-    }),
-    pk_attrs: tuple1(stringDecoder),
-  })
-  // exact({
-  //   contype: constant(6),
-  //   access_method: mixed,
-  //   exclusions: mixed,
-  //   location: number,
-  // })
+  pk_attrs: optional(tuple1(stringDecoder)),
+  conname: unknown,
+  fk_attrs: unknown,
+});
+
+/**
+ * Check Constraint
+ */
+
+export type CheckConstraint = {
+  contype: ConType.CHECK;
+  conname: string;
+  location: number;
+  raw_expr: TargetValue;
+  skip_validation?: boolean;
+  initially_valid?: boolean;
+};
+
+export const CheckConstraintDecoder: Decoder<CheckConstraint> = exact({
+  contype: constant(ConType.CHECK) as Decoder<ConType.CHECK>,
+  conname: string,
+  location: number,
+  raw_expr: targetValueDecoder,
+  skip_validation: optional(boolean),
+  initially_valid: optional(boolean),
+});
+
+export type Constraint =
+  | NotNullConstraint
+  | DefaultConstraint
+  | UniqueConstraint
+  | PrimaryKeyConstraint
+  | ForeignKeyConstraint
+  | CheckConstraint;
+
+export const constraintDecoder: Decoder<Constraint> = either6(
+  notNullConstraintDecoder,
+  defaultConstraintDecoder,
+  uniqueConstraintDecoder,
+  primaryKeyConstraintDecoder,
+  foreignKeyConstraint,
+  CheckConstraintDecoder
 );
 
 export function isPrimaryKey(
@@ -119,7 +172,7 @@ export function isPrimaryKey(
   }
 
   for (const constraint of constraints) {
-    if (constraint.Constraint.contype === ConType.PrimaryKey) {
+    if (constraint.Constraint.contype === ConType.PRIMARY_KEY) {
       return true;
     }
   }
@@ -135,9 +188,13 @@ export function getReference(
   }
 
   for (const constraint of constraints) {
-    if (constraint.Constraint.contype === ConType.Reference) {
+    if (constraint.Constraint.contype === ConType.REFERENCE) {
       const tablename = constraint.Constraint.pktable.RangeVar.relname;
-      const colname = constraint.Constraint.pk_attrs[0].String.str;
+      const colname = constraint.Constraint.pk_attrs?.[0].String.str;
+
+      if (!colname) {
+        throw new Error("Unsure of of reference");
+      }
       return { tablename, colname };
     }
   }
@@ -147,7 +204,7 @@ export function getReference(
 
 export function isNullable(constraints: { Constraint: Constraint }[]): boolean {
   for (const constraint of constraints) {
-    if (constraint.Constraint.contype === ConType.NotNull) {
+    if (constraint.Constraint.contype === ConType.NOT_NULL) {
       return false;
     }
   }

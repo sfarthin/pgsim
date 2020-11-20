@@ -7,9 +7,9 @@ import {
   TableField,
   CreateStmt,
   AlterTableStmt,
-  Schema,
   verifyColumnDef,
 } from "../toParser";
+import { Schema } from "./";
 
 export function toTableName(c: CreateStmt | AlterTableStmt): string {
   return c.relation.RangeVar.relname;

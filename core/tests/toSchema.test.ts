@@ -1,5 +1,7 @@
 import { toSchemaFromString, PGErrorCode, toTableFields } from "../src";
 
+// TODO Replace with mysql-parser type tests with pg_dump
+
 // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
 const expectTableFields = (sql: string) =>
   expect(toTableFields(toSchemaFromString(sql)));
@@ -61,5 +63,14 @@ describe("toSchema", () => {
         ],
       },
     ]);
+  });
+
+  it("Can parse sequences", () => {
+    toSchemaFromString(`
+    CREATE TABLE "foo" (
+      id BIGSERIAL PRIMARY KEY
+  );
+      CREATE SEQUENCE sequence_test5 AS integer;
+    `);
   });
 });

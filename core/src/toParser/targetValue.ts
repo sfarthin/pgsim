@@ -1,4 +1,4 @@
-import { guard, exact, Decoder, either9, either, mixed } from "decoders";
+import { guard, exact, Decoder, either9, either7, unknown } from "decoders";
 
 import { A_Const, aConstDecoder } from "./constant";
 import { TypeCast, typeCastDecoder } from "./typeCast";
@@ -18,8 +18,13 @@ export type TargetValue =
   | { A_Expr: AExpr }
   | { BooleanTest: BooleanTest }
   | { NullTest: NullTest }
-  | { CaseExpr: unknown }
-  | { SubLink: unknown };
+  | { CaseExpr?: unknown }
+  | { SubLink?: unknown }
+  | { SQLValueFunction?: unknown }
+  | { CoalesceExpr?: unknown }
+  | { MinMaxExpr?: unknown }
+  | { A_Indirection?: unknown }
+  | { A_ArrayExpr?: unknown };
 
 export const targetValueDecoder: Decoder<TargetValue> = either9(
   exact({ ColumnRef: columnRefDecoder }),
@@ -30,7 +35,15 @@ export const targetValueDecoder: Decoder<TargetValue> = either9(
   exact({ A_Expr: aExprDecoder }),
   exact({ BooleanTest: booleanTestDecoder }), // someting IS true
   exact({ NullTest: nullTestDecoder }), // something is NULL
-  either(exact({ CaseExpr: mixed }), exact({ SubLink: mixed }))
+  either7(
+    exact({ CaseExpr: unknown }),
+    exact({ SubLink: unknown }),
+    exact({ SQLValueFunction: unknown }),
+    exact({ CoalesceExpr: unknown }),
+    exact({ MinMaxExpr: unknown }),
+    exact({ A_Indirection: unknown }),
+    exact({ A_ArrayExpr: unknown })
+  )
 );
 
 export const verifyTargetValue = guard(targetValueDecoder);

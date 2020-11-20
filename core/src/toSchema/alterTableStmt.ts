@@ -1,12 +1,14 @@
-import { Schema, AlterTableStmt, AlterTableCmdSubType } from "../toParser";
+import { AlterTableStmt, AlterTableCmdSubType } from "../toParser";
 import { PGErrorCode, PGError } from "../errors";
 import { toTableName, addFieldToTable } from "./toTableField";
+import { Schema } from "./";
 
 export default function alterTableStmt(
   alterTableStmt: AlterTableStmt,
   schema: Schema
 ): Schema {
   const tables = schema.tables;
+  const constraints = schema.constraints;
   /**
    * Make sure we have the table to update
    */
@@ -25,19 +27,27 @@ export default function alterTableStmt(
    * Apply each cmd to table.
    */
   for (const cmd of alterTableStmt.cmds) {
-    if (cmd.AlterTableCmd.subtype === AlterTableCmdSubType.ADD) {
-      const columnDef = cmd.AlterTableCmd.def.ColumnDef;
-      tables[indexOfTable] = addFieldToTable(tables[indexOfTable], columnDef);
-    } else {
-      throw new PGError(
-        PGErrorCode.NOT_UNDERSTOOD,
-        `Does not understand alter command ${cmd.AlterTableCmd.subtype}`
-      );
+    switch (cmd.AlterTableCmd.subtype) {
+      case AlterTableCmdSubType.ADD_COLUMN: {
+        const columnDef = cmd.AlterTableCmd.def.ColumnDef;
+        tables[indexOfTable] = addFieldToTable(tables[indexOfTable], columnDef);
+        break;
+      }
+      case AlterTableCmdSubType.ADD_CONSTRAINT: {
+        constraints.push(cmd.AlterTableCmd.def.Constraint);
+        break;
+      }
+      default:
+        throw new PGError(
+          PGErrorCode.NOT_UNDERSTOOD,
+          `Does not understand alter command ${cmd.AlterTableCmd.subtype}`
+        );
     }
   }
 
   return {
     ...schema,
+    constraints,
     tables,
   };
 }

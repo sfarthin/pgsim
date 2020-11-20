@@ -1,4 +1,4 @@
-import { optional, number, exact, Decoder, mixed } from "decoders";
+import { number, exact, Decoder, unknown } from "decoders";
 
 // export enum JoinType {
 //   "Full" = 0,
@@ -10,18 +10,20 @@ import { optional, number, exact, Decoder, mixed } from "decoders";
 
 export type JoinExpr = {
   jointype: number;
-  larg: unknown; // <-- Should be FromClause, but that is cyclic, so we have to do it at runtime
-  rarg: unknown; // <-- Should be FromClause, but that is cyclic, so we have to do it at runtime
-  quals: unknown;
+  larg?: unknown; // <-- Should be FromClause, but that is cyclic, so we have to do it at runtime
+  rarg?: unknown; // <-- Should be FromClause, but that is cyclic, so we have to do it at runtime
+  quals?: unknown;
   isNatural?: unknown;
   usingClause?: unknown;
+  alias?: unknown;
 };
 
 export const joinExprDecoder: Decoder<JoinExpr> = exact({
   jointype: number,
-  larg: mixed,
-  rarg: mixed,
-  quals: mixed,
-  isNatural: optional(mixed),
-  usingClause: optional(mixed),
+  larg: unknown,
+  rarg: unknown,
+  quals: unknown,
+  isNatural: unknown,
+  usingClause: unknown,
+  alias: unknown,
 });

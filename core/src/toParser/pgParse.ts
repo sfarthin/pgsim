@@ -9,12 +9,12 @@ import {
 } from "decoders";
 import { createHash } from "crypto";
 // @ts-expect-error - No declaration
-import { parse as pgParse } from "pg-query-native";
+import { parse as pgParse } from "pg-query-native-latest";
 
 type ParsedResult = {
   query: unknown[];
-  stderr: string | void;
-  error: unknown;
+  stderr?: string;
+  error?: unknown;
 };
 
 const parserResultDecoder: Decoder<ParsedResult> = exact({

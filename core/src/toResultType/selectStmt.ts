@@ -1,12 +1,11 @@
 import {
-  Schema,
   FuncCall,
   SelectStmt,
   isNullable,
   getPrimitiveType,
   FromClause,
   TargetValue,
-  verifyFromClause,
+  fromClauseDecoder,
   verifyTargetValue,
   verifySelectStatement,
   A_Const,
@@ -14,10 +13,13 @@ import {
   verifyColumnDef,
   verifyResTarget,
   CreateStmt,
+  verifyFromClause,
 } from "../toParser";
+import { Schema } from "../toSchema";
 import { PGErrorCode, PGError } from "../errors";
 import { Source, Field } from "./types";
 import { RangeVar } from "../toParser/rangeVar";
+import { guard, array } from "decoders";
 
 function fromFunctionCall(funcCall: FuncCall, sources: Source[]): Field {
   if (funcCall.funcname.length !== 1) {
@@ -233,9 +235,11 @@ function getSources(schema: Schema, fromClauses: FromClause[]): Source[] {
 }
 
 export function fromSelect(schema: Schema, query: SelectStmt): Field[] {
-  const fromClauses = ("fromClause" in query ? query.fromClause || [] : []).map(
-    verifyFromClause
-  );
+  const fromClauses =
+    "fromClause" in query
+      ? guard(array(fromClauseDecoder))(query.fromClause)
+      : [];
+
   const sources = getSources(schema, fromClauses);
 
   const fields: Field[] = [];

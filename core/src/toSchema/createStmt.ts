@@ -1,6 +1,7 @@
-import { Schema, CreateStmt } from "../toParser";
+import { CreateStmt } from "../toParser";
 import { PGErrorCode, PGError } from "../errors";
 import { toTableName } from "./toTableField";
+import { Schema } from "./";
 
 export default function createStmt(
   createStmt: CreateStmt,

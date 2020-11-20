@@ -1,5 +1,5 @@
-import toParser, { Schema } from "../toParser";
-import { modifySchema, emptySchema } from "../toSchema";
+import toParser from "../toParser";
+import { modifySchema, emptySchema, Schema } from "../toSchema";
 import { PGErrorCode } from "../errors";
 import toResultType from "../toResultType";
 
@@ -50,7 +50,7 @@ export default function* toLinter(
       try {
         const { query } = curr.value;
 
-        if ("SelectStmt" in query) {
+        if ("SelectStmt" in query.RawStmt.stmt) {
           toResultType(query, schema);
         }
 

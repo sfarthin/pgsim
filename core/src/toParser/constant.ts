@@ -1,4 +1,12 @@
-import { Decoder, exact, string, number, either3, mixed } from "decoders";
+import {
+  Decoder,
+  exact,
+  string,
+  number,
+  either4,
+  either3,
+  unknown,
+} from "decoders";
 
 export type StringValue = { str: string };
 export const stringValueDecoder: Decoder<StringValue> = exact({ str: string });
@@ -27,15 +35,17 @@ export type A_Const = {
   val:
     | { Float: FloatValue }
     | { String: StringValue }
-    | { Integer: IntegerValue };
+    | { Integer: IntegerValue }
+    | { Null: {} };
   location: number;
 };
 
-export const aConstDecoder = exact({
-  val: either3(
+export const aConstDecoder: Decoder<A_Const> = exact({
+  val: either4(
     exact({ Float: floatValueDecoder }),
     exact({ String: stringValueDecoder }),
-    exact({ Integer: integerValueDecoder })
+    exact({ Integer: integerValueDecoder }),
+    exact({ Null: exact({}) })
   ),
   location: number,
 });
@@ -46,6 +56,6 @@ export const stringDecoder: Decoder<PGString> = exact({
   String: stringValueDecoder,
 });
 
-export type Star = { A_Star: unknown };
+export type Star = { A_Star?: unknown };
 
-export const starDecoder = exact({ A_Star: mixed });
+export const starDecoder: Decoder<Star> = exact({ A_Star: unknown });

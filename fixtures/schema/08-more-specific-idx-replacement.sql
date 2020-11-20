@@ -1,0 +1,10 @@
+CREATE TABLE lusers (id INT, PRIMARY KEY (id));
+
+CREATE TABLE aaa (
+  id SERIAL NOT NULL PRIMARY KEY,
+  user_id INT NOT NULL,
+  label VARCHAR(128) DEFAULT NULL,
+  FOREIGN KEY (user_id) REFERENCES lusers (id)
+);
+
+ALTER TABLE aaa ADD CONSTRAINT xyz UNIQUE (user_id, label);

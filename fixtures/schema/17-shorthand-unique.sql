@@ -1,0 +1,6 @@
+-- (1) Shorthand UNIQUE in column def in CREATE TABLE
+CREATE TABLE aaa (id INT PRIMARY KEY, x INT UNIQUE);
+
+-- (2) Shorthand UNIQUE in column def in ALTER TABLE
+CREATE TABLE bbb (id INT PRIMARY KEY);
+ALTER TABLE bbb ADD COLUMN x INT UNIQUE;

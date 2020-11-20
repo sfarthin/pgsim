@@ -1,4 +1,4 @@
-import { readFileSync } from "fs";
+import { readFileSync, readdirSync } from "fs";
 import { resolve } from "path";
 
 export const lintFiles: string[] = [
@@ -202,14 +202,26 @@ export const lintFiles: string[] = [
   "stats",
 ];
 
-function* fixtures(): Iterator<string, void> {
+function* fixtures(): Iterator<{ sql: string; name: string }, void> {
   for (const name of lintFiles) {
     const pathToFile = resolve(
       `${__dirname}/../../fixtures/regress/${name}.sql`
     );
 
     const sql = readFileSync(pathToFile).toString();
-    yield sql;
+    yield { sql, name };
+  }
+}
+
+export function* tbFixtures(): Iterator<{ sql: string; name: string }, void> {
+  const files = readdirSync(`${__dirname}/../../fixtures/tb`);
+  for (const name of files) {
+    if (name.match(/\.sql$/)) {
+      const pathToFile = resolve(`${__dirname}/../../fixtures/tb/${name}`);
+
+      const sql = readFileSync(pathToFile).toString();
+      yield { name, sql };
+    }
   }
 }
 

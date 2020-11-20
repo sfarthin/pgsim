@@ -1,0 +1,6 @@
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY
+);
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY
+);
