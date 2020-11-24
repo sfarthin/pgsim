@@ -1,4 +1,4 @@
-import toParser from "../toParser";
+import parse from "../toParser";
 import { modifySchema, emptySchema, Schema } from "../toSchema";
 import { PGErrorCode } from "../errors";
 import toResultType from "../toResultType";
@@ -41,23 +41,22 @@ export default function* toLinter(
 ): Iterator<LintError, void> {
   let index = 0;
   try {
-    const parser = toParser(sqlIterator);
-    let curr = parser.next();
+    let curr = sqlIterator.next();
     let schema = existingSchema ? existingSchema : emptySchema;
     // const options = _options ? _options : defaultOptions;
 
     while (!curr.done) {
+      const sql = curr.value;
       try {
-        const { query } = curr.value;
+        const stmts = parse(sql);
 
-        if ("SelectStmt" in query.RawStmt.stmt) {
-          toResultType(query, schema);
+        for (const stmt of stmts) {
+          if ("SelectStmt" in stmt.RawStmt.stmt) {
+            toResultType(stmt, schema);
+          }
+
+          schema = modifySchema(stmt, schema);
         }
-
-        // TODO lint(query)
-        // WIll run appropiate resultType inside there.
-
-        schema = modifySchema(query, schema);
       } catch (e) {
         /**
          * This catch block catches errors when processing
@@ -65,14 +64,11 @@ export default function* toLinter(
          */
 
         if (!e.id) {
-          if (curr.value.text) {
-            e.message = `\n\n${curr.value.text}\n${e.message}`;
-          }
           throw e;
         }
 
         yield {
-          sql: curr ? curr.value.text : null,
+          sql,
           index,
           code: e.id,
           message: String(e.message),
@@ -80,7 +76,7 @@ export default function* toLinter(
       }
 
       index++;
-      curr = parser.next();
+      curr = sqlIterator.next();
     }
   } catch (e) {
     /**

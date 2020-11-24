@@ -1,8 +1,10 @@
-import { Query } from "./toParser";
+import parse, { Stmt } from "./toParser";
 import toLinter, { LintError, LintOptions } from "./toLinter";
-import toParser from "./toParser";
-import toDDL from "./toDDL";
-import { fromFiles, fromString } from "./toSql";
+import toString from "./toString";
+import {
+  fromFilesToSqlIterator,
+  fromStringToSqlIterator,
+} from "./toSqlIterator";
 import toArray from "./iteratorToArray";
 import toSchema, { toTableFields, Schema } from "./toSchema";
 import { PGError, PGErrorCode } from "./errors";
@@ -14,7 +16,7 @@ export function lintString(
   options: LintOptions | void,
   schema: Schema | void
 ): Iterator<LintError, void> {
-  return toLinter(fromString(str), options, schema);
+  return toLinter(fromStringToSqlIterator(str), options, schema);
 }
 
 export function lintFiles(
@@ -22,7 +24,7 @@ export function lintFiles(
   options: LintOptions | void,
   schema: Schema | void
 ): Iterator<LintError, void> {
-  return toLinter(fromFiles(files), options, schema);
+  return toLinter(fromFilesToSqlIterator(files), options, schema);
 }
 
 export function lintStream(
@@ -33,21 +35,22 @@ export function lintStream(
   return toLinter(stream, options, schema);
 }
 
-export function getSingleQuery(str: string): Query {
-  const queries = toArray(toParser(fromString(str)));
+export function getSingleQuery(str: string): Stmt {
+  const statements = parse(str);
 
-  if (queries.length !== 1) {
+  if (statements.length !== 1) {
     throw new PGError(PGErrorCode.INVALID, "Expected Single Query");
   }
-  const { query } = queries[0];
-
-  return query;
+  return statements[0];
 }
 
 export function toSchemaFromString(str: string): Schema {
-  return toSchema(toParser(fromString(str)));
+  return toSchema(parse(str));
 }
 
-export function toDDLFromString(str: string): string {
-  return toDDL(toSchemaFromString(str));
+export function format(str: string): string {
+  const queries = parse(str);
+  return queries.map(toString).join("\n");
 }
+
+export { parse };

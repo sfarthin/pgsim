@@ -26,3 +26,21 @@ export function tuple1<T>(decoder1: Decoder<T>): Decoder<[T]> {
     }
   });
 }
+
+export function tuple2<T>(decoder1: Decoder<T>): Decoder<[T, T]> {
+  return compose(ntuple(2), (blobs: Array<unknown>) => {
+    const [blob1, blob2] = blobs;
+
+    const result1 = decoder1(blob1);
+    const result2 = decoder1(blob2);
+    try {
+      return Ok([result1.unwrap(), result2.unwrap()]);
+    } catch (e) {
+      // If a decoder error has happened while unwrapping all the
+      // results, try to construct a good error message
+      return Err(
+        annotate([result1.isErr() ? result1.errValue() : result1.value()], "")
+      );
+    }
+  });
+}

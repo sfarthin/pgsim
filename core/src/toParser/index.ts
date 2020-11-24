@@ -1,7 +1,6 @@
-import { optional, mixed, array, string, guard, exact } from "decoders";
+import { optional, array, string, guard, exact, unknown } from "decoders";
 import pgParse from "./pgParse";
-import { queryDecoder, QueryWithText } from "./query";
-import toOriginalText from "./toOriginalText";
+import { stmtDecoder, Stmt } from "./ast";
 import { PGError, PGErrorCode } from "../errors";
 
 export * from "./alterTableStmt";
@@ -17,53 +16,32 @@ export * from "./funcCall";
 export * from "./joinExpr";
 export * from "./index";
 export * from "./pgParse";
-export * from "./query";
+export * from "./ast";
 export * from "./selectStmt";
 export * from "./targetValue";
 export * from "./toOriginalText";
 export * from "./typeCast";
 
 export const parserResultDecoder = exact({
-  // This is mixed because Error messages are hard to read if we do this here, we validate each query seperately
-  query: array(mixed),
+  // This is unknown because Error messages are hard to read if we do this here, we validate each query seperately
+  query: array(unknown),
   stderr: optional(string),
-  error: optional(mixed),
+  error: optional(unknown),
 });
 
-export const validateParsedResult = guard(parserResultDecoder);
+export default function parse(sql: string): Stmt[] {
+  const unsafeResult = pgParse(sql);
+  const { query: queries, stderr, error } = guard(parserResultDecoder)(
+    unsafeResult
+  );
 
-export const validateQuery = guard(queryDecoder);
-
-export type Parser = Iterator<QueryWithText, void>;
-
-export default function* toParser(sqlIterator: Iterator<string, void>): Parser {
-  let curr = sqlIterator.next();
-
-  while (!curr.done) {
-    const sql = curr.value;
-    const unsafeResult = pgParse(sql);
-    const { query: queries, stderr, error } = validateParsedResult(
-      unsafeResult
-    );
-
-    if (stderr || error) {
-      if (error) {
-        throw new PGError(PGErrorCode.INVALID, `${sql}\n\n${String(error)}`);
-      } else {
-        throw new PGError(PGErrorCode.INVALID, stderr || "");
-      }
+  if (stderr || error) {
+    if (error) {
+      throw new PGError(PGErrorCode.INVALID, `${sql}\n\n${String(error)}`);
+    } else {
+      throw new PGError(PGErrorCode.INVALID, stderr || "");
     }
-
-    for (const index in queries) {
-      const unSafeQuery = queries[index];
-      const text = toOriginalText(sql, Number(index));
-
-      yield {
-        query: validateQuery(unSafeQuery),
-        text,
-      };
-    }
-
-    curr = sqlIterator.next();
   }
+
+  return queries.map(guard(stmtDecoder));
 }

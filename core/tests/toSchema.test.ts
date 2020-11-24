@@ -68,9 +68,9 @@ describe("toSchema", () => {
   it("Can parse sequences", () => {
     toSchemaFromString(`
     CREATE TABLE "foo" (
-      id BIGSERIAL PRIMARY KEY
-  );
-      CREATE SEQUENCE sequence_test5 AS integer;
+        id BIGSERIAL PRIMARY KEY
+    );
+    CREATE SEQUENCE sequence_test5 AS int4;
     `);
   });
 });

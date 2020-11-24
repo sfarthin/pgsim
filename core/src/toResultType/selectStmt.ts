@@ -164,7 +164,7 @@ function fromTargetValue(target: TargetValue, sources: Source[]): Field[] {
   );
 }
 
-function getFieldsFromTable(table: CreateStmt): Field[] {
+export function getFieldsFromTable(table: CreateStmt): Field[] {
   const fields: Field[] = [];
   const tableElts = table.tableElts || [];
   for (const t of tableElts) {
