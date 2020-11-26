@@ -1,4 +1,4 @@
-import { CreateEnumStmt } from "../decoder/createEnumStmt";
+import { CreateEnumStmt } from "~/types";
 
 export default function variableSetStmt(
   createEnumStmt: CreateEnumStmt

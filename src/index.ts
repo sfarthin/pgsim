@@ -1,12 +1,12 @@
-import parse from "./nativeParse";
-import toLinter, { LintError, LintOptions } from "./toLinter";
+import parse from "~/nativeParse";
+import toLinter, { LintError, LintOptions } from "~/toLinter";
 import {
   fromFilesToSqlIterator,
   fromStringToSqlIterator,
-} from "./toSqlIterator";
-import toArray from "./iteratorToArray";
-import toSchema, { toTableFields, Schema } from "./toSchema";
-import { PGErrorCode } from "./errors";
+} from "~/util/toSqlIterator";
+import toArray from "~/util/iteratorToArray";
+import toSchema, { toTableFields, Schema } from "~/toSchema";
+import { PGErrorCode } from "~/util/errors";
 
 export { PGErrorCode, toTableFields, LintOptions, toArray };
 

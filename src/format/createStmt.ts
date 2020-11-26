@@ -1,4 +1,4 @@
-import { CreateStmt, verifyColumnDef, ColumnDef, isNullable } from "../decoder";
+import { CreateStmt, verifyColumnDef, ColumnDef, isNullable } from "~/types";
 
 export function toType(columnDef: ColumnDef): string {
   const names = columnDef.typeName.TypeName.names

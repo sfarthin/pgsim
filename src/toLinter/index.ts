@@ -1,6 +1,6 @@
 import parse from "../nativeParse";
 import { modifySchema, emptySchema, Schema } from "../toSchema";
-import { PGErrorCode } from "../errors";
+import { PGErrorCode } from "~/util/errors";
 import toResultType from "../toResultType";
 
 export type LintError = {

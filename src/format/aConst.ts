@@ -1,4 +1,4 @@
-import { A_Const } from "../decoder/constant";
+import { A_Const } from "~/types";
 
 export default function aConst(aConst: A_Const): string {
   if ("String" in aConst.val) {

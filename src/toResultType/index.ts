@@ -1,4 +1,4 @@
-import { Stmt } from "../decoder";
+import { Stmt } from "~/types";
 import { Field } from "./types";
 import { emptySchema, Schema } from "../toSchema";
 import { fromSelect } from "./selectStmt";

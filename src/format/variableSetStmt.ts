@@ -1,4 +1,4 @@
-import { VariableSetStmt } from "../decoder/variableSetStmt";
+import { VariableSetStmt } from "~/types";
 import aConst from "./aConst";
 
 export default function variableSetStmt(

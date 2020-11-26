@@ -1,5 +1,5 @@
-import { AlterTableStmt, AlterTableCmdSubType } from "../decoder";
-import { PGErrorCode, PGError } from "../errors";
+import { AlterTableStmt, AlterTableCmdSubType } from "~/types";
+import { PGErrorCode, PGError } from "~/util/errors";
 import { toTableName, addFieldToTable } from "./toTableField";
 import { Schema } from "./";
 

@@ -1,5 +1,4 @@
-import { CreateSeqStmt } from "../decoder/createSeqStmt";
-import { DefElem } from "../decoder/defElem";
+import { CreateSeqStmt, DefElem } from "~/types";
 
 export function defElem(defElem: DefElem): string {
   if (defElem.defname === "owned_by") {

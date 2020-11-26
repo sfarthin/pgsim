@@ -13,12 +13,12 @@ import {
   verifyResTarget,
   CreateStmt,
   verifyFromClause,
-} from "../decoder";
+} from "~/types";
 import { Schema } from "../toSchema";
 import { getPrimitiveType } from "./getPrimitiveType";
-import { PGErrorCode, PGError } from "../errors";
+import { PGErrorCode, PGError } from "~/util/errors";
 import { Source, Field } from "./types";
-import { RangeVar } from "../decoder";
+import { RangeVar } from "~/types";
 import { guard, array } from "decoders";
 
 function fromFunctionCall(funcCall: FuncCall, sources: Source[]): Field {

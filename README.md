@@ -16,8 +16,6 @@ It supports "Create Table", Alter, Insert, Select, Index, Update, "Create Enum",
 
 ## For Developers
 
-This is a mono-repo, but doesn't use yarn workspaces or learna. Should be dependency-less in the near future when the parser uses PEGJS.
-
 ### Running tests
 
 The test suite for this project is a little bit different from "normal"

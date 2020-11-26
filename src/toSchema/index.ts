@@ -1,8 +1,8 @@
-import { CreateStmt, CreateSeqStmt, Constraint, Stmt } from "../decoder";
+import { CreateStmt, CreateSeqStmt, Constraint, Stmt } from "~/types";
 import createStmt from "./createStmt";
 import alterTableStmt from "./alterTableStmt";
 import createSeqStmt from "./createSeqStmt";
-import { PGError, PGErrorCode } from "../errors";
+import { PGError, PGErrorCode } from "~/util/errors";
 
 export { toTableFields } from "./toTableField";
 

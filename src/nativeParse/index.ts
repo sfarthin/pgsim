@@ -1,6 +1,6 @@
 import { optional, array, string, guard, exact, unknown } from "decoders";
-import { stmtDecoder, Stmt } from "../decoder";
-import { PGError, PGErrorCode } from "../errors";
+import { stmtDecoder, Stmt } from "~/types";
+import { PGError, PGErrorCode } from "~/util/errors";
 // @ts-expect-error - No declaration
 import { parse as pgParse } from "pg-query-native-latest";
 

@@ -6,7 +6,7 @@ import {
   CreateStmt,
   AlterTableStmt,
   verifyColumnDef,
-} from "../decoder";
+} from "~/types";
 import { getPrimitiveType, TableField } from "../toResultType/getPrimitiveType";
 import { Schema } from "./";
 

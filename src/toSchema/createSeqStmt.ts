@@ -1,4 +1,4 @@
-import { CreateSeqStmt } from "../decoder";
+import { CreateSeqStmt } from "~/types";
 import { Schema } from "./";
 
 export default function createStmt(

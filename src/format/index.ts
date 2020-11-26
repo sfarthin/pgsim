@@ -3,7 +3,7 @@ import variableSetStmt from "./variableSetStmt";
 import createEnumStmt from "./createEnumStmt";
 import createSeqStmt from "./createSeqStmt";
 import alterSeqStmt from "./alterSeqStmt";
-import { Stmt, StatementType } from "../decoder";
+import { Stmt, StatementType } from "~/types";
 
 type Opts = {
   ignore?: StatementType[];

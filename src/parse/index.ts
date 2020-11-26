@@ -1,7 +1,5 @@
 import { guard } from "decoders";
-import { stmtDecoder, Stmt } from "../decoder";
-
-// @ts-expect-error - No declaration
+import { stmtDecoder, Stmt } from "~/types";
 import { parse } from "./language";
 
 export default function (sql: string): Stmt[] {

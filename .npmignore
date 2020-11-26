@@ -1,0 +1,6 @@
+# Not include decoders, but just the types.
+./dist/decoder/*.d.js
+./dist/decoder/*.d.js.map
+
+# Lets not include the native Parser
+./dist/nativeParse

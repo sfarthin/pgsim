@@ -1,4 +1,4 @@
-import { AlterSeqStmt } from "../decoder/alterSeqStmt";
+import { AlterSeqStmt } from "~/types";
 import { defElem } from "./createSeqStmt";
 
 export default function alterSeqStmt(c: AlterSeqStmt): string {

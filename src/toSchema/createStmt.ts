@@ -1,5 +1,5 @@
-import { CreateStmt } from "../decoder";
-import { PGErrorCode, PGError } from "../errors";
+import { CreateStmt } from "~/types";
+import { PGErrorCode, PGError } from "~/util/errors";
 import { toTableName } from "./toTableField";
 import { Schema } from "./";
 
