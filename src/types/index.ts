@@ -1,4 +1,4 @@
-import { inexact, pojo, Decoder, either9, either5 } from "decoders";
+import { inexact, pojo, Decoder, either9, either6, string } from "decoders";
 import { CreateStmt, createStmtDecoder } from "./createStmt";
 import { AlterTableStmt, alterTableStmtDecoder } from "./alterTableStmt";
 import { SelectStmt, selectStmtDecoder } from "./selectStmt";
@@ -41,14 +41,15 @@ export type Stmt = {
       | { AlterTableStmt: AlterTableStmt }
       | { InsertStmt: InsertStmt }
       | { SelectStmt: SelectStmt }
-      | { CreateSeqStmt: CreateSeqStmt }
+      | { CreateSeqStmt: CreateSeqStmt } // Parsed/Formatted
       | { VariableSetStmt: VariableSetStmt }
-      | { CreateEnumStmt: CreateEnumStmt }
-      | { AlterSeqStmt: AlterSeqStmt }
+      | { CreateEnumStmt: CreateEnumStmt } // Parsed/Formatted
+      | { AlterSeqStmt: AlterSeqStmt } // Parsed/Formatted
       | { IndexStmt: Record<string, unknown> }
       | { UpdateStmt: Record<string, unknown> }
       | { CommentStmt: Record<string, unknown> }
       | { ViewStmt: Record<string, unknown> }
+      | { Comment: string } // <-- on our parser only, for trailing comments
       // SUPPORTED END
       | { TransactionStmt: Record<string, unknown> } // BEGIN...END
       | { CreateRoleStmt: Record<string, unknown> }
@@ -123,6 +124,7 @@ export const stmtDecoder: Decoder<Stmt> = inexact({
       inexact({ CreateEnumStmt: createEnumStmtDecoder }),
       inexact({ AlterSeqStmt: alterSeqStmtDecoder }),
       either9(
+        inexact({ Comment: string }),
         inexact({ IndexStmt: pojo }),
         inexact({ UpdateStmt: pojo }),
         inexact({ ViewStmt: pojo }),
@@ -130,8 +132,8 @@ export const stmtDecoder: Decoder<Stmt> = inexact({
         inexact({ DefineStmt: pojo }),
         inexact({ CreateFunctionStmt: pojo }),
         inexact({ CreateCastStmt: pojo }),
-        inexact({ DeleteStmt: pojo }),
         either9(
+          inexact({ DeleteStmt: pojo }),
           inexact({ CreateRangeStmt: pojo }),
           inexact({ TruncateStmt: pojo }),
           inexact({ ExplainStmt: pojo }),
@@ -139,9 +141,8 @@ export const stmtDecoder: Decoder<Stmt> = inexact({
           inexact({ DropRoleStmt: pojo }),
           inexact({ CreateTableAsStmt: pojo }),
           inexact({ TransactionStmt: pojo }),
-          inexact({ VariableShowStmt: pojo }),
           either9(
-            inexact({ DoStmt: pojo }),
+            inexact({ VariableShowStmt: pojo }),
             inexact({ VacuumStmt: pojo }),
             inexact({ AlterRoleStmt: pojo }),
             inexact({ CreateSchemaStmt: pojo }),
@@ -185,7 +186,8 @@ export const stmtDecoder: Decoder<Stmt> = inexact({
                     inexact({ CreatePLangStmt: pojo }),
                     inexact({ CreateOpFamilyStmt: pojo }),
                     inexact({ CreateOpClassStmt: pojo }),
-                    either5(
+                    either6(
+                      inexact({ DoStmt: pojo }),
                       inexact({ CreateStatsStmt: pojo }),
                       inexact({ AlterOperatorStmt: pojo }),
                       inexact({ ClusterStmt: pojo }),

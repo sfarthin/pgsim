@@ -1,4 +1,5 @@
 import { CreateSeqStmt, DefElem } from "~/types";
+import comment from "./comment";
 
 export function defElem(defElem: DefElem): string {
   if (defElem.defname === "owned_by") {
@@ -46,7 +47,14 @@ export function defElem(defElem: DefElem): string {
 
 export default function createSeqStmt(c: CreateSeqStmt): string {
   const name = c.sequence.RangeVar.relname;
-  return `CREATE SEQUENCE ${name} \n\t${c.options
+
+  if (!c.options?.length) {
+    return `${comment(c.comment)}CREATE SEQUENCE ${name};\n`;
+  }
+
+  return `${comment(
+    c.comment
+  )}CREATE SEQUENCE ${name} \n\t${c.options
     ?.map((e) => defElem(e.DefElem))
-    .join("\n\t")};`;
+    .join("\n\t")};\n`;
 }

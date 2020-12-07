@@ -1,4 +1,4 @@
-import { array, exact, either, Decoder } from "decoders";
+import { array, exact, either, Decoder, string, optional } from "decoders";
 import { stringValueDecoder, StringValue } from "./constant";
 import { tuple1, tuple2 } from "./tuple1";
 
@@ -8,7 +8,9 @@ export type CreateEnumStmt = {
     | [{ String: StringValue }, { String: StringValue }];
   vals: {
     String: StringValue;
+    comment?: string;
   }[];
+  comment?: string;
 };
 
 export const createEnumStmtDecoder: Decoder<CreateEnumStmt> = exact({
@@ -16,5 +18,6 @@ export const createEnumStmtDecoder: Decoder<CreateEnumStmt> = exact({
     tuple1(exact({ String: stringValueDecoder })),
     tuple2(exact({ String: stringValueDecoder }))
   ),
-  vals: array(exact({ String: stringValueDecoder })),
+  vals: array(exact({ String: stringValueDecoder, comment: optional(string) })),
+  comment: optional(string),
 });

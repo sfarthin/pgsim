@@ -1,23 +1,16 @@
-import {
-  string,
-  number,
-  exact,
-  Decoder,
-  optional,
-  array,
-  unknown,
-} from "decoders";
+import { string, exact, Decoder, optional, array, unknown } from "decoders";
+import { Location, locationDecoder } from "./location";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 
 export type ResTargetInsert = {
   name?: string;
-  location: number;
+  location: Location;
   indirection?: unknown;
 };
 
 export const resTargetInsertDecoder: Decoder<ResTargetInsert> = exact({
   name: optional(string),
-  location: number,
+  location: locationDecoder,
   indirection: unknown,
 });
 

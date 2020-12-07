@@ -9,18 +9,19 @@ import {
   either3,
   unknown,
 } from "decoders";
+import { Location, locationDecoder } from "./location";
 import { targetValueDecoder, TargetValue } from "./targetValue";
 
 export type ResTarget = {
   name?: string;
   val: TargetValue;
-  location: number;
+  location: Location;
 };
 
 export const resTargetDecoder: Decoder<ResTarget> = exact({
   name: optional(string),
   val: targetValueDecoder,
-  location: number,
+  location: locationDecoder,
 });
 
 export const verifyResTarget = guard(resTargetDecoder);

@@ -1,0 +1,806 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Parse and format alterSeqStmt.sql 1`] = `
+Array [
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "AlterSeqStmt": Object {
+          "comment": "Hello",
+          "options": Array [
+            Object {
+              "DefElem": Object {
+                "arg": Array [
+                  Object {
+                    "String": Object {
+                      "str": "a",
+                    },
+                  },
+                  Object {
+                    "String": Object {
+                      "str": "aaa",
+                    },
+                  },
+                ],
+                "comment": "",
+                "defaction": 0,
+                "defname": "owned_by",
+                "location": Object {
+                  "end": Object {
+                    "column": 15,
+                    "line": 2,
+                    "offset": 42,
+                  },
+                  "start": Object {
+                    "column": 1,
+                    "line": 2,
+                    "offset": 28,
+                  },
+                },
+              },
+            },
+          ],
+          "sequence": Object {
+            "RangeVar": Object {
+              "inh": true,
+              "location": Object {
+                "end": Object {
+                  "column": 16,
+                  "line": 2,
+                  "offset": 43,
+                },
+                "start": Object {
+                  "column": 1,
+                  "line": 1,
+                  "offset": 0,
+                },
+              },
+              "relname": "foo",
+              "relpersistence": "p",
+            },
+          },
+        },
+      },
+    },
+  },
+]
+`;
+
+exports[`Parse and format alterSeqStmt.sql 2`] = `
+"ALTER SEQUENCE foo 
+	OWNED BY a.aaa;"
+`;
+
+exports[`Parse and format createEnumStmt.sql 1`] = `
+Array [
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "Comment": "Top 1",
+      },
+    },
+  },
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "Comment": "Top 2",
+      },
+    },
+  },
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "CreateEnumStmt": Object {
+          "comment": "1
+2
+3
+4
+5
+6
+7
+8",
+          "typeName": Array [
+            Object {
+              "String": Object {
+                "str": "foo",
+              },
+            },
+          ],
+          "vals": Array [
+            Object {
+              "String": Object {
+                "str": "a",
+              },
+              "comment": "comment on a",
+            },
+            Object {
+              "String": Object {
+                "str": "b",
+              },
+              "comment": "comment on b",
+            },
+            Object {
+              "String": Object {
+                "str": "c",
+              },
+              "comment": "comment on c",
+            },
+            Object {
+              "String": Object {
+                "str": "d",
+              },
+              "comment": "comment on d",
+            },
+            Object {
+              "String": Object {
+                "str": "e",
+              },
+              "comment": "comment on e",
+            },
+          ],
+        },
+      },
+    },
+  },
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "Comment": "Bottom 1",
+      },
+    },
+  },
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "Comment": "Bottom 2",
+      },
+    },
+  },
+]
+`;
+
+exports[`Parse and format createEnumStmt.sql 2`] = `
+"-- Top 1
+
+-- Top 2
+
+/**
+ * 1
+ * 2
+ * 3
+ * 4
+ * 5
+ * 6
+ * 7
+ * 8
+ */
+CREATE TYPE foo AS ENUM (
+	-- comment on a
+	'a',
+	-- comment on b
+	'b',
+	-- comment on c
+	'c',
+	-- comment on d
+	'd',
+	-- comment on e
+	'e'
+);
+
+-- Bottom 1
+
+-- Bottom 2
+"
+`;
+
+exports[`Parse and format createSeqStmt.sql 1`] = `
+Array [
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "CreateSeqStmt": Object {
+          "comment": "This has no options",
+          "options": Array [],
+          "sequence": Object {
+            "RangeVar": Object {
+              "inh": true,
+              "location": Object {
+                "end": Object {
+                  "column": 1,
+                  "line": 3,
+                  "offset": 45,
+                },
+                "start": Object {
+                  "column": 1,
+                  "line": 1,
+                  "offset": 0,
+                },
+              },
+              "relname": "foo",
+              "relpersistence": "p",
+            },
+          },
+        },
+      },
+    },
+  },
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "CreateSeqStmt": Object {
+          "comment": "1
+2",
+          "options": Array [
+            Object {
+              "DefElem": Object {
+                "arg": Object {
+                  "Integer": Object {
+                    "ival": 1,
+                  },
+                },
+                "comment": "Start With 1",
+                "defaction": 0,
+                "defname": "start",
+                "location": Object {
+                  "end": Object {
+                    "column": 17,
+                    "line": 6,
+                    "offset": 114,
+                  },
+                  "start": Object {
+                    "column": 5,
+                    "line": 5,
+                    "offset": 82,
+                  },
+                },
+              },
+            },
+            Object {
+              "DefElem": Object {
+                "arg": Object {
+                  "Integer": Object {
+                    "ival": 1,
+                  },
+                },
+                "comment": "INCREMENT BY 1",
+                "defaction": 0,
+                "defname": "increment",
+                "location": Object {
+                  "end": Object {
+                    "column": 5,
+                    "line": 8,
+                    "offset": 156,
+                  },
+                  "start": Object {
+                    "column": 5,
+                    "line": 7,
+                    "offset": 119,
+                  },
+                },
+              },
+            },
+            Object {
+              "DefElem": Object {
+                "comment": "",
+                "defaction": 0,
+                "defname": "minvalue",
+                "location": Object {
+                  "end": Object {
+                    "column": 5,
+                    "line": 9,
+                    "offset": 172,
+                  },
+                  "start": Object {
+                    "column": 5,
+                    "line": 8,
+                    "offset": 156,
+                  },
+                },
+              },
+            },
+            Object {
+              "DefElem": Object {
+                "comment": "",
+                "defaction": 0,
+                "defname": "maxvalue",
+                "location": Object {
+                  "end": Object {
+                    "column": 5,
+                    "line": 10,
+                    "offset": 188,
+                  },
+                  "start": Object {
+                    "column": 5,
+                    "line": 9,
+                    "offset": 172,
+                  },
+                },
+              },
+            },
+            Object {
+              "DefElem": Object {
+                "arg": Object {
+                  "Integer": Object {
+                    "ival": 0,
+                  },
+                },
+                "comment": "",
+                "defaction": 0,
+                "defname": "cycle",
+                "location": Object {
+                  "end": Object {
+                    "column": 5,
+                    "line": 11,
+                    "offset": 201,
+                  },
+                  "start": Object {
+                    "column": 5,
+                    "line": 10,
+                    "offset": 188,
+                  },
+                },
+              },
+            },
+            Object {
+              "DefElem": Object {
+                "arg": Object {
+                  "Integer": Object {
+                    "ival": 1,
+                  },
+                },
+                "comment": "",
+                "defaction": 0,
+                "defname": "cache",
+                "location": Object {
+                  "end": Object {
+                    "column": 12,
+                    "line": 11,
+                    "offset": 208,
+                  },
+                  "start": Object {
+                    "column": 5,
+                    "line": 11,
+                    "offset": 201,
+                  },
+                },
+              },
+            },
+            Object {
+              "DefElem": Object {
+                "arg": Array [
+                  Object {
+                    "String": Object {
+                      "str": "none",
+                    },
+                  },
+                ],
+                "comment": "foo bac
+another comment
+and another",
+                "defaction": 0,
+                "defname": "owned_by",
+                "location": Object {
+                  "end": Object {
+                    "column": 18,
+                    "line": 12,
+                    "offset": 226,
+                  },
+                  "start": Object {
+                    "column": 5,
+                    "line": 12,
+                    "offset": 213,
+                  },
+                },
+              },
+            },
+          ],
+          "sequence": Object {
+            "RangeVar": Object {
+              "inh": true,
+              "location": Object {
+                "end": Object {
+                  "column": 5,
+                  "line": 16,
+                  "offset": 286,
+                },
+                "start": Object {
+                  "column": 1,
+                  "line": 3,
+                  "offset": 45,
+                },
+              },
+              "relname": "foo",
+              "relpersistence": "p",
+            },
+          },
+        },
+      },
+    },
+  },
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "Comment": "foo bar",
+      },
+    },
+  },
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "CreateSeqStmt": Object {
+          "comment": "",
+          "options": Array [
+            Object {
+              "DefElem": Object {
+                "arg": Object {
+                  "Integer": Object {
+                    "ival": 4,
+                  },
+                },
+                "comment": "",
+                "defaction": 0,
+                "defname": "minvalue",
+                "location": Object {
+                  "end": Object {
+                    "column": 11,
+                    "line": 20,
+                    "offset": 330,
+                  },
+                  "start": Object {
+                    "column": 1,
+                    "line": 20,
+                    "offset": 320,
+                  },
+                },
+              },
+            },
+            Object {
+              "DefElem": Object {
+                "arg": Object {
+                  "Integer": Object {
+                    "ival": 6,
+                  },
+                },
+                "comment": "",
+                "defaction": 0,
+                "defname": "maxvalue",
+                "location": Object {
+                  "end": Object {
+                    "column": 11,
+                    "line": 21,
+                    "offset": 341,
+                  },
+                  "start": Object {
+                    "column": 1,
+                    "line": 21,
+                    "offset": 331,
+                  },
+                },
+              },
+            },
+            Object {
+              "DefElem": Object {
+                "arg": Object {
+                  "Integer": Object {
+                    "ival": 1,
+                  },
+                },
+                "comment": "",
+                "defaction": 0,
+                "defname": "cycle",
+                "location": Object {
+                  "end": Object {
+                    "column": 1,
+                    "line": 23,
+                    "offset": 348,
+                  },
+                  "start": Object {
+                    "column": 1,
+                    "line": 22,
+                    "offset": 342,
+                  },
+                },
+              },
+            },
+            Object {
+              "DefElem": Object {
+                "arg": Array [
+                  Object {
+                    "String": Object {
+                      "str": "foo",
+                    },
+                  },
+                  Object {
+                    "String": Object {
+                      "str": "bar",
+                    },
+                  },
+                ],
+                "comment": "",
+                "defaction": 0,
+                "defname": "owned_by",
+                "location": Object {
+                  "end": Object {
+                    "column": 17,
+                    "line": 23,
+                    "offset": 364,
+                  },
+                  "start": Object {
+                    "column": 1,
+                    "line": 23,
+                    "offset": 348,
+                  },
+                },
+              },
+            },
+          ],
+          "sequence": Object {
+            "RangeVar": Object {
+              "inh": true,
+              "location": Object {
+                "end": Object {
+                  "column": 18,
+                  "line": 23,
+                  "offset": 365,
+                },
+                "start": Object {
+                  "column": 1,
+                  "line": 19,
+                  "offset": 299,
+                },
+              },
+              "relname": "foo2",
+              "relpersistence": "p",
+            },
+          },
+        },
+      },
+    },
+  },
+]
+`;
+
+exports[`Parse and format createSeqStmt.sql 2`] = `
+"-- This has no options
+CREATE SEQUENCE foo;
+
+/**
+ * 1
+ * 2
+ */
+CREATE SEQUENCE foo 
+	START WITH 1
+	INCREMENT BY 1
+	NO MINVALUE
+	NO MAXVALUE
+	NO CYCLE
+	CACHE 1
+	OWNED BY NONE;
+
+-- foo bar
+
+CREATE SEQUENCE foo2 
+	MINVALUE 4
+	MAXVALUE 6
+	CYCLE
+	OWNED BY foo.bar;
+"
+`;
+
+exports[`Parse and format variableSetStmt.sql 1`] = `
+Array [
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "VariableSetStmt": Object {
+          "args": Array [
+            Object {
+              "A_Const": Object {
+                "location": Object {
+                  "end": Object {
+                    "column": 26,
+                    "line": 1,
+                    "offset": 25,
+                  },
+                  "start": Object {
+                    "column": 25,
+                    "line": 1,
+                    "offset": 24,
+                  },
+                },
+                "val": Object {
+                  "Integer": Object {
+                    "ival": 0,
+                  },
+                },
+              },
+            },
+          ],
+          "comment": "",
+          "kind": 0,
+          "name": "statement_timeout",
+        },
+      },
+    },
+  },
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "VariableSetStmt": Object {
+          "args": Array [
+            Object {
+              "A_Const": Object {
+                "location": Object {
+                  "end": Object {
+                    "column": 21,
+                    "line": 2,
+                    "offset": 47,
+                  },
+                  "start": Object {
+                    "column": 20,
+                    "line": 2,
+                    "offset": 46,
+                  },
+                },
+                "val": Object {
+                  "Integer": Object {
+                    "ival": 0,
+                  },
+                },
+              },
+            },
+          ],
+          "comment": "",
+          "kind": 0,
+          "name": "lock_timeout",
+        },
+      },
+    },
+  },
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "VariableSetStmt": Object {
+          "args": Array [
+            Object {
+              "A_Const": Object {
+                "location": Object {
+                  "end": Object {
+                    "column": 29,
+                    "line": 3,
+                    "offset": 77,
+                  },
+                  "start": Object {
+                    "column": 23,
+                    "line": 3,
+                    "offset": 71,
+                  },
+                },
+                "val": Object {
+                  "String": Object {
+                    "str": "UTF8",
+                  },
+                },
+              },
+            },
+          ],
+          "comment": "",
+          "kind": 0,
+          "name": "client_encoding",
+        },
+      },
+    },
+  },
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "VariableSetStmt": Object {
+          "args": Array [
+            Object {
+              "A_Const": Object {
+                "location": Object {
+                  "end": Object {
+                    "column": 37,
+                    "line": 4,
+                    "offset": 115,
+                  },
+                  "start": Object {
+                    "column": 35,
+                    "line": 4,
+                    "offset": 113,
+                  },
+                },
+                "val": Object {
+                  "String": Object {
+                    "str": "on",
+                  },
+                },
+              },
+            },
+          ],
+          "comment": "",
+          "kind": 0,
+          "name": "standard_conforming_strings",
+        },
+      },
+    },
+  },
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "VariableSetStmt": Object {
+          "args": Array [
+            Object {
+              "A_Const": Object {
+                "location": Object {
+                  "end": Object {
+                    "column": 34,
+                    "line": 5,
+                    "offset": 150,
+                  },
+                  "start": Object {
+                    "column": 29,
+                    "line": 5,
+                    "offset": 145,
+                  },
+                },
+                "val": Object {
+                  "String": Object {
+                    "str": "false",
+                  },
+                },
+              },
+            },
+          ],
+          "comment": "",
+          "kind": 0,
+          "name": "check_function_bodies",
+        },
+      },
+    },
+  },
+  Object {
+    "RawStmt": Object {
+      "stmt": Object {
+        "VariableSetStmt": Object {
+          "args": Array [
+            Object {
+              "A_Const": Object {
+                "location": Object {
+                  "end": Object {
+                    "column": 34,
+                    "line": 6,
+                    "offset": 185,
+                  },
+                  "start": Object {
+                    "column": 27,
+                    "line": 6,
+                    "offset": 178,
+                  },
+                },
+                "val": Object {
+                  "String": Object {
+                    "str": "warning",
+                  },
+                },
+              },
+            },
+          ],
+          "comment": "",
+          "kind": 0,
+          "name": "client_min_messages",
+        },
+      },
+    },
+  },
+]
+`;
+
+exports[`Parse and format variableSetStmt.sql 2`] = `
+"SET statement_timeout = 0;
+SET lock_timeout = 0;
+SET client_encoding = 'UTF8';
+SET standard_conforming_strings = 'on';
+SET check_function_bodies = 'false';
+SET client_min_messages = 'warning';"
+`;

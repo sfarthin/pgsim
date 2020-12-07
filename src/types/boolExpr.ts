@@ -1,4 +1,5 @@
 import { number, Decoder, exact, unknown } from "decoders";
+import { Location, locationDecoder } from "./location";
 
 export enum BoolOp {
   "AND" = 0,
@@ -9,11 +10,11 @@ export enum BoolOp {
 export type BoolExpr = {
   boolop: number;
   args?: unknown;
-  location: number;
+  location: Location;
 };
 
 export const boolExprDecoder: Decoder<BoolExpr> = exact({
   boolop: number,
   args: unknown,
-  location: number,
+  location: locationDecoder,
 });

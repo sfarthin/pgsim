@@ -9,6 +9,7 @@ import {
   array,
   Decoder,
 } from "decoders";
+import { Location, locationDecoder } from "./location";
 
 export type DefElem =
   | {
@@ -23,7 +24,8 @@ export type DefElem =
         Integer: { ival: number };
       };
       defaction: number;
-      location: number;
+      location: Location;
+      comment?: string;
     }
   | {
       defname: "owned_by";
@@ -31,7 +33,8 @@ export type DefElem =
         String: { str: string };
       }[];
       defaction: number;
-      location: number;
+      location: Location;
+      comment?: string;
     };
 
 export const defElemDecoder: Decoder<DefElem> = either(
@@ -46,12 +49,14 @@ export const defElemDecoder: Decoder<DefElem> = either(
     ),
     arg: optional(exact({ Integer: exact({ ival: number }) })),
     defaction: number,
-    location: number,
+    location: locationDecoder,
+    comment: optional(string),
   }),
   exact({
     defname: constant("owned_by" as const),
     arg: array(exact({ String: exact({ str: string }) })),
     defaction: number,
-    location: number,
+    location: locationDecoder,
+    comment: optional(string),
   })
 );

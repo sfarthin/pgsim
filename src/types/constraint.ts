@@ -1,7 +1,6 @@
 import {
   exact,
   Decoder,
-  number,
   constant,
   either6,
   string,
@@ -15,6 +14,7 @@ import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { PGString, stringDecoder } from "./constant";
 import { tuple1 } from "./tuple1";
 import { TargetValue, targetValueDecoder } from "./targetValue";
+import { Location, locationDecoder } from "./location";
 
 export enum ConType {
   NOT_NULL = 1,
@@ -31,7 +31,7 @@ export enum ConType {
  */
 export type PrimaryKeyConstraint = {
   contype: ConType.PRIMARY_KEY;
-  location: number;
+  location: Location;
   conname?: string;
   keys?: PGString[];
 };
@@ -39,7 +39,7 @@ export type PrimaryKeyConstraint = {
 export const primaryKeyConstraintDecoder: Decoder<PrimaryKeyConstraint> = exact(
   {
     contype: constant(ConType.PRIMARY_KEY) as Decoder<ConType.PRIMARY_KEY>,
-    location: number,
+    location: locationDecoder,
     conname: optional(string),
     keys: optional(array(stringDecoder)),
   }
@@ -48,11 +48,14 @@ export const primaryKeyConstraintDecoder: Decoder<PrimaryKeyConstraint> = exact(
 /**
  * Not Null
  */
-export type NotNullConstraint = { contype: ConType.NOT_NULL; location: number };
+export type NotNullConstraint = {
+  contype: ConType.NOT_NULL;
+  location: Location;
+};
 
 export const notNullConstraintDecoder: Decoder<NotNullConstraint> = exact({
   contype: constant(ConType.NOT_NULL) as Decoder<ConType.NOT_NULL>,
-  location: number,
+  location: locationDecoder,
 });
 
 /**
@@ -60,13 +63,13 @@ export const notNullConstraintDecoder: Decoder<NotNullConstraint> = exact({
  */
 export type DefaultConstraint = {
   contype: ConType.DEFAULT;
-  location: number;
+  location: Location;
   raw_expr: TargetValue;
 };
 
 export const defaultConstraintDecoder: Decoder<DefaultConstraint> = exact({
   contype: constant(ConType.DEFAULT) as Decoder<ConType.DEFAULT>,
-  location: number,
+  location: locationDecoder,
   raw_expr: targetValueDecoder,
 });
 
@@ -76,14 +79,14 @@ export const defaultConstraintDecoder: Decoder<DefaultConstraint> = exact({
 
 export type UniqueConstraint = {
   contype: ConType.UNIQUE;
-  location: number;
+  location: Location;
   conname?: string;
   keys?: [PGString];
 };
 
 export const uniqueConstraintDecoder = exact({
   contype: constant(ConType.UNIQUE) as Decoder<ConType.UNIQUE>,
-  location: number,
+  location: locationDecoder,
   conname: optional(string),
   keys: optional(tuple1(stringDecoder)),
 });
@@ -94,7 +97,7 @@ export const uniqueConstraintDecoder = exact({
 
 export type ForeignKeyConstraint = {
   contype: ConType.REFERENCE | ConType.FOREIGN_KEY;
-  location: number;
+  location: Location;
   fk_upd_action: string;
   fk_del_action: string;
   fk_matchtype: string;
@@ -112,7 +115,7 @@ export const foreignKeyConstraint: Decoder<ForeignKeyConstraint> = exact({
     constant(ConType.REFERENCE) as Decoder<ConType.REFERENCE>,
     constant(ConType.FOREIGN_KEY) as Decoder<ConType.FOREIGN_KEY>
   ),
-  location: number,
+  location: locationDecoder,
   fk_upd_action: string,
   fk_del_action: string,
   fk_matchtype: string,
@@ -132,7 +135,7 @@ export const foreignKeyConstraint: Decoder<ForeignKeyConstraint> = exact({
 export type CheckConstraint = {
   contype: ConType.CHECK;
   conname: string;
-  location: number;
+  location: Location;
   raw_expr: TargetValue;
   skip_validation?: boolean;
   initially_valid?: boolean;
@@ -141,7 +144,7 @@ export type CheckConstraint = {
 export const CheckConstraintDecoder: Decoder<CheckConstraint> = exact({
   contype: constant(ConType.CHECK) as Decoder<ConType.CHECK>,
   conname: string,
-  location: number,
+  location: locationDecoder,
   raw_expr: targetValueDecoder,
   skip_validation: optional(boolean),
   initially_valid: optional(boolean),

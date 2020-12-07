@@ -3,6 +3,7 @@ import variableSetStmt from "./variableSetStmt";
 import createEnumStmt from "./createEnumStmt";
 import createSeqStmt from "./createSeqStmt";
 import alterSeqStmt from "./alterSeqStmt";
+import comment from "./comment";
 import { Stmt, StatementType } from "~/types";
 
 type Opts = {
@@ -43,6 +44,8 @@ function toString(stmt: Stmt, opts?: Opts): string {
     return createSeqStmt(s.CreateSeqStmt);
   } else if ("AlterSeqStmt" in s) {
     return alterSeqStmt(s.AlterSeqStmt);
+  } else if ("Comment" in s) {
+    return comment(s.Comment);
   }
 
   throw new Error(`Cannot format ${Object.keys(s)}`);

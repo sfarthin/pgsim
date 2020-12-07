@@ -1,0 +1,54 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`format asd 1`] = `
+"ALTER SEQUENCE foo 
+	OWNED BY a.aaa;"
+`;
+
+exports[`format define enum with comments 1`] = `
+"-- Top 1
+
+-- Top 2
+
+-- 1
+-- 2
+-- 3
+-- 4
+-- 5
+-- 6
+-- 7
+-- 8
+CREATE TYPE foo AS ENUM (
+	-- comment on a
+	'a',
+	-- comment on b
+	'b',
+	-- comment on c
+	'c',
+	-- comment on d
+	'd',
+	-- comment on e
+	'e'
+);
+
+-- Bottom 1
+
+-- Bottom 2
+"
+`;
+
+exports[`format sequence 1`] = `
+"CREATE SEQUENCE foo 
+	START WITH 1
+	INCREMENT BY 1
+	NO MINVALUE
+	NO MAXVALUE
+	NO CYCLE
+	CACHE 1
+	OWNED BY NONE;
+CREATE SEQUENCE foo2 
+	MINVALUE 4
+	MAXVALUE 6
+	CYCLE
+	OWNED BY foo.bar;"
+`;

@@ -13,6 +13,7 @@ import {
 import { Constraint, constraintDecoder } from "./constraint";
 import { TypeName, typeNameDecoder } from "./typeCast";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
+import { Location, locationDecoder } from "./location";
 
 export type ColumnDef = {
   colname: string;
@@ -20,7 +21,7 @@ export type ColumnDef = {
   constraints?: Array<{ Constraint: Constraint }>;
   is_local: boolean;
   collClause?: unknown;
-  location: number;
+  location: Location;
 };
 
 export const columnDefDecoder: Decoder<ColumnDef> = exact({
@@ -29,7 +30,7 @@ export const columnDefDecoder: Decoder<ColumnDef> = exact({
   constraints: optional(array(exact({ Constraint: constraintDecoder }))),
   is_local: boolean,
   collClause: unknown,
-  location: number,
+  location: locationDecoder,
 });
 
 export const verifyColumnDef = guard(columnDefDecoder);

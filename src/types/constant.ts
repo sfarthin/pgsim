@@ -6,7 +6,9 @@ import {
   either4,
   either3,
   unknown,
+  optional,
 } from "decoders";
+import { Location, locationDecoder } from "./location";
 
 export type StringValue = { str: string };
 export const stringValueDecoder: Decoder<StringValue> = exact({ str: string });
@@ -33,27 +35,28 @@ export const constantDecoder: Decoder<Constant> = exact({
 
 export type A_Const = {
   val:
-    | { Float: FloatValue }
-    | { String: StringValue }
-    | { Integer: IntegerValue }
-    | { Null: {} };
-  location: number;
+    | { Float: FloatValue; comment?: string }
+    | { String: StringValue; comment?: string }
+    | { Integer: IntegerValue; comment?: string }
+    | { Null: {}; comment?: string };
+  location: Location;
 };
 
 export const aConstDecoder: Decoder<A_Const> = exact({
   val: either4(
-    exact({ Float: floatValueDecoder }),
-    exact({ String: stringValueDecoder }),
-    exact({ Integer: integerValueDecoder }),
+    exact({ Float: floatValueDecoder, comment: optional(string) }),
+    exact({ String: stringValueDecoder, comment: optional(string) }),
+    exact({ Integer: integerValueDecoder, comment: optional(string) }),
     exact({ Null: exact({}) })
   ),
-  location: number,
+  location: locationDecoder,
 });
 
-export type PGString = { String: StringValue };
+export type PGString = { String: StringValue; comment?: string };
 
 export const stringDecoder: Decoder<PGString> = exact({
   String: stringValueDecoder,
+  comment: optional(string),
 });
 
 export type Star = { A_Star?: unknown };

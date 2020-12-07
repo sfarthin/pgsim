@@ -1,5 +1,4 @@
 import {
-  number,
   constant,
   exact,
   Decoder,
@@ -10,6 +9,7 @@ import {
   boolean,
 } from "decoders";
 import { PGString, stringDecoder } from "./constant";
+import { Location, locationDecoder } from "./location";
 
 export type FuncCall =
   | {
@@ -18,7 +18,7 @@ export type FuncCall =
       func_variadic?: boolean; // select concat(variadic array [1,2,3])
       agg_distinct?: boolean;
       over?: unknown;
-      location: number;
+      location: Location;
     }
   // Same as above but with agg_star
   | {
@@ -26,12 +26,12 @@ export type FuncCall =
       agg_star: boolean;
       func_variadic?: boolean;
       agg_distinct?: boolean;
-      location: number;
+      location: Location;
     }
   // Same except no arguments
   | {
       funcname: PGString[];
-      location: number;
+      location: Location;
     };
 
 export const funcCallDecoder: Decoder<FuncCall> = either3(
@@ -41,17 +41,17 @@ export const funcCallDecoder: Decoder<FuncCall> = either3(
     func_variadic: optional(boolean),
     agg_distinct: optional(boolean),
     over: optional(mixed),
-    location: number,
+    location: locationDecoder,
   }),
   exact({
     funcname: array(stringDecoder),
     agg_star: constant(true),
     func_variadic: optional(boolean),
     agg_distinct: optional(boolean),
-    location: number,
+    location: locationDecoder,
   }),
   exact({
     funcname: array(stringDecoder),
-    location: number,
+    location: locationDecoder,
   })
 );
