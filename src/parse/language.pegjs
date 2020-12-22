@@ -2,6 +2,57 @@
     function combineComments(...c) {
         return c.filter(Boolean).join('\n').replace(/\n\n/gi, '\n')
     }
+
+    /**
+     * ColDef
+     */
+
+    const includesReferenceCatalog = [
+        "time with time zone", 
+        "timestamp with time zone", 
+        "smallint", 
+        "integer",
+        "bigint",
+        "boolean",
+        "real",
+        "bit varying",
+        "double precision",
+        "bit",
+        "int",
+        "interval day to hour",
+        'interval',
+        'decimal',
+        'numeric',
+        'varchar',
+        'char',
+        'character',
+        'character varying'
+    ];
+
+    const colTypeMap = {
+        'bit varying': 'varbit',
+        'bigint': 'int8',
+        'integer': 'int4',
+        'int': 'int4',
+        'interval day to hour': 'interval',
+        'boolean': 'bool',
+        'real': 'float4',
+        "smallint": 'int2',
+        "double precision": 'float8',
+        'decimal': 'numeric',
+        'char': 'bpchar',
+        'character': 'bpchar',
+        'character varying': 'varchar',
+        'time with time zone': 'timetz',
+        "timestamp with time zone": "timestamptz"
+    };
+
+    const defaultTypeMods = {
+        'bit': 1,
+        "interval day to hour": 1032,
+        'char': 1,
+        'character': 1
+    };
 }
 start = StatementList
 
@@ -14,7 +65,10 @@ StatementList
     }
 
 Statement 
-  = c:CreateSeqStmt {
+  = c:CreateStmt {
+    return { CreateStmt: c }
+  }
+  / c:CreateSeqStmt {
       return { CreateSeqStmt: c }
   }
   / c:AlterSeqStmt {
@@ -29,6 +83,123 @@ Statement
   / c:COMMENT {
       return { Comment: c }
   }
+
+CreateStmt = 
+    c1:CREATE c2:TABLE ifNotExists:IF_NOT_EXISTS? 
+    tblName:Identifier
+    c3:DIRECT_COMMENT? // <-- This expression is used when there is inline comment on the same line after tablename
+    c4:LPAREN
+    columnDefs:ColumnDefs 
+    cc:COMMENTS
+    c5:RPAREN
+    c6:EndOfStatement? { // <-- This expression is only used when there are no defElems
+
+    return {
+        relation: {
+            RangeVar: {
+                relname: tblName.value,
+                relpersistence: "p",
+                location: location(),
+                inh: true
+            }
+        },
+        tableElts: columnDefs,
+        oncommit: 0,
+        ...(ifNotExists ? {if_not_exists: ifNotExists.value} : null),
+        comment: combineComments(c1,c2,ifNotExists && ifNotExists.comment,tblName.comment, c3, c4, c5, c6, cc)
+    }
+}
+
+// Skipping precision for timestamps for now.
+// https://www.postgresql.org/docs/9.1/datatype-datetime.html
+ColTypeWithParam = 'bit varying'i / 'varbit'i / 'decimal'i / 'numeric'i / 'character varying'i / 'varchar'i / 'character'i / 'char'i 
+                / 'timestamp with time zone'i / 'timestamptz'i / 'timestamp'i
+                / 'timestamp without time zone'i 
+                / 'time with time zone'i / 'time without time zone'i / 'timetz'i / 'time'i / 'bit'i 
+ColTypeWithDoubleParam = 'decimal'i / 'numeric'i
+ColTypeNoParam = 'boolean'i / 'bool'i / 'box'i / 'bytea'i / 'cidr'i / 'circle'i / 'date'i / 'inet'i / 'line'i / 'lseg'i / 'macaddr'i 
+               / 'money'i / 'tsquery'i / 'tsvector'i / 'txid_snapshot'i / 'uuid'i / 'xml'i / 'integer'i / 'int4'i  / 'bigint'i
+               / 'int8'i / 'bigserial'i / 'serial4'i / 'serial8'i / 'serial'i / 'real'i / 'float4'i / 'smallint'i / 'int2'i / 'double precision'i
+               / 'float8'i / 'text'i / 'date'i
+               / 'interval year to month'i
+               / 'interval day to hour'i
+               / 'interval day to minute'i
+               / 'interval day to second'i
+               / 'interval hour to minute'i
+               / 'interval hour to second'i 
+               / 'interval minute to second'i
+               / 'interval year'i
+               / 'interval month'i
+               / 'interval day'i
+               / 'interval hour'i
+               / 'interval minute'i
+               / 'interval second'i
+               / 'interval'i 
+               / 'int'i / ColTypeWithParam / ColTypeWithDoubleParam
+
+ColumnDefs = 
+   first:ColumnDef _ c:COMMA _ rest:ColumnDefs { 
+      return [{ ColumnDef: {...first, comment: combineComments(first.comment, c)} }, ...rest] 
+    }
+  / only:ColumnDef { 
+      return [{ ColumnDef: only }] 
+    }
+
+ColumnDef = _ colName:Identifier _ typeName:TypeName {
+        return {
+            colname: colName.value,
+            typeName: { TypeName: typeName },
+            // constraints?: Array<{ Constraint: Constraint }>;
+            is_local: true,
+            // collClause?: unknown;
+            location: location(),
+            comment: combineComments(colName.comment)
+        }
+    }
+
+TypeNameWithTwoParams = _ col:ColTypeWithParam _ c1:LPAREN _ a_const1:A_Const_Integer _ c2:COMMA _ a_const2:A_Const_Integer _ c3:RPAREN _ {
+    const base = includesReferenceCatalog.includes(col.toLowerCase()) ? [{ String: { str: "pg_catalog" } }] : [];
+    return {
+        names: base.concat({
+            String: { str: (colTypeMap[col.toLowerCase()] || col).toLowerCase() }
+        }),
+        typemod: -1,
+        typmods: [{ A_Const: a_const1 }, { A_Const: a_const2 }],
+        location: location()
+    }
+}
+
+TypeNameWithParam = _ col:ColTypeWithParam _ c1:LPAREN _ a_const:A_Const_Integer _ c3:RPAREN _ {
+    const base = includesReferenceCatalog.includes(col.toLowerCase()) ? [{ String: { str: "pg_catalog" } }] : [];
+    return {
+        names: base.concat({
+            String: { str: (colTypeMap[col.toLowerCase()] || col).toLowerCase() }
+        }),
+        typemod: -1,
+        typmods: [{ A_Const: a_const }],
+        location: location()
+    }
+}
+
+TypeNameWithNoParam = _ col:ColTypeNoParam _ {
+    const base = includesReferenceCatalog.includes(col.toLowerCase()) ? [{ String: { str: "pg_catalog" } }] : [];
+    const typmods = defaultTypeMods[col.toLowerCase()] ? [{
+        A_Const: {
+            val: {  Integer: { ival: defaultTypeMods[col.toLowerCase()] } },
+            location: location()
+        }
+    }] : null;
+    return {
+        names: base.concat({
+            String: { str: (colTypeMap[col.toLowerCase()] || col).toLowerCase() }
+        }),
+        typemod: -1,
+        ...(typmods ? { typmods } : {}),
+        location: location()
+    }
+}
+
+TypeName = TypeNameWithTwoParams / TypeNameWithParam / TypeNameWithNoParam
 
 // Eventually we'd want to check for only the params in pg_settings and a valid value type.
 VariableSetStmt = 
@@ -80,11 +251,6 @@ A_Const_Keyword "keyword" = seq:([^; \t\r\n]+) {
     }
 }
 
-// VariableSetValue = SingleQuotedStringLiteral
-// / seq:([^;]+) {
-//     return seq.join('');
-// }
-
 CreateEnumStmt =
     c1:CREATE c2:TYPE
     typeName:TableIdentifier
@@ -121,10 +287,11 @@ AlterSeqStmt =
 
 CreateSeqStmt =
     c1:CREATE c2:SEQUENCE 
+    ifNotExists:IF_NOT_EXISTS?
     tblName:Identifier
-    c3:DIRECT_COMMENT? // <-- This expression is used when there is inline comment on the same line after tablename
+    c4:DIRECT_COMMENT? // <-- This expression is used when there is inline comment on the same line after tablename
     defElems:SequenceDefElemList?
-    c4:EndOfStatement? { // <-- This expression is only used when there are no defElems
+    c5:EndOfStatement? { // <-- This expression is only used when there are no defElems
         return {
             sequence: { 
                 RangeVar: {
@@ -135,7 +302,8 @@ CreateSeqStmt =
                 }
             },
             options: defElems || [],
-            comment: combineComments(c1, c2, tblName.comment, c3, c4)
+            ...(ifNotExists ? {if_not_exists: ifNotExists.value} : null),
+            comment: combineComments(c1, c2, ifNotExists && ifNotExists.comment, tblName.comment, c4, c5)
         }
     }
 
@@ -232,16 +400,16 @@ SequenceDefElem
             comment: combineComments(c1, num.comment, c2)
         }
     } /
-    c1:START WITH num:NumberLiteral c2:DIRECT_COMMENTS {
+    c1:START c2:WITH? num:NumberLiteral c3:DIRECT_COMMENTS {
         return { 
             defname: 'start',
             defaction: 0,
             arg: { Integer: { ival: num.value } },
             location: location(),
-            comment: combineComments(c1, num.comment, c2)
+            comment: combineComments(c1, c2, num.comment, c3)
         }
     } /
-    c1:INCREMENT c2:BY num:NumberLiteral c3:DIRECT_COMMENTS {
+    c1:INCREMENT c2:BY? num:NumberLiteral c3:DIRECT_COMMENTS {
         return { 
             defname: 'increment',
             defaction: 0,
@@ -299,18 +467,25 @@ CREATE            = _ c:DIRECT_COMMENTS 'CREATE'i            !IdentifierChar _ {
 CYCLE             = _ c:DIRECT_COMMENTS 'CYCLE'i             !IdentifierChar _ { return c }
 DOT               = _ c:DIRECT_COMMENTS 'DOT'i               !IdentifierChar _ { return c }
 ENUM              = _ c:DIRECT_COMMENTS 'ENUM'i              !IdentifierChar _ { return c }
+EXISTS            = _ c:DIRECT_COMMENTS 'EXISTS'i            !IdentifierChar _ { return c }
+IF                = _ c:DIRECT_COMMENTS 'IF'i                !IdentifierChar _ { return c }
 INCREMENT         = _ c:DIRECT_COMMENTS 'INCREMENT'i         !IdentifierChar _ { return c }
 MAXVALUE          = _ c:DIRECT_COMMENTS 'MAXVALUE'i          !IdentifierChar _ { return c }
 MINVALUE          = _ c:DIRECT_COMMENTS 'MINVALUE'i          !IdentifierChar _ { return c }
 NO                = _ c:DIRECT_COMMENTS 'NO'i                !IdentifierChar _ { return c }
 NONE              = _ c:DIRECT_COMMENTS 'NONE'i              !IdentifierChar _ { return c }
+NOT               = _ c:DIRECT_COMMENTS 'NOT'i               !IdentifierChar _ { return c }
 OWNED             = _ c:DIRECT_COMMENTS 'OWNED'i             !IdentifierChar _ { return c }
-SET               = _ c:DIRECT_COMMENTS 'SET'i               !IdentifierChar _ { return c }
-SEQUENCE          = _ c:DIRECT_COMMENTS 'SEQUENCE'i          !IdentifierChar _ { return c }
-START             = _ c:DIRECT_COMMENTS 'START'i             !IdentifierChar _ { return c }
 PUBLIC            = _ c:DIRECT_COMMENTS 'PUBLIC'i            !IdentifierChar _ { return c }
+SEQUENCE          = _ c:DIRECT_COMMENTS 'SEQUENCE'i          !IdentifierChar _ { return c }
+SET               = _ c:DIRECT_COMMENTS 'SET'i               !IdentifierChar _ { return c }
+START             = _ c:DIRECT_COMMENTS 'START'i             !IdentifierChar _ { return c }
+TABLE             = _ c:DIRECT_COMMENTS 'TABLE'i             !IdentifierChar _ { return c }
 TYPE              = _ c:DIRECT_COMMENTS 'TYPE'i              !IdentifierChar _ { return c }
 WITH              = _ c:DIRECT_COMMENTS 'WITH'i              !IdentifierChar _ { return c }
+
+// Phrases
+IF_NOT_EXISTS     = c1:IF c2:NOT c3:EXISTS { return { comment: combineComments(c1,c2,c3), value: true }; }
 
 // ====================================================
 // Util

@@ -1,4 +1,5 @@
-import { guard, exact, Decoder, either9, either7, unknown } from "decoders";
+import { guard, Decoder, unknown } from "decoders";
+import dispatch from "./dispatch";
 
 import { A_Const, aConstDecoder } from "./constant";
 import { TypeCast, typeCastDecoder } from "./typeCast";
@@ -26,24 +27,22 @@ export type TargetValue =
   | { A_Indirection?: unknown }
   | { A_ArrayExpr?: unknown };
 
-export const targetValueDecoder: Decoder<TargetValue> = either9(
-  exact({ ColumnRef: columnRefDecoder }),
-  exact({ FuncCall: funcCallDecoder }),
-  exact({ A_Const: aConstDecoder }),
-  exact({ TypeCast: typeCastDecoder }),
-  exact({ BoolExpr: boolExprDecoder }),
-  exact({ A_Expr: aExprDecoder }),
-  exact({ BooleanTest: booleanTestDecoder }), // someting IS true
-  exact({ NullTest: nullTestDecoder }), // something is NULL
-  either7(
-    exact({ CaseExpr: unknown }),
-    exact({ SubLink: unknown }),
-    exact({ SQLValueFunction: unknown }),
-    exact({ CoalesceExpr: unknown }),
-    exact({ MinMaxExpr: unknown }),
-    exact({ A_Indirection: unknown }),
-    exact({ A_ArrayExpr: unknown })
-  )
-);
+export const targetValueDecoder: Decoder<TargetValue> = dispatch({
+  ColumnRef: columnRefDecoder,
+  FuncCall: funcCallDecoder,
+  A_Const: aConstDecoder,
+  TypeCast: typeCastDecoder,
+  BoolExpr: boolExprDecoder,
+  A_Expr: aExprDecoder,
+  BooleanTest: booleanTestDecoder, // someting IS true
+  NullTest: nullTestDecoder, // something is NULL
+  CaseExpr: unknown,
+  SubLink: unknown,
+  SQLValueFunction: unknown,
+  CoalesceExpr: unknown,
+  MinMaxExpr: unknown,
+  A_Indirection: unknown,
+  A_ArrayExpr: unknown,
+});
 
 export const verifyTargetValue = guard(targetValueDecoder);

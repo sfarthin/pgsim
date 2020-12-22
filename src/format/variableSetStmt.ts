@@ -1,5 +1,6 @@
 import { VariableSetStmt } from "~/types";
 import aConst from "./aConst";
+import comment from "./comment";
 
 export default function variableSetStmt(
   variableSetStmt: VariableSetStmt
@@ -10,5 +11,7 @@ export default function variableSetStmt(
     throw new Error();
   }
 
-  return `SET ${variableSetStmt.name} = ${aConst(c)};`;
+  return `${comment(variableSetStmt.comment)}SET ${
+    variableSetStmt.name
+  } = ${aConst(c)};\n`;
 }

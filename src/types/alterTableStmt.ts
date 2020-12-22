@@ -52,9 +52,9 @@ export type AlterTableAddColumn = {
 };
 
 export const alterTableAddColumnDecoder: Decoder<AlterTableAddColumn> = exact({
-  subtype: constant(AlterTableCmdSubType.ADD_COLUMN) as Decoder<
+  subtype: constant(
     AlterTableCmdSubType.ADD_COLUMN
-  >,
+  ) as Decoder<AlterTableCmdSubType.ADD_COLUMN>,
   def: exact({
     ColumnDef: columnDefDecoder,
   }),
@@ -72,9 +72,9 @@ export type AlterTableDropColumn = {
 
 export const alterTableDropColumnDecoder: Decoder<AlterTableDropColumn> = exact(
   {
-    subtype: constant(AlterTableCmdSubType.DROP) as Decoder<
+    subtype: constant(
       AlterTableCmdSubType.DROP
-    >,
+    ) as Decoder<AlterTableCmdSubType.DROP>,
     behavior: number,
     name: optional(string),
   }
@@ -93,9 +93,9 @@ export type AlterTableAddConstraint = {
 
 export const alterTableAddConstraintDecoder: Decoder<AlterTableAddConstraint> = exact(
   {
-    subtype: constant(AlterTableCmdSubType.ADD_CONSTRAINT) as Decoder<
+    subtype: constant(
       AlterTableCmdSubType.ADD_CONSTRAINT
-    >,
+    ) as Decoder<AlterTableCmdSubType.ADD_CONSTRAINT>,
     def: exact({ Constraint: constraintDecoder }),
     behavior: number,
   }
@@ -113,9 +113,9 @@ export type AlterTableDropConstraint = {
 
 export const alterTableDropConstraintDecoder: Decoder<AlterTableDropConstraint> = exact(
   {
-    subtype: constant(AlterTableCmdSubType.DROP_CONSTRAINT) as Decoder<
+    subtype: constant(
       AlterTableCmdSubType.DROP_CONSTRAINT
-    >,
+    ) as Decoder<AlterTableCmdSubType.DROP_CONSTRAINT>,
     name: string,
     behavior: number,
   }
@@ -133,9 +133,9 @@ export type AlterTableColumnType = {
 };
 
 export const alterTableColumnDecoder: Decoder<AlterTableColumnType> = exact({
-  subtype: constant(AlterTableCmdSubType.ALTER_COLUMN_TYPE) as Decoder<
+  subtype: constant(
     AlterTableCmdSubType.ALTER_COLUMN_TYPE
-  >,
+  ) as Decoder<AlterTableCmdSubType.ALTER_COLUMN_TYPE>,
   name: string,
   def: unknown,
   behavior: number,
@@ -179,9 +179,9 @@ export type AlterTableRowSecurity = {
 
 export const alterTableRowSecurityDecoder: Decoder<AlterTableRowSecurity> = exact(
   {
-    subtype: constant(AlterTableCmdSubType.ROW_LEVEL_SECURITY) as Decoder<
+    subtype: constant(
       AlterTableCmdSubType.ROW_LEVEL_SECURITY
-    >,
+    ) as Decoder<AlterTableCmdSubType.ROW_LEVEL_SECURITY>,
     behavior: number,
   }
 );
@@ -196,9 +196,9 @@ export type AlterTableInherit = {
 };
 
 export const alterTableInheritDecoder: Decoder<AlterTableInherit> = exact({
-  subtype: constant(AlterTableCmdSubType.INHERIT) as Decoder<
+  subtype: constant(
     AlterTableCmdSubType.INHERIT
-  >,
+  ) as Decoder<AlterTableCmdSubType.INHERIT>,
   def: unknown,
   behavior: number,
 });
@@ -213,9 +213,9 @@ export type AlterTableIndex = {
 };
 
 export const alterTableIndexDecoder: Decoder<AlterTableIndex> = exact({
-  subtype: constant(AlterTableCmdSubType.INDEX) as Decoder<
+  subtype: constant(
     AlterTableCmdSubType.INDEX
-  >,
+  ) as Decoder<AlterTableCmdSubType.INDEX>,
   def: unknown,
   behavior: number,
 });
@@ -230,9 +230,9 @@ export type AlterTableOwner = {
 };
 
 export const alterTableOwnerDecoder: Decoder<AlterTableOwner> = exact({
-  subtype: constant(AlterTableCmdSubType.OWNER) as Decoder<
+  subtype: constant(
     AlterTableCmdSubType.OWNER
-  >,
+  ) as Decoder<AlterTableCmdSubType.OWNER>,
   newowner: unknown,
   behavior: number,
 });
@@ -247,9 +247,9 @@ export type AlterTableReset = {
 };
 
 export const alterTableResetDecoder: Decoder<AlterTableReset> = exact({
-  subtype: constant(AlterTableCmdSubType.RESET) as Decoder<
+  subtype: constant(
     AlterTableCmdSubType.RESET
-  >,
+  ) as Decoder<AlterTableCmdSubType.RESET>,
   def: unknown,
   behavior: number,
 });
@@ -264,9 +264,9 @@ export type AlterTableCluster = {
 };
 
 export const alterTableClusterDecoder: Decoder<AlterTableCluster> = exact({
-  subtype: constant(AlterTableCmdSubType.CLUSTER) as Decoder<
+  subtype: constant(
     AlterTableCmdSubType.CLUSTER
-  >,
+  ) as Decoder<AlterTableCmdSubType.CLUSTER>,
   name: unknown,
   behavior: number,
 });
@@ -281,9 +281,9 @@ export type AlterTableSetWithoutCluster = {
 
 export const alterTableSetWithoutClusterDecoder: Decoder<AlterTableSetWithoutCluster> = exact(
   {
-    subtype: constant(AlterTableCmdSubType.SET_WITHOUT_CLUSTER) as Decoder<
+    subtype: constant(
       AlterTableCmdSubType.SET_WITHOUT_CLUSTER
-    >,
+    ) as Decoder<AlterTableCmdSubType.SET_WITHOUT_CLUSTER>,
     behavior: number,
   }
 );
@@ -298,9 +298,9 @@ export type AlterTableRestrict = {
 };
 
 export const alterTableRestrictDecoder: Decoder<AlterTableRestrict> = exact({
-  subtype: constant(AlterTableCmdSubType.RESTRICT) as Decoder<
+  subtype: constant(
     AlterTableCmdSubType.RESTRICT
-  >,
+  ) as Decoder<AlterTableCmdSubType.RESTRICT>,
   name: string,
   behavior: number,
 });
@@ -317,9 +317,9 @@ export type AlterTableAttachPartition = {
 
 export const alterTableAttachPartitionDecoder: Decoder<AlterTableAttachPartition> = exact(
   {
-    subtype: constant(AlterTableCmdSubType.ATTACH_PARTITION) as Decoder<
+    subtype: constant(
       AlterTableCmdSubType.ATTACH_PARTITION
-    >,
+    ) as Decoder<AlterTableCmdSubType.ATTACH_PARTITION>,
     def: unknown,
     behavior: number,
   }
@@ -338,9 +338,9 @@ export type AlterTableSetDefault = {
 
 export const alterTableSetDefaultDecoder: Decoder<AlterTableSetDefault> = exact(
   {
-    subtype: constant(AlterTableCmdSubType.SET_DEFAULT) as Decoder<
+    subtype: constant(
       AlterTableCmdSubType.SET_DEFAULT
-    >,
+    ) as Decoder<AlterTableCmdSubType.SET_DEFAULT>,
     name: string,
     def: unknown,
     behavior: number,
@@ -359,9 +359,9 @@ export type AlterTableDropNotNull = {
 
 export const alterTableDropNotNullDecoder: Decoder<AlterTableDropNotNull> = exact(
   {
-    subtype: constant(AlterTableCmdSubType.DROP_NOT_NULL) as Decoder<
+    subtype: constant(
       AlterTableCmdSubType.DROP_NOT_NULL
-    >,
+    ) as Decoder<AlterTableCmdSubType.DROP_NOT_NULL>,
     name: string,
     behavior: number,
   }
@@ -379,9 +379,9 @@ export type AlterTableSetNotNull = {
 
 export const alterTableSetNotNullDecoder: Decoder<AlterTableSetNotNull> = exact(
   {
-    subtype: constant(AlterTableCmdSubType.SET_NOT_NULL) as Decoder<
+    subtype: constant(
       AlterTableCmdSubType.SET_NOT_NULL
-    >,
+    ) as Decoder<AlterTableCmdSubType.SET_NOT_NULL>,
     name: string,
     behavior: number,
   }

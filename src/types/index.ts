@@ -1,4 +1,4 @@
-import { inexact, pojo, Decoder, either9, either6, string } from "decoders";
+import { exact, pojo, Decoder, string } from "decoders";
 import { CreateStmt, createStmtDecoder } from "./createStmt";
 import { AlterTableStmt, alterTableStmtDecoder } from "./alterTableStmt";
 import { SelectStmt, selectStmtDecoder } from "./selectStmt";
@@ -7,6 +7,7 @@ import { AlterSeqStmt, alterSeqStmtDecoder } from "./alterSeqStmt";
 import { insertStmtDecoder, InsertStmt } from "./insertStmt";
 import { VariableSetStmt, variableSetStmtDecoder } from "./variableSetStmt";
 import { CreateEnumStmt, createEnumStmtDecoder } from "./createEnumStmt";
+import dispatch from "./dispatch";
 
 export * from "./aExpr";
 export * from "./alias";
@@ -112,96 +113,80 @@ export type Stmt = {
   };
 };
 
-export const stmtDecoder: Decoder<Stmt> = inexact({
-  RawStmt: inexact({
-    stmt: either9(
-      inexact({ CreateStmt: createStmtDecoder }),
-      inexact({ AlterTableStmt: alterTableStmtDecoder }),
-      inexact({ InsertStmt: insertStmtDecoder }),
-      inexact({ SelectStmt: selectStmtDecoder }),
-      inexact({ CreateSeqStmt: createSeqStmtDecoder }),
-      inexact({ VariableSetStmt: variableSetStmtDecoder }),
-      inexact({ CreateEnumStmt: createEnumStmtDecoder }),
-      inexact({ AlterSeqStmt: alterSeqStmtDecoder }),
-      either9(
-        inexact({ Comment: string }),
-        inexact({ IndexStmt: pojo }),
-        inexact({ UpdateStmt: pojo }),
-        inexact({ ViewStmt: pojo }),
-        inexact({ DropStmt: pojo }),
-        inexact({ DefineStmt: pojo }),
-        inexact({ CreateFunctionStmt: pojo }),
-        inexact({ CreateCastStmt: pojo }),
-        either9(
-          inexact({ DeleteStmt: pojo }),
-          inexact({ CreateRangeStmt: pojo }),
-          inexact({ TruncateStmt: pojo }),
-          inexact({ ExplainStmt: pojo }),
-          inexact({ CreateRoleStmt: pojo }),
-          inexact({ DropRoleStmt: pojo }),
-          inexact({ CreateTableAsStmt: pojo }),
-          inexact({ TransactionStmt: pojo }),
-          either9(
-            inexact({ VariableShowStmt: pojo }),
-            inexact({ VacuumStmt: pojo }),
-            inexact({ AlterRoleStmt: pojo }),
-            inexact({ CreateSchemaStmt: pojo }),
-            inexact({ AlterDefaultPrivilegesStmt: pojo }),
-            inexact({ GrantStmt: pojo }),
-            inexact({ DeclareCursorStmt: pojo }),
-            inexact({ CopyStmt: pojo }),
-            either9(
-              inexact({ CreateDomainStmt: pojo }),
-              inexact({ FetchStmt: pojo }),
-              inexact({ ClosePortalStmt: pojo }),
-              inexact({ PrepareStmt: pojo }),
-              inexact({ ExecuteStmt: pojo }),
-              inexact({ RuleStmt: pojo }),
-              inexact({ ReindexStmt: pojo }),
-              inexact({ SecLabelStmt: pojo }),
-              either9(
-                inexact({ AlterRoleSetStmt: pojo }),
-                inexact({ LockStmt: pojo }),
-                inexact({ RenameStmt: pojo }),
-                inexact({ NotifyStmt: pojo }),
-                inexact({ ListenStmt: pojo }),
-                inexact({ UnlistenStmt: pojo }),
-                inexact({ DiscardStmt: pojo }),
-                inexact({ AlterFunctionStmt: pojo }),
-                either9(
-                  inexact({ AlterTSConfigurationStmt: pojo }),
-                  inexact({ AlterTSDictionaryStmt: pojo }),
-                  inexact({ CreateTrigStmt: pojo }),
-                  inexact({ AlterOpFamilyStmt: pojo }),
-                  inexact({ CreatePolicyStmt: pojo }),
-                  inexact({ CompositeTypeStmt: pojo }),
-                  inexact({ DeallocateStmt: pojo }),
-                  inexact({ CreateConversionStmt: pojo }),
-                  either9(
-                    inexact({ CommentStmt: pojo }),
-                    inexact({ AlterOwnerStmt: pojo }),
-                    inexact({ AlterObjectSchemaStmt: pojo }),
-                    inexact({ CreateFdwStmt: pojo }),
-                    inexact({ CreateForeignServerStmt: pojo }),
-                    inexact({ CreatePLangStmt: pojo }),
-                    inexact({ CreateOpFamilyStmt: pojo }),
-                    inexact({ CreateOpClassStmt: pojo }),
-                    either6(
-                      inexact({ DoStmt: pojo }),
-                      inexact({ CreateStatsStmt: pojo }),
-                      inexact({ AlterOperatorStmt: pojo }),
-                      inexact({ ClusterStmt: pojo }),
-                      inexact({ CreateEventTrigStmt: pojo }),
-                      inexact({ AlterEnumStmt: pojo })
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-    ),
+export const stmtDecoder: Decoder<Stmt> = exact({
+  RawStmt: exact({
+    stmt: dispatch({
+      CreateStmt: createStmtDecoder,
+      AlterTableStmt: alterTableStmtDecoder,
+      InsertStmt: insertStmtDecoder,
+      SelectStmt: selectStmtDecoder,
+      CreateSeqStmt: createSeqStmtDecoder,
+      VariableSetStmt: variableSetStmtDecoder,
+      CreateEnumStmt: createEnumStmtDecoder,
+      AlterSeqStmt: alterSeqStmtDecoder,
+      Comment: string,
+      IndexStmt: pojo,
+      UpdateStmt: pojo,
+      ViewStmt: pojo,
+      DropStmt: pojo,
+      DefineStmt: pojo,
+      CreateFunctionStmt: pojo,
+      CreateCastStmt: pojo,
+      DeleteStmt: pojo,
+      CreateRangeStmt: pojo,
+      TruncateStmt: pojo,
+      ExplainStmt: pojo,
+      CreateRoleStmt: pojo,
+      DropRoleStmt: pojo,
+      CreateTableAsStmt: pojo,
+      TransactionStmt: pojo,
+      VariableShowStmt: pojo,
+      VacuumStmt: pojo,
+      AlterRoleStmt: pojo,
+      CreateSchemaStmt: pojo,
+      AlterDefaultPrivilegesStmt: pojo,
+      GrantStmt: pojo,
+      DeclareCursorStmt: pojo,
+      CopyStmt: pojo,
+      CreateDomainStmt: pojo,
+      FetchStmt: pojo,
+      ClosePortalStmt: pojo,
+      PrepareStmt: pojo,
+      ExecuteStmt: pojo,
+      RuleStmt: pojo,
+      ReindexStmt: pojo,
+      SecLabelStmt: pojo,
+      AlterRoleSetStmt: pojo,
+      LockStmt: pojo,
+      RenameStmt: pojo,
+      NotifyStmt: pojo,
+      ListenStmt: pojo,
+      UnlistenStmt: pojo,
+      DiscardStmt: pojo,
+      AlterFunctionStmt: pojo,
+      AlterTSConfigurationStmt: pojo,
+      AlterTSDictionaryStmt: pojo,
+      CreateTrigStmt: pojo,
+      AlterOpFamilyStmt: pojo,
+      CreatePolicyStmt: pojo,
+      CompositeTypeStmt: pojo,
+      DeallocateStmt: pojo,
+      CreateConversionStmt: pojo,
+      CommentStmt: pojo,
+      AlterOwnerStmt: pojo,
+      AlterObjectSchemaStmt: pojo,
+      CreateFdwStmt: pojo,
+      CreateForeignServerStmt: pojo,
+      CreatePLangStmt: pojo,
+      CreateOpFamilyStmt: pojo,
+      CreateOpClassStmt: pojo,
+      DoStmt: pojo,
+      CreateStatsStmt: pojo,
+      AlterOperatorStmt: pojo,
+      ClusterStmt: pojo,
+      CreateEventTrigStmt: pojo,
+      AlterEnumStmt: pojo,
+    }),
   }),
 });
 

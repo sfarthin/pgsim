@@ -1,5 +1,4 @@
 import {
-  guard,
   optional,
   array,
   string,
@@ -22,6 +21,7 @@ export type ColumnDef = {
   is_local: boolean;
   collClause?: unknown;
   location: Location;
+  comment?: string;
 };
 
 export const columnDefDecoder: Decoder<ColumnDef> = exact({
@@ -31,9 +31,8 @@ export const columnDefDecoder: Decoder<ColumnDef> = exact({
   is_local: boolean,
   collClause: unknown,
   location: locationDecoder,
+  comment: optional(string),
 });
-
-export const verifyColumnDef = guard(columnDefDecoder);
 
 export type Relation = {
   RangeVar: RangeVar;
@@ -45,19 +44,25 @@ export const relationDecoder = exact({
 
 export type CreateStmt = {
   relation: Relation;
-  tableElts?: Array<{ ColumnDef?: unknown } | { Constraint?: unknown }>;
+  tableElts?: Array<{ ColumnDef?: ColumnDef } | { Constraint?: Constraint }>;
   oncommit: number;
   inhRelations?: unknown; // CREATE TEMP TABLE t2c (primary key (ab)) INHERITS (t2);
   options?: unknown;
   if_not_exists?: boolean;
   partspec?: unknown;
   partbound?: unknown;
+  comment?: string;
 };
 
 export const createStmtDecoder: Decoder<CreateStmt> = exact({
   relation: relationDecoder,
   tableElts: optional(
-    array(either(exact({ ColumnDef: unknown }), exact({ Constraint: unknown })))
+    array(
+      either(
+        exact({ ColumnDef: columnDefDecoder }),
+        exact({ Constraint: constraintDecoder })
+      )
+    )
   ),
   oncommit: number,
   inhRelations: unknown,
@@ -65,4 +70,5 @@ export const createStmtDecoder: Decoder<CreateStmt> = exact({
   if_not_exists: optional(boolean),
   partspec: unknown,
   partbound: unknown,
+  comment: optional(string),
 });

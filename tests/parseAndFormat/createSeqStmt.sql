@@ -16,8 +16,10 @@ CREATE SEQUENCE foo -- 2
     -- foo bar
 
 
-CREATE SEQUENCE foo2
+CREATE SEQUENCE if not exists foo2
 MINVALUE 4
 MAXVALUE 6
+INCREMENT 2 -- different variation
+start 2 -- different variation
 CYCLE
 OWNED BY foo.bar;

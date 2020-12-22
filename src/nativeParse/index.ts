@@ -25,5 +25,10 @@ export default function parse(sql: string): Stmt[] {
     }
   }
 
-  return queries.map(guard(stmtDecoder));
+  try {
+    return queries.map(guard(stmtDecoder));
+  } catch (e) {
+    console.log(JSON.stringify(e, null, 2));
+    throw e;
+  }
 }

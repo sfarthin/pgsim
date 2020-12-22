@@ -1,4 +1,10 @@
-import { CreateStmt, verifyColumnDef, ColumnDef, isNullable } from "~/types";
+import { CreateStmt, ColumnDef, isNullable } from "~/types";
+import comment from "./comment";
+
+// export function toTypeMod(columnDef: ColumnDef):string {
+//   if(columnDef.typeName)
+
+// }
 
 export function toType(columnDef: ColumnDef): string {
   const names = columnDef.typeName.TypeName.names
@@ -26,7 +32,7 @@ export function toType(columnDef: ColumnDef): string {
 
   // TODO Add https://www.postgresql.org/docs/9.5/datatype.html
   // and pojo.
-  switch (name) {
+  switch (name.toLowerCase()) {
     case "timetz":
       if (!referencesCatalog) {
         return "timetz";
@@ -60,6 +66,8 @@ export function toType(columnDef: ColumnDef): string {
       } else {
         return "smallint";
       }
+    case "int":
+    case "integer":
     case "int4":
       if (!referencesCatalog) {
         return "int4";
@@ -82,11 +90,12 @@ export function toType(columnDef: ColumnDef): string {
         return "boolean";
       }
     case "float4":
-      if (referencesCatalog) {
-        return "real";
-      } else {
+      if (!referencesCatalog) {
         return "float4";
+      } else {
+        return "real";
       }
+    case "bit varying":
     case "varbit":
       if (!referencesCatalog) {
         return typeWithParam("varbit");
@@ -105,7 +114,7 @@ export function toType(columnDef: ColumnDef): string {
       const c = columnDef.typeName.TypeName.typmods?.[0].A_Const;
       const val = columnDef.typeName.TypeName.typmods?.[0].A_Const.val;
       const size = (val && "Integer" in val && val.Integer.ival) ?? null;
-      const param = c?.location === -1 ? "" : `(${size})`;
+      const param = c?.location === -1 || size === 1 ? "" : `(${size})`;
 
       return `char${param}`;
     }
@@ -164,19 +173,20 @@ function toColumn(columnDef: ColumnDef): string {
     !columnDef.constraints || isNullable(columnDef.constraints)
       ? ""
       : " NOT NULL";
-  return `\t${colname} ${toType(columnDef).toUpperCase()}${notNull}`;
+  return `${comment(columnDef.comment, 1)}\t${colname} ${toType(
+    columnDef
+  ).toUpperCase()}${notNull}`;
 }
 
 export default function (createStmt: CreateStmt): string {
   const tableName = createStmt.relation.RangeVar.relname;
 
   const columnDefs = (
-    createStmt.tableElts?.map((t) =>
-      "ColumnDef" in t ? verifyColumnDef(t.ColumnDef) : null
-    ) ?? []
+    createStmt.tableElts?.map((t) => ("ColumnDef" in t ? t.ColumnDef : null)) ??
+    []
   ).filter((c) => !!c) as ColumnDef[];
 
-  return `CREATE TABLE ${tableName} (
+  return `${comment(createStmt.comment)}CREATE TABLE ${tableName} (
 ${columnDefs.map(toColumn).join(",\n")}
 );`;
 }
