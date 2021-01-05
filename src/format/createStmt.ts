@@ -1,5 +1,6 @@
-import { CreateStmt, ColumnDef, isNullable } from "~/types";
+import { CreateStmt, ColumnDef } from "~/types";
 import comment from "./comment";
+import toConstraints from "./constraint";
 
 // export function toTypeMod(columnDef: ColumnDef):string {
 //   if(columnDef.typeName)
@@ -166,16 +167,15 @@ export function toType(columnDef: ColumnDef): string {
 }
 
 function toColumn(columnDef: ColumnDef): string {
-  const colname = columnDef.colname.match(/^[a-zA-Z][a-zA-Z0-9]+$/)
+  const colname = columnDef.colname.match(/^[a-zA-Z][a-zA-Z0-9]*$/)
     ? columnDef.colname
     : JSON.stringify(columnDef.colname);
-  const notNull =
-    !columnDef.constraints || isNullable(columnDef.constraints)
-      ? ""
-      : " NOT NULL";
+
+  const constraints = columnDef.constraints?.map((c) => c.Constraint) ?? [];
+
   return `${comment(columnDef.comment, 1)}\t${colname} ${toType(
     columnDef
-  ).toUpperCase()}${notNull}`;
+  ).toUpperCase()}${toConstraints(constraints)}`;
 }
 
 export default function (createStmt: CreateStmt): string {

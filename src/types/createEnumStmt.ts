@@ -7,7 +7,7 @@ export type CreateEnumStmt = {
     | [{ String: StringValue }]
     | [{ String: StringValue }, { String: StringValue }];
   vals: {
-    String: StringValue;
+    String: { str: string };
     comment?: string;
   }[];
   comment?: string;

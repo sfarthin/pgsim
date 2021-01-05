@@ -1,18 +1,18 @@
 CREATE /*foo */ TABLE adsiiodnsaoidnoasindosaind9 -- foo
 (
     -- integer
-    aaa integer,
-    aab int, -- int
+    aaa integer NOT NULL DEFAULT 1 PRIMARY KEY,
+    aab int DEFAULT '4', -- int
     /* int4 */
     aac int4,
 
-    aa bigint,
-    ab int8,
-    ac bigserial,
-    ad serial8,
+    aa bigint DEFAULT 1,
+    /* 1 */ ab /* 2 */ int8 /* 3 */ NOT /* 4 */ NULL /* 5 */, -- 6
+    /* 1 */ ac /* 2 */ bigserial /* 3 */ NULL /* 4 */, -- 5
+    ad serial8 UNIQUE,
     ae serial,
     af serial4,
-    aba bit,    
+    aba bit,
     abb bit(2),
     abc bit varying,
     abca bit varying(3),
@@ -22,13 +22,13 @@ CREATE /*foo */ TABLE adsiiodnsaoidnoasindosaind9 -- foo
     bba interval,
     bbb interval day to hour,
 
-    ba bool,
+    ba bool DEFAULT true,
     bbaa boolean,
 
     caa box,
     cba bytea,
-    cc cidr,
-    cd circle,
+    cc /* hello */ cidr,
+    cd /* yo */ circle /* yo */,
     ce date,
     cf inet,
     cg line,
@@ -72,4 +72,23 @@ CREATE /*foo */ TABLE adsiiodnsaoidnoasindosaind9 -- foo
     cbx timestamptz,
     cax time with time zone,
     cbxx timetz   
+);
+
+create table some_table (
+    c integer
+    -- This comment will go with "c'
+);
+
+create table reference_examples (
+    a integer references products,
+    /* 1 */ bss /* 2 */ integer /* 3 */ references /* 4 */ products /* 5 */ ( /* 6 */some_id /* 7 */), -- 8
+    c integer,
+    FOREIGN KEY (c) REFERENCES other_table (c1)
 )
+
+-- create table reference_group_examples (
+--     a integer references products,
+--     b integer,
+--     c integer,
+--     FOREIGN KEY (b,c) REFERENCES other_table (c1, c2)
+-- )

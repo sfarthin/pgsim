@@ -1,4 +1,4 @@
-import { exact, pojo, Decoder, string } from "decoders";
+import { exact, pojo, Decoder, string, number, optional } from "decoders";
 import { CreateStmt, createStmtDecoder } from "./createStmt";
 import { AlterTableStmt, alterTableStmtDecoder } from "./alterTableStmt";
 import { SelectStmt, selectStmtDecoder } from "./selectStmt";
@@ -34,9 +34,12 @@ export * from "./targetValue";
 export * from "./tuple1";
 export * from "./typeCast";
 export * from "./variableSetStmt";
+export * from "./rawExpr";
 
 export type Stmt = {
   RawStmt: {
+    stmt_len?: number;
+    stmt_location?: number;
     stmt: // SUPPORTED START
     | { CreateStmt: CreateStmt }
       | { AlterTableStmt: AlterTableStmt }
@@ -115,6 +118,8 @@ export type Stmt = {
 
 export const stmtDecoder: Decoder<Stmt> = exact({
   RawStmt: exact({
+    stmt_len: optional(number),
+    stmt_location: optional(number),
     stmt: dispatch({
       CreateStmt: createStmtDecoder,
       AlterTableStmt: alterTableStmtDecoder,

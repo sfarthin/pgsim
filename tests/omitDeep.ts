@@ -1,7 +1,12 @@
+import { hasUncaughtExceptionCaptureCallback } from "process";
+
 export default function omitDeep(
   input: object,
   excludes: Array<number | string>
 ): object {
+  if (!input) {
+    return input;
+  }
   return Object.entries(input).reduce((acc, [key, value]) => {
     const shouldExclude = excludes.includes(key);
     if (shouldExclude) return acc;

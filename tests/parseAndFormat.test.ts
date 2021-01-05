@@ -2,8 +2,7 @@ import parse from "../src/parse";
 import nParse from "../src/nativeParse";
 import format from "../src/format";
 import omitDeep from "./omitDeep";
-import { guard } from "decoders";
-import { stmtDecoder, Stmt } from "../src/types";
+import { Stmt } from "../src/types";
 import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 
@@ -25,24 +24,30 @@ const files: { [s: string]: string } = readdirSync(
   };
 }, {});
 
-function removeStyle(stmts: Stmt[]): Stmt[] {
+function removeComments(stmts: Stmt[]): Stmt[] {
   return (
     (stmts.map((stmt) =>
       omitDeep(stmt as object, [
-        // only in native parser
-        "stmt_len",
-        "stmt_location",
-
-        // Only in PEGJS parser
+        // Only in new parser
         "comment",
-
-        // different in each parser
-        "location",
       ])
     ) as Stmt[])
       // Only in PEGJS parser
       .filter((stmt) => !("Comment" in stmt.RawStmt.stmt))
   );
+}
+
+function removeStyle(stmts: Stmt[]): Stmt[] {
+  return stmts.map((stmt) =>
+    omitDeep(stmt as object, [
+      // These vary slightly from the native parser and our parser
+      "stmt_len",
+      "stmt_location",
+
+      // different in each parser
+      "location",
+    ])
+  ) as Stmt[];
 }
 
 function checkParserAndFormatter(sql: string, filename: string): void {
@@ -53,23 +58,19 @@ function checkParserAndFormatter(sql: string, filename: string): void {
   // console.log(JSON.stringify(realAst, null, 2), JSON.stringify(ast, null, 2));
 
   // Make sure parser is identical to native parser
-  // console.log(realAst, removeStyle(realAst));
-  expect(removeStyle(ast)).toEqual(removeStyle(realAst));
+  expect(removeComments(ast)).toEqual(removeComments(realAst));
 
   // Make sure formatting and parsing produces the same AST
   expect(removeStyle(parse(format(ast)))).toEqual(removeStyle(ast));
 
   // Lets make sure we are aware of any changes
-  expect(ast).toMatchSnapshot();
   expect(format(ast)).toMatchSnapshot();
-
-  ast.map(guard(stmtDecoder, { style: "simple" }));
 }
 
 describe("Parse and format", () => {
   for (const file in files) {
-    if (file === "createStmt.sql") {
-      it(file, () => checkParserAndFormatter(files[file], file));
-    }
+    // if (file === "createSeqStmt.sql") {
+    it(file, () => checkParserAndFormatter(files[file], file));
+    // }
   }
 });

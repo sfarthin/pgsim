@@ -13,5 +13,5 @@ export default function aConst(aConst: A_Const): string {
     return `${aConst.val.Integer.ival}`;
   }
 
-  return "null";
+  return "NULL";
 }

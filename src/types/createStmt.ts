@@ -3,16 +3,16 @@ import {
   array,
   string,
   exact,
-  either,
   Decoder,
   number,
   boolean,
   unknown,
 } from "decoders";
 import { Constraint, constraintDecoder } from "./constraint";
-import { TypeName, typeNameDecoder } from "./typeCast";
+import { TypeName, typeNameDecoder } from "./typeName";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { Location, locationDecoder } from "./location";
+import dispatch from "./dispatch";
 
 export type ColumnDef = {
   colname: string;
@@ -58,10 +58,10 @@ export const createStmtDecoder: Decoder<CreateStmt> = exact({
   relation: relationDecoder,
   tableElts: optional(
     array(
-      either(
-        exact({ ColumnDef: columnDefDecoder }),
-        exact({ Constraint: constraintDecoder })
-      )
+      dispatch({
+        ColumnDef: columnDefDecoder,
+        Constraint: constraintDecoder,
+      })
     )
   ),
   oncommit: number,
