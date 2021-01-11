@@ -199,6 +199,8 @@ export default function parse(inputSql: string, filename = ""): Stmt[] {
     return result.value;
   }
 
+  console.log(filename, result);
+
   throw new Error();
 
   // try {

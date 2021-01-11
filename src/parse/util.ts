@@ -1,6 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * Types
  */
+
+import { lstat } from "fs";
 
 export enum ResultType {
   Fail = "___FAIL___",
@@ -123,6 +126,10 @@ export function oneToMany<T, R>(rule: Rule<T>) {
 
 export function zeroToOne<T, R>(rule: Rule<T>) {
   return multiply(rule, 0, 1);
+}
+
+export function zeroToTen<T, R>(rule: Rule<T>) {
+  return multiply(rule, 0, 10);
 }
 
 export const whitespace = transform(regexChar(/[ \t\r\n]/), () => null);
@@ -334,12 +341,22 @@ export const cStyleComment = transform(
   (v) => combineComments(v[1].join("").replace(/[\*\s]*\n[\*\s]*/gi, "\n"))
 );
 
+export const cStyleCommentWithoutNewline = transform(
+  sequence([constant("/*"), zeroToMany(notConstant("*/")), constant("*/")]),
+  (v) => combineComments(v[1].join("").replace(/[\*\s]*\n[\*\s]*/gi, "\n"))
+);
+
 export const sqlStyleComment = transform(
   sequence([
     constant("--"),
     zeroToMany(notConstant("\n")),
     zeroToOne(constant("\n")),
   ]),
+  (v) => combineComments(v[1].join(""))
+);
+
+export const sqlStyleCommentWithoutNewline = transform(
+  sequence([constant("--"), zeroToMany(notConstant("\n"))]),
   (v) => combineComments(v[1].join(""))
 );
 
@@ -364,7 +381,7 @@ function lookAhead(rule: Rule<unknown>): Rule<null> {
 /**
  * __ Removes all whitespace and grabs any comments
  */
-const __ = transform(
+export const __ = transform(
   // We can have any number of whitespace or comments
   zeroToMany(or([cStyleComment, sqlStyleComment, whitespace])),
   (v) => combineComments(...v)
@@ -470,26 +487,72 @@ export function phrase(rules: Rule<any>[]): Rule<any> {
 /**
  * Kinda like oneToMany, but smartly capturing comments in between tokens.
  */
+
+const commentsOnSameLine = transform(
+  zeroToMany(
+    or([
+      sqlStyleCommentWithoutNewline,
+      cStyleCommentWithoutNewline,
+      whitespaceWithoutNewline,
+    ])
+  ),
+  (v) => combineComments(...v)
+);
+
 export function list<T>(
   rule: Rule<T>,
   separator?: Rule<unknown>
-): Rule<{ value: T; comment: string }[]> {
-  return transform(
-    // TODO line up with the correct comments
-    or([phrase([rule, separator ?? placeholder, list(rule, separator)]), rule]),
-    (v) => {
-      // console.log(JSON.stringify(v));
-      return typeof v === "object" && "value" in v
-        ? [{ comment: v.comment, value: v.value[0] }].concat(v.value[2])
-        : [
-            {
-              value: v,
-              comment: "",
-            },
-          ];
-    }
-  );
+): Rule<{ value: { value: T; comment: string }[]; comment: string }> {
+  // Since we are using recursion, we need to nest this definition.
+  return (ctx) => {
+    return or([
+      // Recursion on rule
+      transform(
+        sequence([
+          transform(zeroToTen(_), (v) => v.filter(Boolean)), // We only
+          rule,
+          __,
+          separator ?? placeholder,
+          commentsOnSameLine,
+          list(rule, separator),
+        ]),
+        (v) => {
+          // console.log(v[0]);
+          const commentForListItem = v[0][v[0].length - 1] ?? "";
+          return {
+            value: [
+              {
+                value: v[1],
+                comment: combineComments(commentForListItem, v[2], v[4]),
+              },
+            ].concat(v[5].value),
+            // If there are comments visually seperated lets not associate those comments
+            // with a list item.
+            comment: combineComments(...v[0].slice(0, -1).concat(v[5].comment)),
+          };
+        }
+      ),
+
+      // Single rule
+      transform(sequence([_, rule, commentsOnSameLine, __]), (v) => ({
+        value: [
+          {
+            comment: combineComments(v[0], v[2]),
+            value: v[1],
+          },
+        ],
+        comment: v[3],
+      })),
+    ])(ctx);
+  };
 }
+
+// console.log(
+//   list(
+//     constant("F"),
+//     constant(",")
+//   )({ pos: 0, str: "F  /* asdas */ ,   F,F,F", endOfStatement: [] })
+// );
 
 export function statement<A, B>(
   rules: [Rule<A>, Rule<B>]
