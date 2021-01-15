@@ -3,8 +3,6 @@
  * Types
  */
 
-import { lstat } from "fs";
-
 export enum ResultType {
   Fail = "___FAIL___",
   Success = "___SUCCESS___",
@@ -16,18 +14,28 @@ export type SuccessResult<R> = {
   length: number;
 };
 
-export type RuleResult<R> =
-  | {
-      type: ResultType.Fail;
-      msg: string;
-    }
-  | SuccessResult<R>;
+export type FailResult = {
+  type: ResultType.Fail;
+  expected: string[];
+  pos: number;
+};
 
-export type Context = { endOfStatement: number[]; str: string; pos: number };
+export type RuleResult<R> = FailResult | SuccessResult<R>;
 
-export type Rule<R> = (c: Context) => RuleResult<R>;
+export type Context = {
+  // hacky, computed from end endOfStatement rule
+  startOfNextStatement: number[];
+  endOfStatement: number[];
 
-const placeholder: Rule<null> = () => ({
+  str: string;
+  pos: number;
+};
+
+export type Rule<R> = ((c: Context) => RuleResult<R>) & {
+  identifier?: string;
+};
+
+export const placeholder: Rule<null> = () => ({
   type: ResultType.Success,
   value: null,
   length: 0,
@@ -36,7 +44,7 @@ const placeholder: Rule<null> = () => ({
 export function constant(
   keyword: string
 ): Rule<{ start: number; value: string }> {
-  return (ctx) => {
+  const rule: Rule<{ start: number; value: string }> = (ctx: Context) => {
     const potentialKeyword = ctx.str.substring(
       ctx.pos,
       ctx.pos + keyword.length
@@ -52,10 +60,12 @@ export function constant(
 
     return {
       type: ResultType.Fail,
+      expected: [rule.identifier ?? `"${keyword}"`],
       pos: ctx.pos,
-      msg: `Expected to find "${keyword}"`,
     };
   };
+
+  return rule;
 }
 
 function regexChar(r: RegExp): Rule<string> {
@@ -64,7 +74,7 @@ function regexChar(r: RegExp): Rule<string> {
       "Cannot use global match. See https://stackoverflow.com/questions/209732/why-am-i-seeing-inconsistent-javascript-logic-behavior-looping-with-an-alert-v"
     );
   }
-  return ({ str, pos }) => {
+  const rule: Rule<string> = ({ str, pos }) => {
     const char = str.charAt(pos);
     if (r.test(char)) {
       return {
@@ -75,10 +85,12 @@ function regexChar(r: RegExp): Rule<string> {
     }
     return {
       type: ResultType.Fail,
+      expected: [rule.identifier ?? r.toString()],
       pos,
-      msg: `Expected "${char}" to match ${r.toString()}`,
     };
   };
+
+  return rule;
 }
 
 function multiply<T>(
@@ -86,17 +98,21 @@ function multiply<T>(
   min: number,
   max: number | null
 ): Rule<T[]> {
-  return (ctx) => {
+  const newRule: Rule<T[]> = (ctx: Context) => {
     let curr: RuleResult<T>;
     const start = ctx.pos;
     let pos = ctx.pos;
     const values = [];
+    let expected: string[] = [];
+    let lastPos = pos;
     while (pos < ctx.str.length && (max === null || values.length < max)) {
       curr = rule({ ...ctx, pos });
       if (curr.type === ResultType.Success) {
         pos += curr.length;
         values.push(curr.value);
       } else {
+        expected = curr.expected;
+        lastPos = curr.pos;
         break;
       }
     }
@@ -104,7 +120,8 @@ function multiply<T>(
     if (values.length < min) {
       return {
         type: ResultType.Fail,
-        msg: `Expected to find at least ${min} occurances`,
+        expected,
+        pos: lastPos,
       };
     }
 
@@ -114,6 +131,8 @@ function multiply<T>(
       length: pos - start,
     };
   };
+
+  return newRule;
 }
 
 export function zeroToMany<T>(rule: Rule<T>) {
@@ -136,7 +155,7 @@ export const whitespace = transform(regexChar(/[ \t\r\n]/), () => null);
 const whitespaceWithoutNewline = regexChar(/[ \t\r]/);
 
 function notConstant(keyword: string): Rule<string> {
-  return (ctx) => {
+  const rule: Rule<string> = (ctx: Context) => {
     const potentialKeyword = ctx.str.substring(
       ctx.pos,
       ctx.pos + keyword.length
@@ -152,10 +171,12 @@ function notConstant(keyword: string): Rule<string> {
 
     return {
       type: ResultType.Fail,
+      expected: [rule.identifier ?? `not "${keyword}"`],
       pos: ctx.pos,
-      msg: `Expected not to find ${keyword}`,
     };
   };
+
+  return rule;
 }
 
 export function sequence<A, B>(rules: [Rule<A>, Rule<B>]): Rule<[A, B]>;
@@ -246,7 +267,7 @@ export function sequence<A, B, C, D, E, F, G, H, I, J, K, L>(
 ): Rule<[A, B, C, D, E, F, G, H, I, J, K, L]>;
 
 export function sequence(rules: Rule<any>[]): Rule<any> {
-  return (ctx) => {
+  const newRule: Rule<any> = (ctx) => {
     let pos = ctx.pos;
     let length = 0;
     const values = [];
@@ -269,13 +290,15 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
       length,
     };
   };
+
+  return newRule;
 }
 
 export function transform<T, R>(
   rule: Rule<T>,
   transform: (i: T, c: Context) => R
 ): Rule<R> {
-  return (ctx) => {
+  const newRule: Rule<R> = (ctx) => {
     const result = rule(ctx);
     if (result.type === ResultType.Success) {
       return {
@@ -285,8 +308,13 @@ export function transform<T, R>(
     }
     return result;
   };
+
+  newRule.identifier = rule.identifier;
+
+  return newRule;
 }
 
+export function or<A>(rules: [Rule<A>]): Rule<A>;
 export function or<A, B>(rules: [Rule<A>, Rule<B>]): Rule<A | B>;
 export function or<A, B, C>(
   rules: [Rule<A>, Rule<B>, Rule<C>]
@@ -300,9 +328,99 @@ export function or<A, B, C, D, E>(
 export function or<A, B, C, D, E, F>(
   rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>]
 ): Rule<A | B | C | D | E | F>;
+export function or<A, B, C, D, E, F, G>(
+  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>, Rule<G>]
+): Rule<A | B | C | D | E | F | G>;
+export function or<A, B, C, D, E, F, G, H>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>
+  ]
+): Rule<A | B | C | D | E | F | G | H>;
+export function or<A, B, C, D, E, F, G, H, I>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>
+  ]
+): Rule<A | B | C | D | E | F | G | H | I>;
+export function or<A, B, C, D, E, F, G, H, I, J>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>
+  ]
+): Rule<A | B | C | D | E | F | G | H | I | J>;
+export function or<A, B, C, D, E, F, G, H, I, J, K>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>
+  ]
+): Rule<A | B | C | D | E | F | G | H | I | J | K>;
+export function or<A, B, C, D, E, F, G, H, I, J, K, L>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>
+  ]
+): Rule<A | B | C | D | E | F | G | H | I | J | K | L>;
+export function or<A, B, C, D, E, F, G, H, I, J, K, L, M>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>
+  ]
+): Rule<A | B | C | D | E | F | G | H | I | J | K | L | M>;
 
 export function or<T>(rules: Rule<any>[]): Rule<any> {
-  return (ctx) => {
+  return (ctx: Context) => {
     const results = rules.map((r) => r(ctx));
 
     const firstMatch = results.find((r) => {
@@ -313,12 +431,25 @@ export function or<T>(rules: Rule<any>[]): Rule<any> {
       return firstMatch;
     }
 
+    const expectedArray = results
+      .reduce(
+        (acc: string[], r) =>
+          r.type === ResultType.Fail ? acc.concat(r.expected ?? []) : acc,
+        []
+      )
+      .filter(Boolean);
+
+    const pos = results.reduce(
+      (acc, r) => (r.type === ResultType.Fail && acc < r.pos ? r.pos : acc),
+      ctx.pos
+    );
+
     return {
       type: ResultType.Fail,
-      pos: ctx.pos,
-      msg: results
-        .map((r) => (r.type == ResultType.Fail ? r.msg : null))
-        .join(" or "),
+      expected: expectedArray
+        // no duplicates
+        .filter((e, i) => expectedArray.indexOf(e) === i) as string[],
+      pos,
     };
   };
 }
@@ -331,12 +462,18 @@ export function combineComments(...c: (string | null | undefined)[]) {
     .replace(/\n\n/gi, "\n");
 }
 
+const newline = constant("\n");
+newline.identifier = "newline";
+
+const notNewline = notConstant("\n");
+notNewline.identifier = "!newline";
+
 export const cStyleComment = transform(
   sequence([
     constant("/*"),
     zeroToMany(notConstant("*/")),
     constant("*/"),
-    zeroToOne(constant("\n")),
+    zeroToOne(newline),
   ]),
   (v) => combineComments(v[1].join("").replace(/[\*\s]*\n[\*\s]*/gi, "\n"))
 );
@@ -347,23 +484,19 @@ export const cStyleCommentWithoutNewline = transform(
 );
 
 export const sqlStyleComment = transform(
-  sequence([
-    constant("--"),
-    zeroToMany(notConstant("\n")),
-    zeroToOne(constant("\n")),
-  ]),
+  sequence([constant("--"), zeroToMany(notNewline), zeroToOne(newline)]),
   (v) => combineComments(v[1].join(""))
 );
 
 export const sqlStyleCommentWithoutNewline = transform(
-  sequence([constant("--"), zeroToMany(notConstant("\n"))]),
+  sequence([constant("--"), zeroToMany(notNewline)]),
   (v) => combineComments(v[1].join(""))
 );
 
 // const multipleComments = transform(zeroToMany(comment), (s) => s.join("\n"));
 
 function lookAhead(rule: Rule<unknown>): Rule<null> {
-  return (ctx) => {
+  const newRule: Rule<null> = (ctx: Context) => {
     const curr = rule(ctx);
 
     if (curr.type === ResultType.Success) {
@@ -376,6 +509,8 @@ function lookAhead(rule: Rule<unknown>): Rule<null> {
 
     return curr;
   };
+
+  return newRule;
 }
 
 /**
@@ -412,10 +547,21 @@ export const endOfInput: Rule<null> = (ctx) => {
 
   return {
     type: ResultType.Fail,
+    expected: ["end of input"],
     pos: ctx.pos,
-    msg: "Expected to be end of input",
   };
 };
+endOfInput.identifier = "end of input";
+
+const lookForWhiteSpaceOrComment = // we want to ensure the next character is a whitespace
+  // or start of a comment, but we do not want to incliude
+  // it in the sequence.
+  //
+  // Examples:
+  // ✓ SET statement_timeout = 0;
+  // ✓ SET/* foo */statement_timeout = 0;
+  // ✗ SETstatement_timeout = 0;
+  lookAhead(or([whitespace, cStyleComment, sqlStyleComment, endOfInput]));
 
 function keyword(str: string): Rule<{ start: number; value: string }> {
   return transform(
@@ -429,7 +575,7 @@ function keyword(str: string): Rule<{ start: number; value: string }> {
       // ✓ SET statement_timeout = 0;
       // ✓ SET/* foo */statement_timeout = 0;
       // ✗ SETstatement_timeout = 0;
-      lookAhead(or([whitespace, cStyleComment, sqlStyleComment, endOfInput])),
+      lookForWhiteSpaceOrComment,
     ]),
     (v) => ({ start: v[0].start, value: str })
   );
@@ -457,6 +603,48 @@ export function phrase<A, B, C, D, E>(
 export function phrase<A, B, C, D, E, F>(
   rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>]
 ): Rule<{ value: [A, B, C, D, E, F]; comment: string }>;
+export function phrase<A, B, C, D, E, F, G>(
+  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>, Rule<G>]
+): Rule<{ value: [A, B, C, D, E, F, G]; comment: string }>;
+export function phrase<A, B, C, D, E, F, G, H>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>
+  ]
+): Rule<{ value: [A, B, C, D, E, F, G, H]; comment: string }>;
+export function phrase<A, B, C, D, E, F, G, H, I>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>
+  ]
+): Rule<{ value: [A, B, C, D, E, F, G, H, I]; comment: string }>;
+export function phrase<A, B, C, D, E, F, G, H, I, J>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>
+  ]
+): Rule<{ value: [A, B, C, D, E, F, G, H, I, J]; comment: string }>;
 export function phrase(rules: Rule<any>[]): Rule<any> {
   const newRules: Rule<any>[] = [_]; // <-- Capture direct comments above
 
@@ -488,36 +676,35 @@ export function phrase(rules: Rule<any>[]): Rule<any> {
  * Kinda like oneToMany, but smartly capturing comments in between tokens.
  */
 
-const commentsOnSameLine = transform(
-  zeroToMany(
-    or([
-      sqlStyleCommentWithoutNewline,
-      cStyleCommentWithoutNewline,
-      whitespaceWithoutNewline,
-    ])
-  ),
-  (v) => combineComments(...v)
+export const commentsOnSameLine = transform(
+  sequence([
+    zeroToMany(or([cStyleCommentWithoutNewline, whitespaceWithoutNewline])),
+    optional(sqlStyleCommentWithoutNewline),
+  ]),
+  (v) => combineComments(...v[0].concat(v[1] ?? ""))
 );
 
-export function list<T>(
+export function listWithCommentsPerItem<T>(
   rule: Rule<T>,
   separator?: Rule<unknown>
 ): Rule<{ value: { value: T; comment: string }[]; comment: string }> {
   // Since we are using recursion, we need to nest this definition.
-  return (ctx) => {
+  const newRule: Rule<{
+    value: { value: T; comment: string }[];
+    comment: string;
+  }> = (ctx: Context) => {
     return or([
       // Recursion on rule
       transform(
         sequence([
           transform(zeroToTen(_), (v) => v.filter(Boolean)), // We only
           rule,
-          __,
+          separator ? __ : placeholder, // if there is not seperator lets ignore the extra space
           separator ?? placeholder,
           commentsOnSameLine,
-          list(rule, separator),
+          listWithCommentsPerItem(rule, separator),
         ]),
         (v) => {
-          // console.log(v[0]);
           const commentForListItem = v[0][v[0].length - 1] ?? "";
           return {
             value: [
@@ -545,6 +732,49 @@ export function list<T>(
       })),
     ])(ctx);
   };
+
+  return newRule;
+}
+
+export function list<T>(
+  rule: Rule<T>,
+  separator?: Rule<unknown>
+): Rule<{ value: T[]; comment: string }> {
+  // Since we are using recursion, we need to nest this definition.
+  const newRule: Rule<{
+    value: T[];
+    comment: string;
+  }> = (ctx: Context) => {
+    return or([
+      // Recursion on rule
+      transform(
+        sequence([
+          __,
+          rule,
+          __,
+          separator ?? placeholder,
+          __,
+          list(rule, separator),
+        ]),
+        (v) => {
+          return {
+            value: [v[1]].concat(v[5].value),
+            // If there are comments visually seperated lets not associate those comments
+            // with a list item.
+            comment: combineComments(v[0], v[2], v[4], v[5].comment),
+          };
+        }
+      ),
+
+      // Single rule
+      transform(sequence([__, rule, __]), (v) => ({
+        value: [v[1]],
+        comment: combineComments(v[0], v[2]),
+      })),
+    ])(ctx);
+  };
+
+  return newRule;
 }
 
 // console.log(
@@ -553,76 +783,6 @@ export function list<T>(
 //     constant(",")
 //   )({ pos: 0, str: "F  /* asdas */ ,   F,F,F", endOfStatement: [] })
 // );
-
-export function statement<A, B>(
-  rules: [Rule<A>, Rule<B>]
-): Rule<{ value: [A, B]; comment: string }>;
-export function statement<A, B, C>(
-  rules: [Rule<A>, Rule<B>, Rule<C>]
-): Rule<{ value: [A, B, C]; comment: string }>;
-export function statement<A, B, C, D>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>]
-): Rule<{ value: [A, B, C, D]; comment: string }>;
-export function statement<A, B, C, D, E>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>]
-): Rule<{ value: [A, B, C, D, E]; comment: string }>;
-export function statement<A, B, C, D, E, F>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>]
-): Rule<{ value: [A, B, C, D, E, F]; comment: string }>;
-export function statement<A, B, C, D, E, F, G>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>, Rule<G>]
-): Rule<{ value: [A, B, C, D, E, F, G]; comment: string }>;
-export function statement<A, B, C, D, E, F, G, H>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>
-  ]
-): Rule<{ value: [A, B, C, D, E, F, G, H]; comment: string }>;
-export function statement<A, B, C, D, E, F, G, H, I>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>
-  ]
-): Rule<{ value: [A, B, C, D, E, F, G, H, I]; comment: string }>;
-export function statement<A, B, C, D, E, F, G, H, I, J>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>
-  ]
-): Rule<{ value: [A, B, C, D, E, F, G, H, I, J]; comment: string }>;
-export function statement(rules: any): Rule<any> {
-  return transform(
-    phrase(rules.concat(endOfStatement)),
-    ({ comment, value }) => ({
-      // All the values except endOfStatement
-      value: value.slice(0, -1),
-      // add the comment at the end of the line
-      // @ts-expect-error
-      comment: combineComments(comment, value[rules.length]),
-    })
-  );
-}
 
 /**
  * Keywords / constants
@@ -634,6 +794,21 @@ export const CREATE = keyword("CREATE");
 export const TYPE = keyword("TYPE");
 export const AS = keyword("AS");
 export const ENUM = keyword("ENUM");
+export const SEQUENCE = keyword("SEQUENCE");
+export const IF = keyword("IF");
+export const NOT = keyword("NOT");
+export const EXISTS = keyword("EXISTS");
+export const OWNED = keyword("OWNED");
+export const BY = keyword("BY");
+export const NONE = keyword("NONE");
+export const NO = keyword("NO");
+export const CYCLE = keyword("CYCLE");
+export const MAXVALUE = keyword("MAXVALUE");
+export const MINVALUE = keyword("MINVALUE");
+export const CACHE = keyword("CACHE");
+export const WITH = keyword("WITH");
+export const START = keyword("START");
+export const INCREMENT = keyword("INCREMENT");
 
 export const SEMICOLON = constant(";");
 export const EQUALS = constant("=");
@@ -650,11 +825,19 @@ export const identifier = transform(
   sequence([regexChar(/[a-zA-Z_]/), zeroToMany(regexChar(/[a-zA-Z0-9_]/))]),
   (v) => v[0].concat(v[1].join(""))
 );
+identifier.identifier = "identifier";
 
 export const tableIdentifier = transform(
-  sequence([zeroToOne(sequence([PUBLIC, PERIOD])), identifier]),
-  (v) => v[1]
+  sequence([optional(sequence([identifier, PERIOD])), identifier]),
+  (v) =>
+    v[0]
+      ? [v[0][0].toLocaleLowerCase(), v[1].toLocaleLowerCase()]
+      : [v[1].toLocaleLowerCase()]
 );
+tableIdentifier.identifier = "table identifier";
+
+export const integer = transform(oneToMany(NUMERAL), (s) => Number(s.join("")));
+integer.identifier = "integer";
 
 /**
  * Common
@@ -664,12 +847,13 @@ export const quotedString = transform(
   sequence([QUOTE, zeroToMany(NOT_QUOTE), QUOTE]),
   (v) => v[1].join("")
 );
+quotedString.identifier = "quoted string";
 
 /**
  * Statement utility
  */
 
-const endOfStatement = transform(
+export const endOfStatement = transform(
   or([
     endOfInput,
     // Lets also eagerly goble up semicolons
@@ -677,21 +861,29 @@ const endOfStatement = transform(
       sequence([
         SEMICOLON,
         // Lets include all the comments on the same line as the semicolumn
-        zeroToMany(
-          or([cStyleComment, sqlStyleComment, whitespaceWithoutNewline])
-        ),
+        commentsOnSameLine,
         // There can be any amount of whitespace afterwards
         zeroToMany(whitespace),
       ])
     ),
   ]),
   (v, context) => {
-    if (v) {
+    if (v && v.length > 0) {
+      // The first semicolon is when the statement ends
       context.endOfStatement.push(v[0]?.[0].start);
-      return combineComments(...v.map((iv) => combineComments(...iv[1])));
-    }
 
-    // context.endOfStatement.push(end);
+      // The last semi colon is used to indicate when the next statement
+      context.startOfNextStatement.push(v[v.length - 1]?.[0].start);
+      return combineComments(...v.map((iv) => iv[1]));
+    }
     return "";
   }
 );
+
+export function optional<T>(rule: Rule<T>): Rule<T | null> {
+  const newRule: Rule<T | null> = or([rule, placeholder]);
+
+  newRule.identifier = `${rule.identifier}?`;
+
+  return newRule;
+}

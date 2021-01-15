@@ -2,14 +2,15 @@ import {
   transform,
   CREATE,
   TYPE,
-  tableIdentifier,
+  identifier,
   AS,
   ENUM,
   LPAREN,
-  list,
+  listWithCommentsPerItem,
   RPAREN,
   Rule,
-  statement,
+  phrase,
+  endOfStatement,
   quotedString,
   COMMA,
   sequence,
@@ -18,18 +19,18 @@ import {
 import { CreateEnumStmt } from "~/types";
 
 const enumList = transform(
-  sequence([LPAREN, list(quotedString, COMMA), RPAREN]),
+  sequence([LPAREN, listWithCommentsPerItem(quotedString, COMMA), RPAREN]),
   (v) => v[1]
 );
 
 export const createEnumStmt: Rule<CreateEnumStmt> = transform(
-  statement([CREATE, TYPE, tableIdentifier, AS, ENUM, enumList]),
+  phrase([CREATE, TYPE, identifier, AS, ENUM, enumList, endOfStatement]),
   ({ comment, value }) => ({
     typeName: [{ String: { str: value[2] } }],
     vals: value[5].value.map(({ value, comment }) => ({
       String: { str: value },
       comment,
     })),
-    comment: combineComments(comment, value[5].comment),
+    comment: combineComments(comment, value[5].comment, value[6]),
   })
 );
