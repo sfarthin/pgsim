@@ -8,15 +8,26 @@ export enum ResultType {
   Success = "___SUCCESS___",
 }
 
+type Expected =
+  | { type: "keyword"; value: string; pos: number }
+  | { type: "notKeyword"; value: string; pos: number }
+  | { type: "regex"; value: string; pos: number }
+  | { type: "endOfInput"; value: string; pos: number };
+
 export type SuccessResult<R> = {
   type: ResultType.Success;
   value: R;
   length: number;
+
+  // Sometimes we get a successful result but it may fail later and we still need to
+  // refer to this expected result
+  expected: Expected[];
+  pos: number;
 };
 
 export type FailResult = {
   type: ResultType.Fail;
-  expected: string[];
+  expected: Expected[];
   pos: number;
 };
 
@@ -32,13 +43,16 @@ export type Context = {
 };
 
 export type Rule<R> = ((c: Context) => RuleResult<R>) & {
-  identifier?: string;
+  identifier?: string; // <-- sometimes the constant is better identified by a name (\n -> newline)
+  isIdentifier?: true; // <-- Is this a constant or some kind of dynamic identifier
 };
 
-export const placeholder: Rule<null> = () => ({
+export const placeholder: Rule<null> = (ctx) => ({
   type: ResultType.Success,
   value: null,
+  expected: [],
   length: 0,
+  pos: ctx.pos,
 });
 
 export function constant(
@@ -55,12 +69,20 @@ export function constant(
         type: ResultType.Success,
         value: { start: ctx.pos, value: keyword },
         length: keyword.length,
+        expected: [],
+        pos: ctx.pos,
       };
     }
 
     return {
       type: ResultType.Fail,
-      expected: [rule.identifier ?? `"${keyword}"`],
+      expected: [
+        {
+          type: "keyword",
+          value: rule.identifier ?? `"${keyword}"`,
+          pos: ctx.pos,
+        },
+      ],
       pos: ctx.pos,
     };
   };
@@ -81,11 +103,15 @@ function regexChar(r: RegExp): Rule<string> {
         type: ResultType.Success,
         value: char,
         length: 1,
+        expected: [],
+        pos,
       };
     }
     return {
       type: ResultType.Fail,
-      expected: [rule.identifier ?? r.toString()],
+      expected: [
+        { type: "regex", value: rule.identifier ?? r.toString(), pos },
+      ],
       pos,
     };
   };
@@ -103,15 +129,15 @@ function multiply<T>(
     const start = ctx.pos;
     let pos = ctx.pos;
     const values = [];
-    let expected: string[] = [];
+    let expected: Expected[] = [];
     let lastPos = pos;
     while (pos < ctx.str.length && (max === null || values.length < max)) {
       curr = rule({ ...ctx, pos });
+      expected = curr.expected;
       if (curr.type === ResultType.Success) {
         pos += curr.length;
         values.push(curr.value);
       } else {
-        expected = curr.expected;
         lastPos = curr.pos;
         break;
       }
@@ -129,6 +155,8 @@ function multiply<T>(
       type: ResultType.Success,
       value: values,
       length: pos - start,
+      expected,
+      pos: lastPos,
     };
   };
 
@@ -165,13 +193,21 @@ function notConstant(keyword: string): Rule<string> {
       return {
         type: ResultType.Success,
         value: ctx.str.charAt(ctx.pos),
+        expected: [],
         length: 1,
+        pos: ctx.pos,
       };
     }
 
     return {
       type: ResultType.Fail,
-      expected: [rule.identifier ?? `not "${keyword}"`],
+      expected: [
+        {
+          type: "notKeyword",
+          value: rule.identifier ?? `not "${keyword}"`,
+          pos: ctx.pos,
+        },
+      ],
       pos: ctx.pos,
     };
   };
@@ -272,8 +308,12 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
     let length = 0;
     const values = [];
 
+    let lastExpected: Expected[] = [];
+
     for (const rule of rules) {
       const result = rule({ ...ctx, pos });
+
+      lastExpected = result.expected;
 
       if (result.type === ResultType.Fail) {
         return result;
@@ -288,6 +328,8 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
       type: ResultType.Success,
       value: values,
       length,
+      expected: lastExpected,
+      pos,
     };
   };
 
@@ -421,35 +463,55 @@ export function or<A, B, C, D, E, F, G, H, I, J, K, L, M>(
 
 export function or<T>(rules: Rule<any>[]): Rule<any> {
   return (ctx: Context) => {
+    // TODO optomize
     const results = rules.map((r) => r(ctx));
 
     const firstMatch = results.find((r) => {
       return r.type === ResultType.Success;
     });
 
+    // if (results.find((r) => r.expected.find((j) => j.value === '")"'))) {
+    //   console.log(ctx.pos, JSON.stringify(results, null, 2));
+    // }
+
     if (firstMatch) {
       return firstMatch;
     }
 
-    const expectedArray = results
-      .reduce(
-        (acc: string[], r) =>
-          r.type === ResultType.Fail ? acc.concat(r.expected ?? []) : acc,
-        []
-      )
-      .filter(Boolean);
+    const expected = results.reduce(
+      (acc: Expected[], r: RuleResult<any>): Expected[] => {
+        // If this is the first one use it.
+        // If the error is furthor along, then use that one.
+        if (!acc[0] || acc[0].pos < r.expected[0].pos) {
+          return r.expected;
+        }
 
-    const pos = results.reduce(
-      (acc, r) => (r.type === ResultType.Fail && acc < r.pos ? r.pos : acc),
-      ctx.pos
+        // If its on the same line just concatenate them.
+        if (acc[0].pos === r.expected[0].pos) {
+          return acc.concat(
+            r.expected // Remove duplicates
+              .reduce(
+                (a: Expected[], b: Expected, i: number) =>
+                  acc.findIndex(
+                    (v) => v.type === b.type && v.value === b.value
+                  ) !== i
+                    ? a.concat(b)
+                    : a,
+                []
+              )
+          );
+        }
+
+        // if r is referes to a previes pos, ignore
+        return acc;
+      },
+      []
     );
 
     return {
       type: ResultType.Fail,
-      expected: expectedArray
-        // no duplicates
-        .filter((e, i) => expectedArray.indexOf(e) === i) as string[],
-      pos,
+      expected,
+      pos: expected[0].pos,
     };
   };
 }
@@ -504,6 +566,8 @@ function lookAhead(rule: Rule<unknown>): Rule<null> {
         type: ResultType.Success,
         value: null,
         length: 0, // <-- unlike most rules, this one does not progress the position
+        expected: [],
+        pos: ctx.pos,
       };
     }
 
@@ -542,16 +606,17 @@ export const endOfInput: Rule<null> = (ctx) => {
       type: ResultType.Success,
       value: null,
       length: 0, // <-- unlike most rules, this one does not progress the position
+      expected: [],
+      pos: ctx.pos,
     };
   }
 
   return {
     type: ResultType.Fail,
-    expected: ["end of input"],
+    expected: [{ type: "endOfInput", value: "end of input", pos: ctx.pos }],
     pos: ctx.pos,
   };
 };
-endOfInput.identifier = "end of input";
 
 const lookForWhiteSpaceOrComment = // we want to ensure the next character is a whitespace
   // or start of a comment, but we do not want to incliude
@@ -563,7 +628,7 @@ const lookForWhiteSpaceOrComment = // we want to ensure the next character is a 
   // ✗ SETstatement_timeout = 0;
   lookAhead(or([whitespace, cStyleComment, sqlStyleComment, endOfInput]));
 
-function keyword(str: string): Rule<{ start: number; value: string }> {
+export function keyword(str: string): Rule<{ start: number; value: string }> {
   return transform(
     sequence([
       constant(str),
@@ -689,11 +754,8 @@ export function listWithCommentsPerItem<T>(
   separator?: Rule<unknown>
 ): Rule<{ value: { value: T; comment: string }[]; comment: string }> {
   // Since we are using recursion, we need to nest this definition.
-  const newRule: Rule<{
-    value: { value: T; comment: string }[];
-    comment: string;
-  }> = (ctx: Context) => {
-    return or([
+  return (ctx: Context) => {
+    const result = or([
       // Recursion on rule
       transform(
         sequence([
@@ -731,9 +793,22 @@ export function listWithCommentsPerItem<T>(
         comment: v[3],
       })),
     ])(ctx);
-  };
 
-  return newRule;
+    // // Lets make sure we include the seperator as valid
+    // const separatorResult = separator ? separator(ctx) : null;
+    // if (separatorResult?.type === ResultType.Fail) {
+    //   result.expected = result.expected.concat(
+    //     separatorResult.expected.map((e) => ({
+    //       ...e,
+    //       pos: result.pos,
+    //     }))
+    //   );
+    // }
+
+    // console.log(result);
+
+    return result;
+  };
 }
 
 export function list<T>(
@@ -789,6 +864,8 @@ export function list<T>(
  */
 
 export const SET = keyword("SET");
+export const ALTER = keyword("ALTER");
+export const TABLE = keyword("TABLE");
 export const PUBLIC = keyword("PUBLIC");
 export const CREATE = keyword("CREATE");
 export const TYPE = keyword("TYPE");
@@ -820,6 +897,8 @@ export const NOT_QUOTE = notConstant("'");
 export const LPAREN = constant("(");
 export const RPAREN = constant(")");
 export const COMMA = constant(",");
+
+export const ifNotExists = phrase([IF, NOT, EXISTS]);
 
 export const identifier = transform(
   sequence([regexChar(/[a-zA-Z_]/), zeroToMany(regexChar(/[a-zA-Z0-9_]/))]),

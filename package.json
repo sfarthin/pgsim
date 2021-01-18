@@ -9,8 +9,7 @@
   "scripts": {
     "generate": "echo 'todo'",
     "build": "yarn build:parser && rm -rf ./dist && tsc -p ./tsconfig.build.json",
-    "test": "tsc && jest && eslint --ext .ts .",
-    "build:parser": "pegjs --allowed-start-rules start --cache src/parse/language.pegjs"
+    "test": "tsc && jest && eslint --ext .ts ."
   },
   "devDependencies": {
     "@types/jest": "^25.2.1",

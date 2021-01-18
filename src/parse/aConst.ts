@@ -11,7 +11,7 @@ import {
 } from "./util";
 import { A_Const } from "~/types";
 
-const aConstInteger = transform(oneToMany(NUMERAL), (s) => ({
+export const aConstInteger = transform(oneToMany(NUMERAL), (s) => ({
   Integer: { ival: Number(s.join("")) },
 }));
 

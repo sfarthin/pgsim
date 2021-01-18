@@ -1,5 +1,20 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`Parse and format alterSeqStmt.sql 1`] = `
+"-- Hello
+ALTER SEQUENCE foo 
+	OWNED BY a.aaa;
+
+-- Hello
+ALTER SEQUENCE foo 
+	/**
+	 * foo
+	 * foo2	
+	 */
+	INCREMENT BY 1;
+"
+`;
+
 exports[`Parse and format createEnumStmt.sql 1`] = `
 "/**
  * Top 1

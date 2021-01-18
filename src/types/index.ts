@@ -35,6 +35,7 @@ export * from "./tuple1";
 export * from "./typeCast";
 export * from "./variableSetStmt";
 export * from "./rawExpr";
+export * from "./typeName";
 
 export type Stmt = {
   RawStmt: {

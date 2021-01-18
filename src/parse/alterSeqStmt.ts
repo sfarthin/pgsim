@@ -1,6 +1,6 @@
 import {
   transform,
-  CREATE,
+  ALTER,
   SEQUENCE,
   identifier,
   listWithCommentsPerItem,
@@ -8,20 +8,18 @@ import {
   phrase,
   endOfStatement,
   optional,
-  ifNotExists,
   combineComments,
   sequence,
   commentsOnSameLine,
 } from "./util";
-import { CreateSeqStmt, RangeVar } from "~/types";
+import { AlterSeqStmt, RangeVar } from "~/types";
 import { defElem } from "./defElem";
 
-export const createSeqStmt: Rule<CreateSeqStmt> = transform(
+export const alterSeqStmt: Rule<AlterSeqStmt> = transform(
   sequence([
     phrase([
-      CREATE,
+      ALTER,
       SEQUENCE,
-      optional(ifNotExists),
       transform(identifier, (v, ctx) => ({
         RangeVar: {
           relname: v,
@@ -36,11 +34,10 @@ export const createSeqStmt: Rule<CreateSeqStmt> = transform(
     endOfStatement,
   ]),
   (v) => {
-    const hasList = v[2] && v[2].value && v[2].value.length;
     const inlineCommentAfterSemiColon = v[3];
 
     return {
-      sequence: v[0].value[3],
+      sequence: v[0].value[2],
       ...(v[2] && v[2].value && v[2].value.length
         ? {
             options: v[2].value.map((b, i) => ({
@@ -59,13 +56,7 @@ export const createSeqStmt: Rule<CreateSeqStmt> = transform(
             })),
           }
         : {}),
-      ...(v[0].value[2] ? { if_not_exists: true } : {}),
-      comment: combineComments(
-        v[0].comment,
-        v[1],
-        v[2]?.comment,
-        !hasList ? inlineCommentAfterSemiColon : "" // <-- include comment after semicolon only if there is no list.
-      ),
+      comment: combineComments(v[0].comment, v[1], v[2]?.comment),
     };
   }
 );

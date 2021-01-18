@@ -69,8 +69,8 @@ function checkParserAndFormatter(sql: string, filename: string): void {
 
 describe("Parse and format", () => {
   for (const file in files) {
-    // if (file === "createSeqStmt.sql") {
-    it(file, () => checkParserAndFormatter(files[file], file));
-    // }
+    if (file === "createStmt.sql") {
+      it(file, () => checkParserAndFormatter(files[file], file));
+    }
   }
 });
