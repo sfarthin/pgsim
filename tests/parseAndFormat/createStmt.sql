@@ -1,9 +1,9 @@
 CREATE /*foo */ TABLE adsiiodnsaoidnoasindosaind9 -- foo
 (
     -- integer
-    ahahhahah inege,
-    ahahhahah integer, /* asdasd */, /* asasd */ -- asd
-    aaa integer NOT NULL DEFAULT 1 PRIMARY KEY,
+    ahahhahah integer,
+    ahahhahah integer, /* asdasd */ /* asasd */ -- asd
+    aa a integer NOT NULL DEFAULT 1 PRIMARY KEY,
     aab int DEFAULT '4', -- int
     /* int4 */
     aac int4,

@@ -12,6 +12,7 @@ type Expected =
   | { type: "keyword"; value: string; pos: number }
   | { type: "notKeyword"; value: string; pos: number }
   | { type: "regex"; value: string; pos: number }
+  | { type: "identifier"; value: string; pos: number }
   | { type: "endOfInput"; value: string; pos: number };
 
 export type SuccessResult<R> = {
@@ -626,24 +627,42 @@ const lookForWhiteSpaceOrComment = // we want to ensure the next character is a 
   // ✓ SET statement_timeout = 0;
   // ✓ SET/* foo */statement_timeout = 0;
   // ✗ SETstatement_timeout = 0;
-  lookAhead(or([whitespace, cStyleComment, sqlStyleComment, endOfInput]));
+  lookAhead(
+    or([
+      whitespace,
+      cStyleComment,
+      sqlStyleComment,
+      endOfInput,
+      constant(","),
+      constant(";"),
+    ])
+  );
 
 export function keyword(str: string): Rule<{ start: number; value: string }> {
-  return transform(
-    sequence([
-      constant(str),
-      // we want to ensure the next character is a whitespace
-      // or start of a comment, but we do not want to incliude
-      // it in the sequence.
-      //
-      // Examples:
-      // ✓ SET statement_timeout = 0;
-      // ✓ SET/* foo */statement_timeout = 0;
-      // ✗ SETstatement_timeout = 0;
-      lookForWhiteSpaceOrComment,
-    ]),
-    (v) => ({ start: v[0].start, value: str })
-  );
+  return (ctx) => {
+    const result = transform(
+      sequence([
+        constant(str),
+        // we want to ensure the next character is a whitespace
+        // or start of a comment, but we do not want to incliude
+        // it in the sequence.
+        //
+        // Examples:
+        // ✓ SET statement_timeout = 0;
+        // ✓ SET/* foo */statement_timeout = 0;
+        // ✗ SETstatement_timeout = 0;
+        lookForWhiteSpaceOrComment,
+      ]),
+      (v) => ({ start: v[0].start, value: str })
+    )(ctx);
+
+    result.expected =
+      result.type === ResultType.Success
+        ? []
+        : [{ type: "keyword", value: `"${str}"`, pos: ctx.pos }];
+
+    return result;
+  };
 }
 
 /**
@@ -900,11 +919,22 @@ export const COMMA = constant(",");
 
 export const ifNotExists = phrase([IF, NOT, EXISTS]);
 
-export const identifier = transform(
-  sequence([regexChar(/[a-zA-Z_]/), zeroToMany(regexChar(/[a-zA-Z0-9_]/))]),
-  (v) => v[0].concat(v[1].join(""))
-);
-identifier.identifier = "identifier";
+export const identifier: Rule<string> = (ctx: Context) => {
+  const result = transform(
+    sequence([regexChar(/[a-zA-Z_]/), zeroToMany(regexChar(/[a-zA-Z0-9_]/))]),
+    (v) => v[0].concat(v[1].join(""))
+  )(ctx);
+
+  if (result.type === ResultType.Fail) {
+    result.expected;
+    return {
+      ...result,
+      expected: [{ type: "identifier", value: "identifier", pos: ctx.pos }],
+    };
+  }
+
+  return result;
+};
 
 export const tableIdentifier = transform(
   sequence([optional(sequence([identifier, PERIOD])), identifier]),

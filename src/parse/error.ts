@@ -1,15 +1,29 @@
-import { FailResult } from "./util";
+import {
+  FailResult,
+  zeroToMany,
+  or,
+  whitespace,
+  sqlStyleComment,
+  cStyleComment,
+  identifier,
+} from "./util";
 
-const indent = (
-  text: string,
-  prefixNumeralLength?: number,
-  startLine?: number,
-  line?: number,
-  startColumn?: number,
-  endColumn?: number
-): string => {
-  const printLine = (i: number): string => {
-    if (!startLine || !prefixNumeralLength || startLine + i < 0) {
+const indent = ({
+  lines,
+  prefixNumeralLength,
+  startLine,
+  highlightColumns,
+}: {
+  lines: string[];
+  prefixNumeralLength: number;
+  startLine: number;
+  highlightColumns?: {
+    start: number;
+    end: number;
+  };
+}): string => {
+  const printLineNumber = (i: number): string => {
+    if (startLine + i < 0) {
       return [...new Array(prefixNumeralLength)].map(() => " ").join("");
     }
 
@@ -22,27 +36,24 @@ const indent = (
     return `\u001b[34m${prefixSpaces}${startLine + i}\u001b[0m`;
   };
 
-  return text
-    .split("\n")
+  return lines
     .map((s, i) => {
-      if (
-        startLine &&
-        startColumn &&
-        endColumn &&
-        line &&
-        line === startLine + i
-      ) {
+      if (highlightColumns) {
+        const column = highlightColumns;
+        // We never want to highlight more than one line.
+        // so we will start at the start line and go to the end column or
+        // end of the line, whichever comes first.
         return (
-          printLine(i) +
+          printLineNumber(i) +
           "    " +
-          s.substring(0, startColumn - 1) +
-          "\u001b[31m" +
-          s.substring(startColumn - 1, endColumn - 1) +
+          s.substring(0, column.start) +
+          "\u001b[41;1m" +
+          s.substring(column.start, column.end) +
           "\u001b[0m" +
-          s.substring(endColumn - 1)
+          s.substring(column.end)
         );
       }
-      return `${printLine(i)}    ${s}`;
+      return `${printLineNumber(i)}    ${s}`;
     })
     .join("\n");
 };
@@ -59,14 +70,34 @@ const toLineAndColumn = (str: string, pos: number) => {
     .join("")
     .indexOf("\n");
 
-  return { line: line + 1, column: column === -1 ? pos : column };
+  return { line: line, column: column === -1 ? pos : column };
 };
 
-const findNextToken = (str: string, pos: number) => {
-  const [whitespace] = str.substring(pos).match(/\s*/) ?? [""];
-  const [token] = str.substring(pos).match(/\s*[^\s]+/) ?? [""];
+const findNextToken = (str: string, _pos: number) => {
+  // Lets ignore whitespace and comments.
+  const ctx = {
+    pos: _pos,
+    str,
+    endOfStatement: [],
+    startOfNextStatement: [],
+  };
+  const leadingWhitespace = zeroToMany(
+    or([cStyleComment, sqlStyleComment, whitespace])
+  )(ctx);
 
-  return { start: pos + whitespace.length, end: pos + token.length };
+  const afterToken = or([
+    identifier, // include whole identifier
+  ])({ ...ctx, pos: leadingWhitespace.pos });
+
+  console.log("afterToken", afterToken, leadingWhitespace.pos);
+
+  return {
+    start: leadingWhitespace.pos,
+    end:
+      afterToken.pos === leadingWhitespace.pos
+        ? afterToken.pos + 1
+        : afterToken.pos,
+  };
 };
 
 /**
@@ -77,57 +108,52 @@ export const getFriendlyErrorMessage = (
   str: string,
   result: FailResult
 ): string => {
-  const expected = result.expected.filter(
-    (v) => v.type === "keyword" && !['"/*"', '"--"'].includes(v.value)
-  );
+  let expected = result.expected
+    .filter((v) => !['"/*"', '"--"'].includes(v.value))
+    .map((v) => v.value);
+  expected = expected.filter((v, i) => expected.indexOf(v) === i).sort();
 
-  console.log(expected);
-
-  const message = `Expected ${expected.map((v) => v.value).join(" or ")}`;
+  const message =
+    expected.length < 3
+      ? `Expected ${expected.join(" or ")}`
+      : `Expected one of the following:\n - ${expected.join("\n - ")}`;
 
   const lines = str.split("\n");
   const nextToken = findNextToken(str, result.pos);
   const start = toLineAndColumn(str, nextToken.start);
   const end = toLineAndColumn(str, nextToken.end);
 
-  console.log(start, end);
+  console.log(result.pos, nextToken, start, end);
 
-  const before = lines.slice(
-    start.line - 1 - NUM_CONTEXT_LINES_BEFORE,
-    start.line - 1
-  );
-  const line = lines[start.line - 1];
-  const after = lines.slice(start.line, start.line + NUM_CONTEXT_LINES_AFTER);
-  const prefixNumeralLength = start.line.toString().length + 1;
+  const prefixNumeralLength = end.line.toString().length;
+
   let error = "";
-  error += `Parse error${filename ? ` in ${filename}` : ""}(${start.line},${
-    start.column
+  error += `Parse error${filename ? ` in ${filename}` : ""}(${start.line + 1},${
+    start.column + 1
   }): ${message}\n`;
   error += "\n";
   error +=
-    indent(
-      before.join("\n"),
+    indent({
+      lines: lines.slice(start.line - NUM_CONTEXT_LINES_BEFORE, start.line),
       prefixNumeralLength,
-      start.line - NUM_CONTEXT_LINES_BEFORE
-    ) + "\n";
+      startLine: start.line - NUM_CONTEXT_LINES_BEFORE,
+    }) + "\n";
   error +=
-    indent(
-      line,
+    indent({
+      lines: [lines[start.line]], // < -- highlight one line at most.
       prefixNumeralLength,
-      start.line,
-      end.line,
-      start.column,
-      end.column
-    ) + "\n";
-  // error +=
-  //   indent(
-  //     " ".repeat(offset - 1) +
-  //       "\u001b[31m" +
-  //       "^".repeat(end.line !== start.line ? 1 : end.column - start.column) +
-  //       "\u001b[0m",
-  //     prefixNumeralLength
-  //   ) + "\n";
-  error += indent(after.join("\n"), prefixNumeralLength, start.line + 1) + "\n";
+      startLine: start.line,
+      highlightColumns: {
+        start: start.column,
+        end: end.line === start.line ? end.column : 999999, // <-- go to end of line if token spans multiple lines.
+      },
+    }) + "\n";
+  error +=
+    indent({
+      lines: lines.slice(start.line + 1, start.line + NUM_CONTEXT_LINES_AFTER),
+      prefixNumeralLength,
+      startLine: start.line + 1,
+    }) + "\n";
   error += "\n";
 
   return error;
