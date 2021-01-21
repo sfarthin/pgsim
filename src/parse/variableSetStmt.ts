@@ -7,6 +7,7 @@ import {
   phrase,
   endOfStatement,
   combineComments,
+  finalizeComment,
 } from "./util";
 import { aConst } from "./aConst";
 import { VariableSetStmt } from "~/types";
@@ -17,7 +18,7 @@ export const variableSetStmt: Rule<VariableSetStmt> = transform(
     kind: 0,
     name: value[1],
     args: [{ A_Const: value[3] }],
-    comment: combineComments(comment, value[4]),
+    comment: finalizeComment(combineComments(comment, value[4])),
   })
 );
 

@@ -7,33 +7,27 @@ ALTER SEQUENCE foo
 
 -- Hello
 ALTER SEQUENCE foo 
-	/**
-	 * foo
-	 * foo2	
-	 */
+	-- foo
+	-- foo2
 	INCREMENT BY 1;
 "
 `;
 
 exports[`Parse and format createEnumStmt.sql 1`] = `
-"/**
- * Top 1
- * Top 2
- */
+"-- Top 1
+-- Top 2
 
-/**
- * 1
- * 2
- * 3
- * 4
- * 5
- * 6
- * 7
- * 8
- * 9
- * 10
- * 11
- */
+-- 1 
+--  2
+-- 3
+-- 4
+-- 5
+--  6 
+-- 7
+-- 8
+-- 9
+--  10 
+-- 11
 CREATE TYPE foo AS ENUM (
 	-- comment on a
 	'a',
@@ -47,10 +41,8 @@ CREATE TYPE foo AS ENUM (
 	'e'
 );
 
-/**
- * Bottom 1
- * Bottom 2
- */
+-- Bottom 1
+-- Bottom 2
 "
 `;
 
@@ -58,10 +50,8 @@ exports[`Parse and format createSeqStmt.sql 1`] = `
 "-- This has no options
 CREATE SEQUENCE foo;
 
-/**
- * 1
- * 2
- */
+-- 1 
+-- 2
 CREATE SEQUENCE foo 
 	-- Start With 1
 	START WITH 1
@@ -74,11 +64,9 @@ CREATE SEQUENCE foo
 	-- foo bac
 	OWNED BY NONE;
 
-/**
- * another comment
- * and another
- * foo bar
- */
+-- another comment
+-- and another
+-- foo bar
 
 CREATE SEQUENCE IF NOT EXISTS foo2 
 	MINVALUE 4
@@ -89,6 +77,94 @@ CREATE SEQUENCE IF NOT EXISTS foo2
 	START WITH 2
 	CYCLE
 	OWNED BY foo.bar;
+"
+`;
+
+exports[`Parse and format createStmt.sql 1`] = `
+"-- CREATE /*foo */ TABLE adsiiodnsaoidnoasindosaind9 -- foo
+-- (
+--     -- integer
+--     ahahhahah integer,
+--     ahahhahah integer, /* asdasd */ /* asasd */ -- asd
+--     aa integer NOT NULL DEFAULT 1 PRIMARY KEY,
+--     aab int DEFAULT '4', -- int
+--     /* int4 */
+--     aac int4,
+--     aa bigint DEFAULT 1,
+--     /* 1 */ ab /* 2 */ int8 /* 3 */ NOT /* 4 */ NULL /* 5 */, -- 6
+--     /* 1 */ ac /* 2 */ bigserial /* 3 */ NULL /* 4 */, -- 5
+--     ad serial8 UNIQUE,
+--     ae serial,
+--     af serial4,
+--     aba bit,
+--     abb bit(2),
+--     abc bit varying,
+--     abca bit varying(3),
+--     abd varbit,
+--     abda varbit(3),
+--     bba interval,
+--     bbb interval day to hour,
+--     ba bool DEFAULT true,
+--     bbaa boolean,
+--     caa box,
+--     cba bytea,
+--     cc /* hello */ cidr,
+--     cd /* yo */ circle /* yo */,
+--     ce date,
+--     cf inet,
+--     cg line,
+--     ch lseg,
+--     ci macaddr,
+--     cj money,
+--     ck tsquery,
+--     cl tsvector,
+--     cm txid_snapshot,
+--     cn uuid,
+--     co xml,
+--     daa real,
+--     dba float4,
+--     dda smallint,
+--     ddb int2,
+--     da double precision,
+--     db float8,
+--     eaa decimal,
+--     eb numeric,
+--     eca decimal(5),
+--     ecb numeric(5),
+--     eccv decimal(5,2),
+--     ecd numeric(5,2),
+--     bb character varying(255),
+--     bc character varying(4),
+--     bd character varying,
+--     be varchar,
+--     bf varchar(235),
+--     bg character,
+--     bh character(4),
+--     bi char,
+--     bj char(4),
+--     bk text,
+--     caz timestamp with time zone,
+--     cbx timestamptz,
+--     cax time with time zone,
+--     cbxx timetz
+-- );
+
+CREATE TABLE some_table (
+	-- This comment will go with \\"c'
+	c INTEGER
+);
+-- create table reference_examples (
+--     a integer references products,
+--     /* 1 */ bss /* 2 */ integer /* 3 */ references /* 4 */ products /* 5 */ ( /* 6 */some_id /* 7 */), -- 8
+--     c integer,
+--     FOREIGN KEY (c) REFERENCES other_table (c1)
+-- )
+-- create table reference_group_examples (
+--     a integer references products,
+--     b integer,
+--     c integer,
+--     FOREIGN KEY (b,c) REFERENCES other_table (c1, c2)
+-- )
 "
 `;
 
@@ -105,10 +181,8 @@ SET check_function_bodies = 'false';
 
 SET client_min_messages = 'warning';
 
-/**
- * 1
- * foo
- */
+-- 1 
+-- foo
 SET statement_timeout = 0;
 
 SET client_encoding = ' UTF8';

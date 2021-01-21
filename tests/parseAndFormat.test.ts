@@ -57,6 +57,9 @@ function checkParserAndFormatter(sql: string, filename: string): void {
   // Compare two ASTs
   // console.log(JSON.stringify(realAst, null, 2), JSON.stringify(ast, null, 2));
 
+  // console.log(format(ast));
+  // console.log(sql);
+
   // Make sure parser is identical to native parser
   expect(removeComments(ast)).toEqual(removeComments(realAst));
 
@@ -69,8 +72,8 @@ function checkParserAndFormatter(sql: string, filename: string): void {
 
 describe("Parse and format", () => {
   for (const file in files) {
-    if (file === "createStmt.sql") {
-      it(file, () => checkParserAndFormatter(files[file], file));
-    }
+    // if (file === "createStmt.sql") {
+    it(file, () => checkParserAndFormatter(files[file], file));
+    // }
   }
 });

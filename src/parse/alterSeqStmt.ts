@@ -11,6 +11,7 @@ import {
   combineComments,
   sequence,
   commentsOnSameLine,
+  finalizeComment,
 } from "./util";
 import { AlterSeqStmt, RangeVar } from "~/types";
 import { defElem } from "./defElem";
@@ -43,20 +44,24 @@ export const alterSeqStmt: Rule<AlterSeqStmt> = transform(
             options: v[2].value.map((b, i) => ({
               DefElem: {
                 ...b.value,
-                comment: combineComments(
-                  b.comment,
-                  b.value.comment,
+                comment: finalizeComment(
+                  combineComments(
+                    b.comment,
+                    b.value.comment,
 
-                  // If this is the last item add the inline comment after semicolon.
-                  v[2] && i === v[2].value.length - 1
-                    ? inlineCommentAfterSemiColon
-                    : ""
+                    // If this is the last item add the inline comment after semicolon.
+                    v[2] && i === v[2].value.length - 1
+                      ? inlineCommentAfterSemiColon
+                      : ""
+                  )
                 ),
               },
             })),
           }
         : {}),
-      comment: combineComments(v[0].comment, v[1], v[2]?.comment),
+      comment: finalizeComment(
+        combineComments(v[0].comment, v[1], v[2]?.comment)
+      ),
     };
   }
 );

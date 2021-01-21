@@ -33,7 +33,7 @@ const indent = ({
       .map(() => " ")
       .join("");
 
-    return `\u001b[34m${prefixSpaces}${startLine + i}\u001b[0m`;
+    return `\u001b[34m${prefixSpaces}${startLine + i + 1}\u001b[0m`;
   };
 
   return lines
@@ -89,8 +89,6 @@ const findNextToken = (str: string, _pos: number) => {
     identifier, // include whole identifier
   ])({ ...ctx, pos: leadingWhitespace.pos });
 
-  console.log("afterToken", afterToken, leadingWhitespace.pos);
-
   return {
     start: leadingWhitespace.pos,
     end:
@@ -108,8 +106,12 @@ export const getFriendlyErrorMessage = (
   str: string,
   result: FailResult
 ): string => {
+  // console.log(result);
   let expected = result.expected
-    .filter((v) => !['"/*"', '"--"'].includes(v.value))
+    .filter(
+      (v) =>
+        !['"/*"', '"--"', "/[ \\t\\r\\n]/", "/[ \\t\\r]/"].includes(v.value)
+    )
     .map((v) => v.value);
   expected = expected.filter((v, i) => expected.indexOf(v) === i).sort();
 
@@ -122,8 +124,6 @@ export const getFriendlyErrorMessage = (
   const nextToken = findNextToken(str, result.pos);
   const start = toLineAndColumn(str, nextToken.start);
   const end = toLineAndColumn(str, nextToken.end);
-
-  console.log(result.pos, nextToken, start, end);
 
   const prefixNumeralLength = end.line.toString().length;
 

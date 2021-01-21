@@ -14,6 +14,7 @@ import {
   LPAREN,
   RPAREN,
   COMMA,
+  finalizeComment,
 } from "./util";
 import { CreateStmt, RangeVar } from "~/types";
 import { columnDef } from "./columnDef";
@@ -22,12 +23,17 @@ const columnDefs = transform(
   sequence([LPAREN, listWithCommentsPerItem(columnDef, COMMA), RPAREN]),
   (v) => {
     return {
-      value: v[1].value.map((i) => ({
-        ColumnDef: {
-          ...i.value,
-          comment: combineComments(i.comment, i.value.comment),
-        },
-      })),
+      value: v[1].value.map((i) => {
+        // console.log("-->", combineComments(i.comment, i.value.comment).trim());
+        return {
+          ColumnDef: {
+            ...i.value,
+            comment: finalizeComment(
+              combineComments(i.comment, i.value.comment)
+            ),
+          },
+        };
+      }),
       comment: v[1].comment,
     };
   }
@@ -58,7 +64,9 @@ export const createStmt: Rule<CreateStmt> = transform(
       tableElts,
       oncommit: 0,
       ...(value[2] ? { if_not_exists: true } : {}),
-      comment: combineComments(comment, value[4].comment, value[5]),
+      comment: finalizeComment(
+        combineComments(comment, value[4].comment, value[5])
+      ),
     };
   }
 );

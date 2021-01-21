@@ -48,6 +48,23 @@ export type Rule<R> = ((c: Context) => RuleResult<R>) & {
   isIdentifier?: true; // <-- Is this a constant or some kind of dynamic identifier
 };
 
+const expectedReducer = (acc: Expected[], e: Expected): Expected[] => {
+  // If this is the first one use it.
+  // If the error is furthor along, then use that one.
+  if (!acc[0] || acc[0].pos < e.pos) {
+    return [e];
+  }
+
+  // If its on the same line just concatenate them.
+  // unless its a duplicate
+  if (acc[0].pos === e.pos && !acc.some((v) => v.value === e.value)) {
+    return acc.concat(e);
+  }
+
+  // if r is referes to a previes pos, ignore
+  return acc;
+};
+
 export const placeholder: Rule<null> = (ctx) => ({
   type: ResultType.Success,
   value: null,
@@ -55,6 +72,24 @@ export const placeholder: Rule<null> = (ctx) => ({
   length: 0,
   pos: ctx.pos,
 });
+
+export const endOfInput: Rule<null> = (ctx) => {
+  if (ctx.pos == ctx.str.length) {
+    return {
+      type: ResultType.Success,
+      value: null,
+      length: 0, // <-- unlike most rules, this one does not progress the position
+      expected: [],
+      pos: ctx.pos,
+    };
+  }
+
+  return {
+    type: ResultType.Fail,
+    expected: [{ type: "endOfInput", value: "end of input", pos: ctx.pos }],
+    pos: ctx.pos,
+  };
+};
 
 export function constant(
   keyword: string
@@ -134,7 +169,7 @@ function multiply<T>(
     let lastPos = pos;
     while (pos < ctx.str.length && (max === null || values.length < max)) {
       curr = rule({ ...ctx, pos });
-      expected = curr.expected;
+      expected = expected.concat(curr.expected).reduce(expectedReducer, []);
       if (curr.type === ResultType.Success) {
         pos += curr.length;
         values.push(curr.value);
@@ -309,15 +344,15 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
     let length = 0;
     const values = [];
 
-    let lastExpected: Expected[] = [];
+    let expected: Expected[] = [];
 
     for (const rule of rules) {
       const result = rule({ ...ctx, pos });
 
-      lastExpected = result.expected;
+      expected = expected.concat(result.expected).reduce(expectedReducer, []);
 
       if (result.type === ResultType.Fail) {
-        return result;
+        return { ...result, expected };
       }
 
       pos = pos + result.length;
@@ -329,7 +364,7 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
       type: ResultType.Success,
       value: values,
       length,
-      expected: lastExpected,
+      expected,
       pos,
     };
   };
@@ -471,43 +506,13 @@ export function or<T>(rules: Rule<any>[]): Rule<any> {
       return r.type === ResultType.Success;
     });
 
-    // if (results.find((r) => r.expected.find((j) => j.value === '")"'))) {
-    //   console.log(ctx.pos, JSON.stringify(results, null, 2));
-    // }
+    const expected = results
+      .reduce((acc, r) => acc.concat(r.expected), [] as Expected[])
+      .reduce(expectedReducer, []);
 
     if (firstMatch) {
-      return firstMatch;
+      return { ...firstMatch, expected };
     }
-
-    const expected = results.reduce(
-      (acc: Expected[], r: RuleResult<any>): Expected[] => {
-        // If this is the first one use it.
-        // If the error is furthor along, then use that one.
-        if (!acc[0] || acc[0].pos < r.expected[0].pos) {
-          return r.expected;
-        }
-
-        // If its on the same line just concatenate them.
-        if (acc[0].pos === r.expected[0].pos) {
-          return acc.concat(
-            r.expected // Remove duplicates
-              .reduce(
-                (a: Expected[], b: Expected, i: number) =>
-                  acc.findIndex(
-                    (v) => v.type === b.type && v.value === b.value
-                  ) !== i
-                    ? a.concat(b)
-                    : a,
-                []
-              )
-          );
-        }
-
-        // if r is referes to a previes pos, ignore
-        return acc;
-      },
-      []
-    );
 
     return {
       type: ResultType.Fail,
@@ -517,12 +522,33 @@ export function or<T>(rules: Rule<any>[]): Rule<any> {
   };
 }
 
+export function finalizeComment(str: string) {
+  const lines = str.split("\n");
+
+  const stripAmount = lines.reduce((n, l) => {
+    // console.log("--->", l.match(/[^\s]/i)?.index);
+    return Math.min(n, l.match(/[^\s\t ]/i)?.index ?? 999999999);
+  }, 999999999);
+  // console.log(stripAmount);
+
+  if (stripAmount > 0) {
+    return lines
+      .map((l) => l.substring(stripAmount))
+      .join("\n")
+      .trim()
+      .replace(/\n\s*\n/, "\n");
+  }
+  return str.trim().replace(/\n\s*\n/, "\n");
+}
+
 export function combineComments(...c: (string | null | undefined)[]) {
   return c
     .filter(Boolean)
-    .map((s) => (s ?? "").replace(/^\s|\s$/g, ""))
+    .map((s) => s ?? "")
     .join("\n")
-    .replace(/\n\n/gi, "\n");
+    .replace(/\n\s*\n\s*\n/gi, "\n\n");
+  // .replace(/^[\s\n\t ]*\n/, "")
+  // .replace(/\n[\s\n\t ]*$/, "");
 }
 
 const newline = constant("\n");
@@ -538,25 +564,42 @@ export const cStyleComment = transform(
     constant("*/"),
     zeroToOne(newline),
   ]),
-  (v) => combineComments(v[1].join("").replace(/[\*\s]*\n[\*\s]*/gi, "\n"))
+  (v) =>
+    combineComments(
+      v[1]
+        .join("")
+        .replace(/\n[\s\t ]*\*/gi, "\n")
+        .replace(/^[\s\n\t ]*\*/, "")
+        .replace(/\n$/, "")
+    )
 );
 
 export const cStyleCommentWithoutNewline = transform(
   sequence([constant("/*"), zeroToMany(notConstant("*/")), constant("*/")]),
-  (v) => combineComments(v[1].join("").replace(/[\*\s]*\n[\*\s]*/gi, "\n"))
+  (v) =>
+    combineComments(
+      v[1]
+        .join("")
+        .replace(/\n[\s\t ]*\*/gi, "\n")
+        .replace(/^[\s\n\t ]*\*/, "")
+        .replace(/\n$/, "")
+    )
 );
 
 export const sqlStyleComment = transform(
-  sequence([constant("--"), zeroToMany(notNewline), zeroToOne(newline)]),
-  (v) => combineComments(v[1].join(""))
+  sequence([
+    constant("--"),
+    zeroToOne(whitespace),
+    zeroToMany(notNewline),
+    or([newline, endOfInput]),
+  ]),
+  (v) => combineComments(v[2].join(""))
 );
 
 export const sqlStyleCommentWithoutNewline = transform(
-  sequence([constant("--"), zeroToMany(notNewline)]),
-  (v) => combineComments(v[1].join(""))
+  sequence([constant("--"), zeroToOne(whitespace), zeroToMany(notNewline)]),
+  (v) => combineComments(v[2].join(""))
 );
-
-// const multipleComments = transform(zeroToMany(comment), (s) => s.join("\n"));
 
 function lookAhead(rule: Rule<unknown>): Rule<null> {
   const newRule: Rule<null> = (ctx: Context) => {
@@ -600,24 +643,6 @@ const _ = transform(
   ]),
   (v) => combineComments(...v[1])
 );
-
-export const endOfInput: Rule<null> = (ctx) => {
-  if (ctx.pos == ctx.str.length) {
-    return {
-      type: ResultType.Success,
-      value: null,
-      length: 0, // <-- unlike most rules, this one does not progress the position
-      expected: [],
-      pos: ctx.pos,
-    };
-  }
-
-  return {
-    type: ResultType.Fail,
-    expected: [{ type: "endOfInput", value: "end of input", pos: ctx.pos }],
-    pos: ctx.pos,
-  };
-};
 
 const lookForWhiteSpaceOrComment = // we want to ensure the next character is a whitespace
   // or start of a comment, but we do not want to incliude
@@ -813,19 +838,6 @@ export function listWithCommentsPerItem<T>(
       })),
     ])(ctx);
 
-    // // Lets make sure we include the seperator as valid
-    // const separatorResult = separator ? separator(ctx) : null;
-    // if (separatorResult?.type === ResultType.Fail) {
-    //   result.expected = result.expected.concat(
-    //     separatorResult.expected.map((e) => ({
-    //       ...e,
-    //       pos: result.pos,
-    //     }))
-    //   );
-    // }
-
-    // console.log(result);
-
     return result;
   };
 }
@@ -870,13 +882,6 @@ export function list<T>(
 
   return newRule;
 }
-
-// console.log(
-//   list(
-//     constant("F"),
-//     constant(",")
-//   )({ pos: 0, str: "F  /* asdas */ ,   F,F,F", endOfStatement: [] })
-// );
 
 /**
  * Keywords / constants

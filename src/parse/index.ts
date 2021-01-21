@@ -13,6 +13,7 @@ import {
   Rule,
   Context,
   combineComments,
+  finalizeComment,
 } from "./util";
 import { getFriendlyErrorMessage } from "./error";
 import { variableSetStmt } from "./variableSetStmt";
@@ -28,9 +29,6 @@ const CommentStatement = transform(
     zeroToMany(whitespace),
   ]),
   (v) => {
-    // ctx.endOfStatement[ctx.endOfStatement.length - 1] = ctx.pos;
-    // ctx.startOfNextStatement[ctx.endOfStatement.length - 1] = ctx.pos;
-
     return { Comment: v[1] };
   }
 );
@@ -89,7 +87,8 @@ const stmts: Rule<Stmt[]> = transform(
 
 function reduceComments(acc: Stmt[], stmt: Stmt): Stmt[] {
   const previousStmt = acc[acc.length - 1];
-  // combine comment nodes
+
+  // combine comment nodes and remove whitespace.
   if (
     previousStmt &&
     "Comment" in previousStmt.RawStmt.stmt &&
@@ -100,10 +99,24 @@ function reduceComments(acc: Stmt[], stmt: Stmt): Stmt[] {
       {
         RawStmt: {
           stmt: {
-            Comment: combineComments(
-              previousStmt.RawStmt.stmt.Comment,
-              stmt.RawStmt.stmt.Comment
+            Comment: finalizeComment(
+              combineComments(
+                previousStmt.RawStmt.stmt.Comment,
+                stmt.RawStmt.stmt.Comment
+              )
             ),
+          },
+        },
+      },
+    ];
+    // Just lead whitespace
+  } else if ("Comment" in stmt.RawStmt.stmt) {
+    return [
+      ...acc,
+      {
+        RawStmt: {
+          stmt: {
+            Comment: finalizeComment(stmt.RawStmt.stmt.Comment),
           },
         },
       },

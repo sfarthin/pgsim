@@ -15,6 +15,7 @@ import {
   COMMA,
   sequence,
   combineComments,
+  finalizeComment,
 } from "./util";
 import { CreateEnumStmt } from "~/types";
 
@@ -29,8 +30,10 @@ export const createEnumStmt: Rule<CreateEnumStmt> = transform(
     typeName: [{ String: { str: value[2] } }],
     vals: value[5].value.map(({ value, comment }) => ({
       String: { str: value },
-      comment,
+      comment: finalizeComment(comment),
     })),
-    comment: combineComments(comment, value[5].comment, value[6]),
+    comment: finalizeComment(
+      combineComments(comment, value[5].comment, value[6])
+    ),
   })
 );
