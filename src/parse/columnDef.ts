@@ -1,30 +1,45 @@
-import { identifier, phrase, transform, Rule } from "./util";
+import {
+  identifier,
+  sequence,
+  transform,
+  Rule,
+  oneToMany,
+  combineComments,
+  optional,
+  // _,
+  __,
+} from "./util";
 import { typeName } from "./typeName";
 import { ColumnDef } from "~/types";
-// ColumnDef = colName:Identifier c:COMMENTS typeName:TypeName c2:COMMENTS constraints:ConstraintList? {
-//     return {
-//         ColumnDef: {
-//             colname: colName.value,
-//             typeName: { TypeName: typeName.value },
-//             ...(constraints && constraints.value ? { constraints: constraints.value } : {}),
-//             is_local: true,
-//             // collClause?: unknown;
-//             location: location(),
-//             comment: combineComments(colName.comment, c, c2, typeName.comment, constraints ? constraints.comment : '')
-//         }
-//     }
-// }
+import { constraint } from "./constraint";
 
 export const columnDef: Rule<ColumnDef> = transform(
-  phrase([identifier, typeName /* , constraints */]),
-  ({ value, comment }, ctx) => {
+  sequence([
+    __,
+    transform(identifier, (value, ctx) => ({ value, pos: ctx.pos })),
+    __,
+    typeName,
+    __,
+    optional(oneToMany(sequence([__, constraint, __]))),
+  ]),
+  (value) => {
+    const listOfConstraints = value[5]?.map((e) => ({
+      Constraint: e[1].value,
+    }));
     return {
-      colname: value[0],
-      typeName: { TypeName: value[1].value },
-      //   ...(constraints && constraints.value ? { constraints: constraints.value } : {}),
+      colname: value[1].value,
+      typeName: { TypeName: value[3].value },
+      ...(listOfConstraints ? { constraints: listOfConstraints } : {}),
       is_local: true,
-      location: ctx.pos,
-      comment,
+      location: value[1].pos,
+      comment: combineComments(
+        value[0],
+        value[2],
+        value[3].comment,
+        value[4],
+        ...(value[5]?.map((e) => combineComments(e[0], e[1].comment, e[2])) ??
+          [])
+      ),
     };
   }
 );

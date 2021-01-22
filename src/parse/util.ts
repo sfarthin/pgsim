@@ -545,8 +545,8 @@ export function combineComments(...c: (string | null | undefined)[]) {
   return c
     .filter(Boolean)
     .map((s) => s ?? "")
-    .join("\n")
-    .replace(/\n\s*\n\s*\n/gi, "\n\n");
+    .join("\n");
+  // .replace(/\n\s*\n\s*\n/gi, "\n\n");
   // .replace(/^[\s\n\t ]*\n/, "")
   // .replace(/\n[\s\n\t ]*$/, "");
 }
@@ -634,7 +634,7 @@ export const __ = transform(
  * Unlike "__", "_" only grabs comments directly above the statement.
  * This way we can have these standalone comments captured seperatly
  */
-const _ = transform(
+export const _ = transform(
   sequence([
     // We can have an unlimited amount of whitespace before our comments
     zeroToMany(whitespace),
@@ -660,6 +660,7 @@ const lookForWhiteSpaceOrComment = // we want to ensure the next character is a 
       endOfInput,
       constant(","),
       constant(";"),
+      constant("("), // <-- in column definition
     ])
   );
 
@@ -790,7 +791,9 @@ export const commentsOnSameLine = transform(
     zeroToMany(or([cStyleCommentWithoutNewline, whitespaceWithoutNewline])),
     optional(sqlStyleCommentWithoutNewline),
   ]),
-  (v) => combineComments(...v[0].concat(v[1] ?? ""))
+
+  // We can trim because we don't care if its indented on one line.
+  (v) => combineComments(...v[0].concat(v[1] ?? "")).replace(/\n/gi, "")
 );
 
 export function listWithCommentsPerItem<T>(
@@ -907,9 +910,15 @@ export const CYCLE = keyword("CYCLE");
 export const MAXVALUE = keyword("MAXVALUE");
 export const MINVALUE = keyword("MINVALUE");
 export const CACHE = keyword("CACHE");
+export const REFERENCES = keyword("REFERENCES");
+export const DEFAULT = keyword("DEFAULT");
 export const WITH = keyword("WITH");
 export const START = keyword("START");
 export const INCREMENT = keyword("INCREMENT");
+export const UNIQUE = keyword("UNIQUE");
+export const NULL = keyword("NULL");
+export const PRIMARY = keyword("PRIMARY");
+export const KEY = keyword("KEY");
 
 export const SEMICOLON = constant(";");
 export const EQUALS = constant("=");

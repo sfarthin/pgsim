@@ -81,78 +81,111 @@ CREATE SEQUENCE IF NOT EXISTS foo2
 `;
 
 exports[`Parse and format createStmt.sql 1`] = `
-"-- CREATE /*foo */ TABLE adsiiodnsaoidnoasindosaind9 -- foo
--- (
---     -- integer
---     ahahhahah integer,
---     ahahhahah integer, /* asdasd */ /* asasd */ -- asd
---     aa integer NOT NULL DEFAULT 1 PRIMARY KEY,
---     aab int DEFAULT '4', -- int
---     /* int4 */
---     aac int4,
---     aa bigint DEFAULT 1,
---     /* 1 */ ab /* 2 */ int8 /* 3 */ NOT /* 4 */ NULL /* 5 */, -- 6
---     /* 1 */ ac /* 2 */ bigserial /* 3 */ NULL /* 4 */, -- 5
---     ad serial8 UNIQUE,
---     ae serial,
---     af serial4,
---     aba bit,
---     abb bit(2),
---     abc bit varying,
---     abca bit varying(3),
---     abd varbit,
---     abda varbit(3),
---     bba interval,
---     bbb interval day to hour,
---     ba bool DEFAULT true,
---     bbaa boolean,
---     caa box,
---     cba bytea,
---     cc /* hello */ cidr,
---     cd /* yo */ circle /* yo */,
---     ce date,
---     cf inet,
---     cg line,
---     ch lseg,
---     ci macaddr,
---     cj money,
---     ck tsquery,
---     cl tsvector,
---     cm txid_snapshot,
---     cn uuid,
---     co xml,
---     daa real,
---     dba float4,
---     dda smallint,
---     ddb int2,
---     da double precision,
---     db float8,
---     eaa decimal,
---     eb numeric,
---     eca decimal(5),
---     ecb numeric(5),
---     eccv decimal(5,2),
---     ecd numeric(5,2),
---     bb character varying(255),
---     bc character varying(4),
---     bd character varying,
---     be varchar,
---     bf varchar(235),
---     bg character,
---     bh character(4),
---     bi char,
---     bj char(4),
---     bk text,
---     caz timestamp with time zone,
---     cbx timestamptz,
---     cax time with time zone,
---     cbxx timetz
--- );
+"-- foo 
+-- foo
+CREATE TABLE adsiiodnsaoidnoasindosaind9 (
+	-- integer
+	ahahhahah INTEGER,
+	-- asdasd 
+	--  
+	--  asasd 
+	--  
+	-- asd
+	ahahhahah INTEGER,
+	aa INTEGER NOT NULL DEFAULT 1 PRIMARY KEY,
+	-- int
+	aab INTEGER DEFAULT '4',
+	--  int4 
+	aac INT4,
+	aa BIGINT DEFAULT 1,
+	--  1 
+	--  2 
+	--  3 
+	--  5 
+	-- 6
+	ab INT8 NOT NULL,
+	--  1 
+	--  2 
+	--  3 
+	--  4 
+	-- 5
+	ac BIGSERIAL NULL,
+	ad SERIAL8 UNIQUE,
+	ae SERIAL,
+	af SERIAL4,
+	aba BIT(1),
+	abb BIT(2),
+	abc BIT VARYING,
+	abca BIT VARYING(3),
+	abd VARBIT,
+	abda VARBIT(3),
+	bba INTERVAL,
+	bbb INTERVAL DAY TO HOUR,
+	ba BOOL DEFAULT TRUE,
+	bbaa BOOLEAN,
+	caa BOX,
+	cba BYTEA,
+	--  hello 
+	cc CIDR,
+	--  yo 
+	--  yo 
+	cd CIRCLE,
+	ce DATE,
+	cf INET,
+	cg LINE,
+	ch LSEG,
+	ci MACADDR,
+	cj MONEY,
+	ck TSQUERY,
+	cl TSVECTOR,
+	cm TXID_SNAPSHOT,
+	cn UUID,
+	co XML,
+	daa REAL,
+	dba FLOAT4,
+	dda SMALLINT,
+	ddb INT2,
+	da DOUBLE PRECISION,
+	db FLOAT8,
+	eaa DECIMAL,
+	eb DECIMAL,
+	eca DECIMAL(5),
+	ecb DECIMAL(5),
+	eccv DECIMAL(5, 2),
+	ecd DECIMAL(5, 2),
+	bb VARCHAR(255),
+	bc VARCHAR(4),
+	bd VARCHAR,
+	be VARCHAR,
+	bf VARCHAR(235),
+	bg CHAR,
+	bh CHAR(4),
+	bi CHAR,
+	bj CHAR(4),
+	bk TEXT,
+	caz TIMESTAMP WITH TIME ZONE,
+	cbx TIMESTAMPTZ,
+	cax TIME WITH TIME ZONE,
+	cbxx TIMETZ
+);
 
 CREATE TABLE some_table (
 	-- This comment will go with \\"c'
 	c INTEGER
 );
+
+-- create table reference_examples (
+--     a integer references products,
+--     /* 1 */ bss /* 2 */ integer /* 3 */ references /* 4 */ products /* 5 */ ( /* 6 */some_id /* 7 */), -- 8
+--     c integer,
+--     FOREIGN KEY (c) REFERENCES other_table (c1)
+-- )
+-- create table reference_group_examples (
+--     a integer references products,
+--     b integer,
+--     c integer,
+--     FOREIGN KEY (b,c) REFERENCES other_table (c1, c2)
+-- )
 -- create table reference_examples (
 --     a integer references products,
 --     /* 1 */ bss /* 2 */ integer /* 3 */ references /* 4 */ products /* 5 */ ( /* 6 */some_id /* 7 */), -- 8

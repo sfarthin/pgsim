@@ -106,7 +106,12 @@ export const getFriendlyErrorMessage = (
   str: string,
   result: FailResult
 ): string => {
-  // console.log(result);
+  // console.log(
+  //   result,
+  //   toLineAndColumn(str, result.expected[0].pos),
+  //   toLineAndColumn(str, result.pos)
+  // );
+
   let expected = result.expected
     .filter(
       (v) =>
@@ -115,13 +120,15 @@ export const getFriendlyErrorMessage = (
     .map((v) => v.value);
   expected = expected.filter((v, i) => expected.indexOf(v) === i).sort();
 
+  const pos = result.expected.length ? result.expected[0].pos : result.pos;
+
   const message =
     expected.length < 3
       ? `Expected ${expected.join(" or ")}`
       : `Expected one of the following:\n - ${expected.join("\n - ")}`;
 
   const lines = str.split("\n");
-  const nextToken = findNextToken(str, result.pos);
+  const nextToken = findNextToken(str, pos);
   const start = toLineAndColumn(str, nextToken.start);
   const end = toLineAndColumn(str, nextToken.end);
 

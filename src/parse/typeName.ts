@@ -6,7 +6,9 @@ import {
   LPAREN,
   RPAREN,
   COMMA,
-  phrase,
+  sequence,
+  __,
+  combineComments,
 } from "./util";
 import { aConstInteger } from "./aConst";
 import { A_Const, TypeName } from "~/types";
@@ -170,31 +172,49 @@ const typeNameWithTwoParams: Rule<{
   value: TypeName;
   comment: string;
 }> = transform(
-  phrase([colTypeWithDoubleParam, LPAREN, typemod, COMMA, typemod, RPAREN]),
-  ({ value, comment }, ctx) => {
+  sequence([
+    colTypeWithDoubleParam,
+    __,
+    LPAREN,
+    __,
+    typemod,
+    __,
+    COMMA,
+    __,
+    typemod,
+    __,
+    RPAREN,
+  ]),
+  (value, ctx) => {
     return {
       value: {
         names: getNames(value[0]),
         typemod: -1,
-        typmods: [value[2], value[4]],
+        typmods: [value[4], value[8]],
         location: ctx.pos,
       },
-      comment,
+      comment: combineComments(
+        value[1],
+        value[3],
+        value[5],
+        value[7],
+        value[9]
+      ),
     };
   }
 );
 
 const typeNameWithParam: Rule<{ value: TypeName; comment: string }> = transform(
-  phrase([colTypeWithParam, LPAREN, typemod, RPAREN]),
-  ({ value, comment }, ctx) => {
+  sequence([colTypeWithParam, __, LPAREN, __, typemod, __, RPAREN]),
+  (value, ctx) => {
     return {
       value: {
         names: getNames(value[0]),
         typemod: -1,
-        typmods: [value[2]],
+        typmods: [value[4]],
         location: ctx.pos,
       },
-      comment,
+      comment: combineComments(value[1], value[3], value[5]),
     };
   }
 );
@@ -202,8 +222,8 @@ const typeNameWithParam: Rule<{ value: TypeName; comment: string }> = transform(
 const typeNameWithNoParam: Rule<{
   value: TypeName;
   comment: string;
-}> = transform(phrase([colTypeNoParam]), ({ value, comment }, ctx) => {
-  const col = value[0];
+}> = transform(colTypeNoParam, (value, ctx) => {
+  const col = value;
   const typmods = defaultTypeMods[
     col.toLowerCase() as keyof typeof defaultTypeMods
   ]
@@ -218,19 +238,20 @@ const typeNameWithNoParam: Rule<{
                   ],
               },
             },
-            location: ctx.pos,
+            location:
+              col.toLowerCase() === "interval day to hour" ? ctx.pos + 9 : -1,
           },
         },
       ] as [{ A_Const: A_Const }])
     : null;
   return {
     value: {
-      names: getNames(value[0]),
+      names: getNames(value),
       typemod: -1,
       ...(typmods ? { typmods } : {}),
       location: ctx.pos,
     },
-    comment,
+    comment: "",
   };
 });
 

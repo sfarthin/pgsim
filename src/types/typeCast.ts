@@ -4,7 +4,7 @@ import { typeNameDecoder, TypeName } from "./typeName";
 import { A_Const, aConstDecoder } from "./constant";
 
 export type TypeCast = {
-  arg?: { A_Const: A_Const }; // <-- Should be TargetValue, but that is cyclic, so we have to do it at runtime
+  arg?: { A_Const: A_Const };
   typeName: {
     TypeName: TypeName;
   };

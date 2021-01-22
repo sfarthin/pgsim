@@ -188,5 +188,5 @@ export default function (createStmt: CreateStmt): string {
 
   return `${comment(createStmt.comment)}CREATE TABLE ${tableName} (
 ${columnDefs.map(toColumn).join(",\n")}
-);`;
+);\n`;
 }

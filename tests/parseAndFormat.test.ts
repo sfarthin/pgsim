@@ -54,12 +54,6 @@ function checkParserAndFormatter(sql: string, filename: string): void {
   const ast = parse(sql, filename);
   const realAst = nParse(sql);
 
-  // Compare two ASTs
-  // console.log(JSON.stringify(realAst, null, 2), JSON.stringify(ast, null, 2));
-
-  // console.log(format(ast));
-  // console.log(sql);
-
   // Make sure parser is identical to native parser
   expect(removeComments(ast)).toEqual(removeComments(realAst));
 

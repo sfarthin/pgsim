@@ -8,7 +8,6 @@ export default function (c: TypeCast): string {
       : null;
 
   if (toBoolean) {
-    console.log(strKeyword);
     if (strKeyword === "t") {
       return "TRUE";
     }
