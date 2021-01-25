@@ -120,9 +120,10 @@ export type ForeignKeyConstraint = {
   pktable: {
     RangeVar: RangeVar;
   };
-  pk_attrs?: [PGString];
+  pk_attrs?: PGString[];
   conname?: unknown;
   fk_attrs?: unknown;
+  comment?: string;
 };
 
 export const foreignKeyConstraint: Decoder<ForeignKeyConstraint> = exact({

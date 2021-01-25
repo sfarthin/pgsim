@@ -77,7 +77,7 @@ CREATE /*foo */ TABLE adsiiodnsaoidnoasindosaind9 -- foo
 );
 
 create table some_table (
-    c integer -- This comment will go with "c'
+    c integer -- This comment will go with "c"
     
 );
 
@@ -87,20 +87,6 @@ create table reference_examples (
     c integer,
     FOREIGN KEY (c) REFERENCES other_table (c1)
 );
-
--- create table reference_group_examples (
---     a integer references products,
---     b integer,
---     c integer,
---     FOREIGN KEY (b,c) REFERENCES other_table (c1, c2)
--- )
-
--- create table reference_examples (
---     a integer references products,
---     /* 1 */ bss /* 2 */ integer /* 3 */ references /* 4 */ products /* 5 */ ( /* 6 */some_id /* 7 */), -- 8
---     c integer,
---     FOREIGN KEY (c) REFERENCES other_table (c1)
--- )
 
 -- create table reference_group_examples (
 --     a integer references products,

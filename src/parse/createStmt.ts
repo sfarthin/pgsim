@@ -17,32 +17,59 @@ import {
   _,
   zeroToMany,
   commentsOnSameLine,
+  or,
 } from "./util";
-import { CreateStmt, RangeVar } from "~/types";
+import { ColumnDef, Constraint, CreateStmt, RangeVar } from "~/types";
 import { columnDef } from "./columnDef";
+import { tableConstraint } from "./constraint";
+
+const columnDefOrConstraint: Rule<
+  ({ ColumnDef: ColumnDef } | { Constraint: Constraint })[]
+> = transform(
+  sequence([
+    zeroToMany(
+      sequence([
+        __,
+        or([columnDef, tableConstraint]),
+        __,
+        COMMA,
+        commentsOnSameLine,
+      ])
+    ),
+    __,
+    or([columnDef, tableConstraint]),
+    __,
+  ]),
+
+  (v) => {
+    return [
+      ...v[0].map((i) => {
+        const columnDefOrTableConstraint = i[1];
+        return {
+          ...columnDefOrTableConstraint,
+          comment: combineComments(
+            i[0],
+            columnDefOrTableConstraint.comment,
+            i[2],
+            i[4]
+          ),
+        };
+      }),
+      { ...v[2], comment: combineComments(v[1], v[2].comment, v[3]) },
+    ].map((c) => {
+      return "colname" in c
+        ? {
+            ColumnDef: c,
+          }
+        : { Constraint: c };
+    });
+  }
+);
 
 const columnDefs = transform(
-  sequence([
-    LPAREN,
-    zeroToMany(sequence([columnDef, COMMA, commentsOnSameLine])),
-    columnDef,
-    commentsOnSameLine,
-    __,
-    RPAREN,
-  ]),
+  sequence([LPAREN, columnDefOrConstraint, RPAREN]),
   (v) => {
-    return {
-      value: [
-        ...v[1].map((i) => ({
-          ...i[0],
-          comment: combineComments(i[0].comment, i[2]),
-        })),
-        { ...v[2], comment: combineComments(v[2].comment, v[3]) },
-      ].map((ColumnDef) => ({
-        ColumnDef,
-      })),
-      comment: v[4],
-    };
+    return v[1];
   }
 );
 
@@ -70,7 +97,7 @@ export const createStmt: Rule<CreateStmt> = transform(
   ]),
 
   (value) => {
-    const tableElts = value[9].value;
+    const tableElts = value[9];
     const relation = value[7];
     const ifNotExists = value[5];
     const comment = combineComments(
@@ -79,7 +106,6 @@ export const createStmt: Rule<CreateStmt> = transform(
       value[4],
       value[6],
       value[8],
-      value[9].comment,
       value[10]
     );
 

@@ -30,3 +30,12 @@ export default function (constraints: Constraint[]): string {
   }
   return "";
 }
+
+export function toTableConstraint(constraint: Constraint): string {
+  switch (constraint.contype) {
+    case ConType.FOREIGN_KEY:
+      return `\tFOREIGN KEY (c) REFERENCES other_table (c1)`;
+    default:
+      throw new Error(`Unhandled constraint type: ${constraint.contype}`);
+  }
+}

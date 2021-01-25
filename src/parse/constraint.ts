@@ -15,7 +15,10 @@ import {
   KEY,
   NOT,
   sequence,
+  FOREIGN,
   __,
+  COMMA,
+  zeroToMany,
 } from "./util";
 import { rawExpr } from "./rawExpr";
 import {
@@ -25,6 +28,8 @@ import {
   PrimaryKeyConstraint,
   NullConstraint,
   NotNullConstraint,
+  ForeignKeyConstraint,
+  ConType,
 } from "~/types";
 
 const defaultConstraint: Rule<{
@@ -129,3 +134,75 @@ export const constraint = or([
   defaultConstraint,
   referencesConstraint,
 ]);
+
+// ForeignKeyConstraint
+
+const commaSeperatedIdentifiers: Rule<{
+  values: string[];
+  comment: string;
+}> = transform(
+  sequence([
+    zeroToMany(sequence([__, identifier, __, COMMA])),
+    __,
+    identifier,
+    __,
+  ]),
+  (v) => {
+    return {
+      comment: combineComments(
+        ...v[0].map((e) => combineComments(e[0], e[2])),
+        v[1],
+        v[3]
+      ),
+      values: [...v[0].map((e) => e[1]), v[2]],
+    };
+  }
+);
+
+const foreignKeyTableConstraint: Rule<ForeignKeyConstraint> = transform(
+  sequence([
+    FOREIGN,
+    __,
+    KEY,
+    __,
+    LPAREN,
+    commaSeperatedIdentifiers,
+    RPAREN,
+    __,
+    REFERENCES,
+    __,
+    transform(identifier, (v, ctx) => ({ value: v, pos: ctx.pos })),
+    __,
+    optional(sequence([LPAREN, commaSeperatedIdentifiers, RPAREN])),
+  ]),
+  (v, ctx) => {
+    return {
+      contype: ConType.FOREIGN_KEY,
+      location: ctx.pos,
+      fk_del_action: "a",
+      fk_matchtype: "s",
+      fk_upd_action: "a",
+      initially_valid: true,
+      pktable: {
+        RangeVar: {
+          inh: true,
+          location: v[10].pos,
+          relname: v[10].value,
+          relpersistence: "p",
+        },
+      },
+      pk_attrs: v[12]?.[1].values.map((v) => ({ String: { str: v } })) ?? [],
+      fk_attrs: v[5].values.map((v) => ({ String: { str: v } })) ?? [],
+    };
+  }
+);
+
+// // ForeignKeyTableConstraint = c1:FOREIGN_KEY csi:CommaSeperatedIdentifiersInParens c2:REFERENCES otherTable:Identifier csi2:CommaSeperatedIdentifiersInParens? {
+//   return {
+//     Constraint: {
+//         comment: combineComments(c1.comment, csi.comment, c2.comment)
+//     }
+// }
+// }
+
+export const tableConstraint = or([foreignKeyTableConstraint]);

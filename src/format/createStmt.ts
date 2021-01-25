@@ -1,6 +1,6 @@
-import { CreateStmt, ColumnDef } from "~/types";
+import { CreateStmt, ColumnDef, Constraint } from "~/types";
 import comment from "./comment";
-import toConstraints from "./constraint";
+import toConstraints, { toTableConstraint } from "./constraint";
 
 // export function toTypeMod(columnDef: ColumnDef):string {
 //   if(columnDef.typeName)
@@ -186,7 +186,15 @@ export default function (createStmt: CreateStmt): string {
     []
   ).filter((c) => !!c) as ColumnDef[];
 
+  const constraints = (
+    createStmt.tableElts?.map((t) =>
+      "Constraint" in t ? t.Constraint : null
+    ) ?? []
+  ).filter((c) => !!c) as Constraint[];
+
   return `${comment(createStmt.comment)}CREATE TABLE ${tableName} (
-${columnDefs.map(toColumn).join(",\n")}
+${[...columnDefs.map(toColumn), ...constraints.map(toTableConstraint)].join(
+  ",\n"
+)}
 );\n`;
 }

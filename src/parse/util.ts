@@ -337,6 +337,23 @@ export function sequence<A, B, C, D, E, F, G, H, I, J, K, L>(
     Rule<L>
   ]
 ): Rule<[A, B, C, D, E, F, G, H, I, J, K, L]>;
+export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>
+  ]
+): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M]>;
 
 export function sequence(rules: Rule<any>[]): Rule<any> {
   const newRule: Rule<any> = (ctx) => {
@@ -571,7 +588,7 @@ export const cStyleComment = transform(
         .replace(/\n[\s\t ]*\*/gi, "\n")
         .replace(/^[\s\n\t ]*\*/, "")
         .replace(/\n$/, "")
-    )
+    ).trim() // we can trim individual cStyle comments because they are unlikey to be indented with other comments.
 );
 
 export const cStyleCommentWithoutNewline = transform(
@@ -583,7 +600,7 @@ export const cStyleCommentWithoutNewline = transform(
         .replace(/\n[\s\t ]*\*/gi, "\n")
         .replace(/^[\s\n\t ]*\*/, "")
         .replace(/\n$/, "")
-    )
+    ).trim()
 );
 
 export const sqlStyleComment = transform(
@@ -793,7 +810,14 @@ export const commentsOnSameLine = transform(
   ]),
 
   // We can trim because we don't care if its indented on one line.
-  (v) => combineComments(...v[0].concat(v[1] ?? "")).replace(/\n/gi, "")
+  (v) =>
+    combineComments(
+      v[0]
+        .concat(v[1] ?? "")
+        .map((s) => s.trim())
+        .filter(Boolean)
+        .join(" ")
+    ).replace(/\n/gi, "")
 );
 
 export function listWithCommentsPerItem<T>(
@@ -919,6 +943,7 @@ export const UNIQUE = keyword("UNIQUE");
 export const NULL = keyword("NULL");
 export const PRIMARY = keyword("PRIMARY");
 export const KEY = keyword("KEY");
+export const FOREIGN = keyword("FOREIGN");
 
 export const SEMICOLON = constant(";");
 export const EQUALS = constant("=");
@@ -936,7 +961,7 @@ export const ifNotExists = phrase([IF, NOT, EXISTS]);
 export const identifier: Rule<string> = (ctx: Context) => {
   const result = transform(
     sequence([regexChar(/[a-zA-Z_]/), zeroToMany(regexChar(/[a-zA-Z0-9_]/))]),
-    (v) => v[0].concat(v[1].join(""))
+    (v) => v[0].concat(v[1].join("")).toLowerCase()
   )(ctx);
 
   if (result.type === ResultType.Fail) {
