@@ -920,6 +920,7 @@ export const TABLE = keyword("TABLE");
 export const PUBLIC = keyword("PUBLIC");
 export const CREATE = keyword("CREATE");
 export const TYPE = keyword("TYPE");
+export const DROP = keyword("DROP");
 export const AS = keyword("AS");
 export const ENUM = keyword("ENUM");
 export const SEQUENCE = keyword("SEQUENCE");
@@ -944,6 +945,8 @@ export const NULL = keyword("NULL");
 export const PRIMARY = keyword("PRIMARY");
 export const KEY = keyword("KEY");
 export const FOREIGN = keyword("FOREIGN");
+export const CASCADE = keyword("CASCADE");
+export const RESTRICT = keyword("RESTRICT");
 
 export const SEMICOLON = constant(";");
 export const EQUALS = constant("=");

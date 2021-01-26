@@ -1,6 +1,5 @@
 import { optional, array, string, guard, exact, unknown } from "decoders";
 import { stmtDecoder, Stmt } from "~/types";
-import { PGError, PGErrorCode } from "~/util/errors";
 // @ts-expect-error - No declaration
 import { parse as pgParse } from "pg-query-native-latest";
 
@@ -19,16 +18,20 @@ export default function parse(sql: string): Stmt[] {
 
   if (stderr || error) {
     if (error) {
-      throw new PGError(PGErrorCode.INVALID, `${sql}\n\n${String(error)}`);
+      throw new Error(`${sql}\n\n${String(error)}`);
     } else {
-      throw new PGError(PGErrorCode.INVALID, stderr || "");
+      throw new Error(stderr || "");
     }
   }
 
-  try {
-    return queries.map(guard(stmtDecoder));
-  } catch (e) {
-    console.log(JSON.stringify(e, null, 2));
-    throw e;
-  }
+  return queries.map((s) => {
+    try {
+      return guard(stmtDecoder)(s);
+    } catch (e) {
+      if (e.name === "no_decoder") {
+        e.message = `${e.message}\n\n${JSON.stringify(s, null, 2)}\n\n${sql}`;
+      }
+      throw e;
+    }
+  });
 }

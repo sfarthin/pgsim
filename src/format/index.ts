@@ -3,6 +3,7 @@ import variableSetStmt from "./variableSetStmt";
 import createEnumStmt from "./createEnumStmt";
 import createSeqStmt from "./createSeqStmt";
 import alterSeqStmt from "./alterSeqStmt";
+import dropStmt from "./dropStmt";
 import comment from "./comment";
 import { Stmt, StatementType } from "~/types";
 
@@ -36,6 +37,8 @@ function toString(stmt: Stmt, opts?: Opts): string {
 
   if ("CreateStmt" in s) {
     return createStmt(s.CreateStmt);
+  } else if ("DropStmt" in s) {
+    return dropStmt(s.DropStmt);
   } else if ("VariableSetStmt" in s) {
     return variableSetStmt(s.VariableSetStmt);
   } else if ("CreateEnumStmt" in s) {

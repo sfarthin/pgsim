@@ -23,7 +23,7 @@ const indent = ({
   };
 }): string => {
   const printLineNumber = (i: number): string => {
-    if (startLine + i < 0) {
+    if (prefixNumeralLength - (startLine + i).toString().length < 0) {
       return [...new Array(prefixNumeralLength)].map(() => " ").join("");
     }
 

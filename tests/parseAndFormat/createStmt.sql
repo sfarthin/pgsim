@@ -88,9 +88,9 @@ create table reference_examples (
     FOREIGN KEY (c) REFERENCES other_table (c1)
 );
 
--- create table reference_group_examples (
---     a integer references products,
---     b integer,
---     c integer,
---     FOREIGN KEY (b,c) REFERENCES other_table (c1, c2)
--- )
+create table reference_group_examples (
+    a integer references products,
+    b integer,
+    c integer,
+    FOREIGN KEY (b,c) REFERENCES other_table (c1, c2)
+);

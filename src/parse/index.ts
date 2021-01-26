@@ -21,6 +21,7 @@ import { createEnumStmt } from "./createEnumStmt";
 import { createSeqStmt } from "./createSeqStmt";
 import { alterSeqStmt } from "./alterSeqStmt";
 import { createStmt } from "./createStmt";
+import { dropStmt } from "./dropStmt";
 
 const CommentStatement = transform(
   sequence([
@@ -43,6 +44,7 @@ const stmts: Rule<Stmt[]> = transform(
           transform(createSeqStmt, (v) => ({ CreateSeqStmt: v })),
           transform(alterSeqStmt, (v) => ({ AlterSeqStmt: v })),
           transform(createStmt, (v) => ({ CreateStmt: v })),
+          transform(dropStmt, (v) => ({ DropStmt: v })),
 
           // Standalone comments
           CommentStatement,

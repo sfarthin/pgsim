@@ -34,7 +34,11 @@ export default function (constraints: Constraint[]): string {
 export function toTableConstraint(constraint: Constraint): string {
   switch (constraint.contype) {
     case ConType.FOREIGN_KEY:
-      return `\tFOREIGN KEY (c) REFERENCES other_table (c1)`;
+      return `\tFOREIGN KEY (${constraint.fk_attrs
+        ?.map((v) => v.String.str)
+        .join(", ")}) REFERENCES ${
+        constraint.pktable.RangeVar.relname
+      } (${constraint.pk_attrs?.map((v) => v.String.str).join(", ")})`;
     default:
       throw new Error(`Unhandled constraint type: ${constraint.contype}`);
   }

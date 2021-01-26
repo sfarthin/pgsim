@@ -122,7 +122,7 @@ export type ForeignKeyConstraint = {
   };
   pk_attrs?: PGString[];
   conname?: unknown;
-  fk_attrs?: unknown;
+  fk_attrs?: PGString[];
   comment?: string;
 };
 
@@ -136,9 +136,9 @@ export const foreignKeyConstraint: Decoder<ForeignKeyConstraint> = exact({
   pktable: exact({
     RangeVar: rangeVarDecoder,
   }),
-  pk_attrs: optional(tuple1(stringDecoder)),
+  pk_attrs: optional(array(stringDecoder)),
   conname: unknown,
-  fk_attrs: unknown,
+  fk_attrs: optional(array(stringDecoder)),
 });
 
 /**

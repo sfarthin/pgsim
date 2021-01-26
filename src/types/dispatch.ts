@@ -64,6 +64,12 @@ export default function dispatch<
       const key = Object.keys(v)[0];
       const val = Object.values(v)[0];
       const decoder = o[key];
+      if (!decoder) {
+        const e = new Error(`No decoder for ${key}`);
+        e.name = "no_decoder";
+
+        throw e;
+      }
       return d.exact({ [key]: decoder } as any)({ [key]: val });
     });
   };
