@@ -27,7 +27,6 @@ import {
   DropStmtTable,
   DropStmtType,
 } from "~/types";
-import { BADHINTS } from "dns";
 
 export const dropStmt: Rule<DropStmt> = transform(
   sequence([

@@ -62,7 +62,7 @@ export const createSeqStmt: Rule<CreateSeqStmt> = transform(
             })),
           }
         : {}),
-      ...(v[0].value[2] ? { if_not_exists: true } : {}),
+      ...(v[0].value[2] !== null ? { if_not_exists: true } : {}),
       comment: finalizeComment(
         combineComments(
           v[0].comment,

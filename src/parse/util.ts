@@ -354,6 +354,106 @@ export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M>(
     Rule<M>
   ]
 ): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M]>;
+export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M, N>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>
+  ]
+): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N]>;
+export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>
+  ]
+): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O]>;
+export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>,
+    Rule<P>
+  ]
+): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P]>;
+export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>,
+    Rule<P>,
+    Rule<Q>
+  ]
+): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q]>;
+export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>,
+    Rule<P>,
+    Rule<Q>,
+    Rule<R>
+  ]
+): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R]>;
 
 export function sequence(rules: Rule<any>[]): Rule<any> {
   const newRule: Rule<any> = (ctx) => {
@@ -947,6 +1047,10 @@ export const KEY = keyword("KEY");
 export const FOREIGN = keyword("FOREIGN");
 export const CASCADE = keyword("CASCADE");
 export const RESTRICT = keyword("RESTRICT");
+export const ADD = keyword("ADD");
+export const VALUE = keyword("VALUE");
+export const RENAME = keyword("RENAME");
+export const TO = keyword("TO");
 
 export const SEMICOLON = constant(";");
 export const EQUALS = constant("=");
@@ -958,8 +1062,31 @@ export const NOT_QUOTE = notConstant("'");
 export const LPAREN = constant("(");
 export const RPAREN = constant(")");
 export const COMMA = constant(",");
+export const AFTER = constant("AFTER");
+export const BEFORE = constant("BEFORE");
 
-export const ifNotExists = phrase([IF, NOT, EXISTS]);
+export const ifNotExists: Rule<string> = (ctx: Context) => {
+  const rule = transform(sequence([IF, __, NOT, __, EXISTS]), (v) =>
+    combineComments(v[1], v[3])
+  );
+
+  const result = rule(ctx);
+
+  if (result.type === ResultType.Fail) {
+    return {
+      ...result,
+      expected: [
+        {
+          type: "keyword",
+          value: "IF NOT EXISTS",
+          pos: ctx.pos,
+        },
+      ],
+    };
+  }
+
+  return result;
+};
 
 export const identifier: Rule<string> = (ctx: Context) => {
   const result = transform(

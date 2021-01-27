@@ -24,13 +24,18 @@ export default function parse(sql: string): Stmt[] {
     }
   }
 
-  return queries.map((s) => {
+  return queries.map((s: any) => {
     try {
       return guard(stmtDecoder)(s);
     } catch (e) {
-      if (e.name === "no_decoder") {
-        e.message = `${e.message}\n\n${JSON.stringify(s, null, 2)}\n\n${sql}`;
-      }
+      const startAst = s.RawStmt.stmt_location ?? 0;
+      const endAst = s.RawStmt.stmt_len ?? 99999;
+      const originalSql = sql.substring(startAst, startAst + endAst);
+      e.message = `Error decoding AST -- ${e.message}\n\n${JSON.stringify(
+        s,
+        null,
+        2
+      )}\n\n${originalSql}`;
       throw e;
     }
   });

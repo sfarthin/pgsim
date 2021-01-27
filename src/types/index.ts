@@ -8,6 +8,8 @@ import { AlterSeqStmt, alterSeqStmtDecoder } from "./alterSeqStmt";
 import { VariableSetStmt, variableSetStmtDecoder } from "./variableSetStmt";
 import { CreateEnumStmt, createEnumStmtDecoder } from "./createEnumStmt";
 import { DropStmt, dropStmtDecoder } from "./dropStmt";
+import { AlterEnumStmt, alterEnumStmtDecoder } from "./alterEnumStmt";
+import { AlterOwnerStmt, alterOwnerStmtDecoder } from "./alterOwnerStmt";
 import dispatch from "./dispatch";
 
 export * from "./aExpr";
@@ -37,6 +39,7 @@ export * from "./typeCast";
 export * from "./variableSetStmt";
 export * from "./rawExpr";
 export * from "./typeName";
+export * from "./alterEnumStmt";
 
 export type Stmt = {
   RawStmt: {
@@ -49,9 +52,12 @@ export type Stmt = {
       | { AlterSeqStmt: AlterSeqStmt } // Parsed/Formatted
       | { CreateSeqStmt: CreateSeqStmt } // Parsed/Formatted
       | { VariableSetStmt: VariableSetStmt } // Parsed/Formatted
-      | { AlterEnumStmt: Record<string, unknown> }
+      | { AlterEnumStmt: AlterEnumStmt }
       | { AlterTableStmt: AlterTableStmt }
-      | { DropStmt: DropStmt };
+      | { DropStmt: DropStmt }
+      | { AlterOwnerStmt: AlterOwnerStmt };
+    // | { RenameStmt: Record<string, unknown> }
+    // | { CompositeTypeStmt: Record<string, unknown> }
 
     // // Pass 2
     // | { InsertStmt: InsertStmt }
@@ -93,7 +99,6 @@ export type Stmt = {
     // | { SecLabelStmt: Record<string, unknown> }
     // | { AlterRoleSetStmt: Record<string, unknown> }
     // | { LockStmt: Record<string, unknown> }
-    // | { RenameStmt: Record<string, unknown> }
     // | { NotifyStmt: Record<string, unknown> }
     // | { ListenStmt: Record<string, unknown> }
     // | { UnlistenStmt: Record<string, unknown> }
@@ -104,10 +109,9 @@ export type Stmt = {
     // | { CreateTrigStmt: Record<string, unknown> }
     // | { AlterOpFamilyStmt: Record<string, unknown> }
     // | { CreatePolicyStmt: Record<string, unknown> }
-    // | { CompositeTypeStmt: Record<string, unknown> }
+
     // | { DeallocateStmt: Record<string, unknown> }
     // | { CreateConversionStmt: Record<string, unknown> }
-    // | { AlterOwnerStmt: Record<string, unknown> }
     // | { AlterObjectSchemaStmt: Record<string, unknown> }
     // | { CreateFdwStmt: Record<string, unknown> }
     // | { CreateForeignServerStmt: Record<string, unknown> }
@@ -133,7 +137,12 @@ export const stmtDecoder: Decoder<Stmt> = exact({
       CreateEnumStmt: createEnumStmtDecoder,
       AlterSeqStmt: alterSeqStmtDecoder,
       DropStmt: dropStmtDecoder,
+      AlterEnumStmt: alterEnumStmtDecoder,
+      AlterOwnerStmt: alterOwnerStmtDecoder,
       Comment: string,
+
+      // RenameStmt: pojo,
+      // CompositeTypeStmt: pojo,
 
       // InsertStmt: insertStmtDecoder,
       // SelectStmt: selectStmtDecoder,
@@ -171,7 +180,7 @@ export const stmtDecoder: Decoder<Stmt> = exact({
       // SecLabelStmt: pojo,
       // AlterRoleSetStmt: pojo,
       // LockStmt: pojo,
-      // RenameStmt: pojo,
+
       // NotifyStmt: pojo,
       // ListenStmt: pojo,
       // UnlistenStmt: pojo,
@@ -182,11 +191,9 @@ export const stmtDecoder: Decoder<Stmt> = exact({
       // CreateTrigStmt: pojo,
       // AlterOpFamilyStmt: pojo,
       // CreatePolicyStmt: pojo,
-      // CompositeTypeStmt: pojo,
       // DeallocateStmt: pojo,
       // CreateConversionStmt: pojo,
       // CommentStmt: pojo,
-      // AlterOwnerStmt: pojo,
       // AlterObjectSchemaStmt: pojo,
       // CreateFdwStmt: pojo,
       // CreateForeignServerStmt: pojo,
@@ -198,7 +205,6 @@ export const stmtDecoder: Decoder<Stmt> = exact({
       // AlterOperatorStmt: pojo,
       // ClusterStmt: pojo,
       // CreateEventTrigStmt: pojo,
-      // AlterEnumStmt: pojo,
     }),
   }),
 });

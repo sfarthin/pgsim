@@ -4,12 +4,16 @@ import createEnumStmt from "./createEnumStmt";
 import createSeqStmt from "./createSeqStmt";
 import alterSeqStmt from "./alterSeqStmt";
 import dropStmt from "./dropStmt";
+import alterEnumStmt from "./alterEnumStmt";
 import comment from "./comment";
 import { Stmt, StatementType } from "~/types";
+import { toLineAndColumn } from "~/parse/error";
 
 type Opts = {
   ignore?: StatementType[];
   ignoreAllExcept?: StatementType[];
+  sql?: string; // <-- Original sql before formatting. useful when there is an error.
+  filename?: string;
 };
 
 // const schemaStatements: StatementType[] = [
@@ -47,6 +51,8 @@ function toString(stmt: Stmt, opts?: Opts): string {
     return createSeqStmt(s.CreateSeqStmt);
   } else if ("AlterSeqStmt" in s) {
     return alterSeqStmt(s.AlterSeqStmt);
+  } else if ("AlterEnumStmt" in s) {
+    return alterEnumStmt(s.AlterEnumStmt);
   } else if ("Comment" in s) {
     return comment(s.Comment);
   }
@@ -55,5 +61,36 @@ function toString(stmt: Stmt, opts?: Opts): string {
 }
 
 export default function format(stmts: Stmt[], opts?: Opts): string {
-  return stmts.map((stmt) => toString(stmt, opts)).join("\n");
+  return stmts
+    .map((stmt) => {
+      try {
+        return toString(stmt, opts);
+      } catch (e) {
+        if (opts?.filename && opts?.sql) {
+          const { line, column } = toLineAndColumn(
+            opts?.sql,
+            stmt.RawStmt.stmt_location ?? 0
+          );
+          e.message = `${opts?.filename}(${line + 1},${column + 1}): ${
+            e.message
+          }`;
+        }
+
+        e.message = `${e.message}\n\n${JSON.stringify(stmt, null, 2)}`;
+
+        // Lets show the statement from the original SQL.
+        // Useful in debugging.
+        if (opts?.sql) {
+          const start = stmt.RawStmt.stmt_location ?? 0;
+          const end = stmt.RawStmt.stmt_len ?? 99999;
+          const rawSql = opts?.sql.substring(start, start + end);
+          e.message = `${e.message}\n\n\u001b[44;1m${rawSql
+            .split("\n")
+            .map((s) => `\u001b[44;1m${s}\u001b[0m`)
+            .join("\n")}`;
+        }
+        throw e;
+      }
+    })
+    .join("\n");
 }

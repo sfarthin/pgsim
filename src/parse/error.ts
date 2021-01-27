@@ -61,7 +61,7 @@ const indent = ({
 const NUM_CONTEXT_LINES_BEFORE = 4;
 const NUM_CONTEXT_LINES_AFTER = 3;
 
-const toLineAndColumn = (str: string, pos: number) => {
+export const toLineAndColumn = (str: string, pos: number) => {
   const line = (str.substring(0, pos).match(/\n/g) || []).length;
   const column = str
     .substring(0, pos)
