@@ -1,5 +1,5 @@
 import { or, Rule, constant, transform } from "./util";
-import { TypeCast } from "~/types";
+import { TypeCast } from "../types";
 
 const booleanLiteral = transform(
   or([constant("true"), constant("false")]),

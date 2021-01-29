@@ -5,9 +5,10 @@ import createSeqStmt from "./createSeqStmt";
 import alterSeqStmt from "./alterSeqStmt";
 import dropStmt from "./dropStmt";
 import alterEnumStmt from "./alterEnumStmt";
+import alterOwnerStmt from "./alterOwnerStmt";
 import comment from "./comment";
-import { Stmt, StatementType } from "~/types";
-import { toLineAndColumn } from "~/parse/error";
+import { Stmt, StatementType } from "../types";
+import { toLineAndColumn } from "../parse/error";
 
 type Opts = {
   ignore?: StatementType[];
@@ -53,6 +54,8 @@ function toString(stmt: Stmt, opts?: Opts): string {
     return alterSeqStmt(s.AlterSeqStmt);
   } else if ("AlterEnumStmt" in s) {
     return alterEnumStmt(s.AlterEnumStmt);
+  } else if ("AlterOwnerStmt" in s) {
+    return alterOwnerStmt(s.AlterOwnerStmt);
   } else if ("Comment" in s) {
     return comment(s.Comment);
   }

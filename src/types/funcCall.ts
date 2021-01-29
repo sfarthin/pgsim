@@ -14,7 +14,7 @@ import { Location, locationDecoder } from "./location";
 export type FuncCall =
   | {
       funcname: PGString[];
-      args: unknown[]; // <-- Should be TargetValue, but that is cyclic, so we have to do it at runtime
+      args: [];
       func_variadic?: boolean; // select concat(variadic array [1,2,3])
       agg_distinct?: boolean;
       over?: unknown;

@@ -1,4 +1,4 @@
-import { TypeCast } from "~/types/TypeCast";
+import { TypeCast } from "../types/TypeCast";
 
 export default function (c: TypeCast): string {
   const toBoolean = c.typeName.TypeName.names?.[1].String.str === "bool";

@@ -1,4 +1,4 @@
-import { Constraint, ConType } from "~/types";
+import { Constraint, ConType } from "../types";
 import rawExpr from "./rawExpr";
 
 export function toConstraint(constraint: Constraint): string {

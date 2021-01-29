@@ -1,7 +1,8 @@
 import { optional, array, string, guard, exact, unknown } from "decoders";
-import { stmtDecoder, Stmt } from "~/types";
+import { stmtDecoder, Stmt } from "../types";
 // @ts-expect-error - No declaration
 import { parse as pgParse } from "pg-query-native-latest";
+import { toLineAndColumn } from "../parse/error";
 
 export const parserResultDecoder = exact({
   // This is unknown because Error messages are hard to read if we do this here, we validate each query seperately
@@ -10,7 +11,7 @@ export const parserResultDecoder = exact({
   error: optional(unknown),
 });
 
-export default function parse(sql: string): Stmt[] {
+export default function parse(sql: string, filename: string): Stmt[] {
   const unsafeResult = pgParse(sql);
   const { query: queries, stderr, error } = guard(parserResultDecoder)(
     unsafeResult
@@ -31,11 +32,10 @@ export default function parse(sql: string): Stmt[] {
       const startAst = s.RawStmt.stmt_location ?? 0;
       const endAst = s.RawStmt.stmt_len ?? 99999;
       const originalSql = sql.substring(startAst, startAst + endAst);
-      e.message = `Error decoding AST -- ${e.message}\n\n${JSON.stringify(
-        s,
-        null,
-        2
-      )}\n\n${originalSql}`;
+      const { line, column } = toLineAndColumn(sql, startAst);
+      e.message = `Error decoding AST in ${filename}(${line + 1}, ${
+        column + 1
+      }) -- ${e.message}\n\n${JSON.stringify(s, null, 2)}\n\n${originalSql}`;
       throw e;
     }
   });

@@ -14,7 +14,7 @@ import {
   commentsOnSameLine,
   finalizeComment,
 } from "./util";
-import { CreateSeqStmt, RangeVar } from "~/types";
+import { CreateSeqStmt, RangeVar } from "../types";
 import { defElem } from "./defElem";
 
 export const createSeqStmt: Rule<CreateSeqStmt> = transform(

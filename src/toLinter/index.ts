@@ -1,99 +1,99 @@
-import parse from "../nativeParse";
-import { modifySchema, emptySchema, Schema } from "../toSchema";
-import { PGErrorCode } from "~/util/errors";
-import toResultType from "../toResultType";
+// import parse from "../nativeParse";
+// import { modifySchema, emptySchema, Schema } from "../toSchema";
+// import { PGErrorCode } from "~/util/errors";
+// import toResultType from "../toResultType";
 
-export type LintError = {
-  sql: string | null;
-  index: number | null;
-  code: PGErrorCode;
-  message: string;
-};
-
-export type LintOptions = {
-  // We queries should we expect.
-  type?: "SCHEMA" | "QUERY";
-  // Should make sure all fields are snake case.
-  case?: "SNAKE" | "CAMEL";
-  // Should we enforce a consistent naming structure for constraint names.
-  constraintName?: true;
-  // Should we disable triggers
-  noTriggers?: true;
-  // Should we disable functions
-  noFunctions?: true;
-  // aka do fields in SELECT match a known table.
-  validateFieldReferences?: true;
-  // Dissallow joining tables on fields that are not indexed.
-  onlyJoinOnIndex?: true;
-};
-
-// const defaultOptions: LintOptions = {
-//   case: "SNAKE",
-//   constraintName: true,
-//   validateFieldReferences: true,
-//   onlyJoinOnIndex: true,
+// export type LintError = {
+//   sql: string | null;
+//   index: number | null;
+//   code: PGErrorCode;
+//   message: string;
 // };
 
-export default function* toLinter(
-  sqlIterator: Iterator<string, void>,
-  _options: LintOptions | void,
-  existingSchema: Schema | void
-): Iterator<LintError, void> {
-  let index = 0;
-  try {
-    let curr = sqlIterator.next();
-    let schema = existingSchema ? existingSchema : emptySchema;
-    // const options = _options ? _options : defaultOptions;
+// export type LintOptions = {
+//   // We queries should we expect.
+//   type?: "SCHEMA" | "QUERY";
+//   // Should make sure all fields are snake case.
+//   case?: "SNAKE" | "CAMEL";
+//   // Should we enforce a consistent naming structure for constraint names.
+//   constraintName?: true;
+//   // Should we disable triggers
+//   noTriggers?: true;
+//   // Should we disable functions
+//   noFunctions?: true;
+//   // aka do fields in SELECT match a known table.
+//   validateFieldReferences?: true;
+//   // Dissallow joining tables on fields that are not indexed.
+//   onlyJoinOnIndex?: true;
+// };
 
-    while (!curr.done) {
-      const sql = curr.value;
-      try {
-        const stmts = parse(sql);
+// // const defaultOptions: LintOptions = {
+// //   case: "SNAKE",
+// //   constraintName: true,
+// //   validateFieldReferences: true,
+// //   onlyJoinOnIndex: true,
+// // };
 
-        for (const stmt of stmts) {
-          if ("SelectStmt" in stmt.RawStmt.stmt) {
-            toResultType(stmt, schema);
-          }
+// export default function* toLinter(
+//   sqlIterator: Iterator<string, void>,
+//   _options: LintOptions | void,
+//   existingSchema: Schema | void
+// ): Iterator<LintError, void> {
+//   let index = 0;
+//   try {
+//     let curr = sqlIterator.next();
+//     let schema = existingSchema ? existingSchema : emptySchema;
+//     // const options = _options ? _options : defaultOptions;
 
-          schema = modifySchema(stmt, schema);
-        }
-      } catch (e) {
-        /**
-         * This catch block catches errors when processing
-         * the of a query. We continue processing in this case.
-         */
+//     while (!curr.done) {
+//       const sql = curr.value;
+//       try {
+//         const stmts = parse(sql);
 
-        if (!e.id) {
-          throw e;
-        }
+//         for (const stmt of stmts) {
+//           if ("SelectStmt" in stmt.RawStmt.stmt) {
+//             toResultType(stmt, schema);
+//           }
 
-        yield {
-          sql,
-          index,
-          code: e.id,
-          message: String(e.message),
-        };
-      }
+//           schema = modifySchema(stmt, schema);
+//         }
+//       } catch (e) {
+//         /**
+//          * This catch block catches errors when processing
+//          * the of a query. We continue processing in this case.
+//          */
 
-      index++;
-      curr = sqlIterator.next();
-    }
-  } catch (e) {
-    /**
-     * This catch block catches errors when
-     * the postgres parser fails. We will stop
-     * processing queries after this.
-     */
+//         if (!e.id) {
+//           throw e;
+//         }
 
-    if (!e.id) {
-      throw e;
-    }
+//         yield {
+//           sql,
+//           index,
+//           code: e.id,
+//           message: String(e.message),
+//         };
+//       }
 
-    yield {
-      sql: null,
-      index,
-      code: e.id,
-      message: String(e.message),
-    };
-  }
-}
+//       index++;
+//       curr = sqlIterator.next();
+//     }
+//   } catch (e) {
+//     /**
+//      * This catch block catches errors when
+//      * the postgres parser fails. We will stop
+//      * processing queries after this.
+//      */
+
+//     if (!e.id) {
+//       throw e;
+//     }
+
+//     yield {
+//       sql: null,
+//       index,
+//       code: e.id,
+//       message: String(e.message),
+//     };
+//   }
+// }

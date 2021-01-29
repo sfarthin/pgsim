@@ -10,7 +10,7 @@ import {
   __,
 } from "./util";
 import { typeName } from "./typeName";
-import { ColumnDef } from "~/types";
+import { ColumnDef } from "../types";
 import { constraint } from "./constraint";
 
 export const columnDef: Rule<ColumnDef> = transform(

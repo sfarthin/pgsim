@@ -40,6 +40,7 @@ export * from "./variableSetStmt";
 export * from "./rawExpr";
 export * from "./typeName";
 export * from "./alterEnumStmt";
+export * from "./alterOwnerStmt";
 
 export type Stmt = {
   RawStmt: {

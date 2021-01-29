@@ -1,4 +1,4 @@
-import { DropStmt, RemoveType } from "~/types";
+import { DropStmt, RemoveType } from "../types";
 import comment from "./comment";
 
 export default function (c: DropStmt): string {

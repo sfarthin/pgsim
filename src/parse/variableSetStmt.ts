@@ -10,7 +10,7 @@ import {
   finalizeComment,
 } from "./util";
 import { aConst } from "./aConst";
-import { VariableSetStmt } from "~/types";
+import { VariableSetStmt } from "../types";
 
 export const variableSetStmt: Rule<VariableSetStmt> = transform(
   phrase([SET, identifier, EQUALS, aConst, endOfStatement]),

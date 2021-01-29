@@ -17,7 +17,7 @@ import {
   combineComments,
   finalizeComment,
 } from "./util";
-import { CreateEnumStmt } from "~/types";
+import { CreateEnumStmt } from "../types";
 
 const enumList = transform(
   sequence([LPAREN, listWithCommentsPerItem(quotedString, COMMA), RPAREN]),

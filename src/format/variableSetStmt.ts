@@ -1,4 +1,4 @@
-import { VariableSetStmt } from "~/types";
+import { VariableSetStmt } from "../types";
 import aConst from "./aConst";
 import comment from "./comment";
 

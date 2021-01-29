@@ -1,6 +1,6 @@
 import * as d from "decoders";
 import { tuple1 } from "./tuple1";
-import { PGString, stringDecoder } from "~/types/constant";
+import { PGString, stringDecoder } from "../types/constant";
 
 export type AlterOwnerStmt = {
   objectType: number;
@@ -12,6 +12,7 @@ export type AlterOwnerStmt = {
       location: number;
     };
   };
+  comment?: string;
 };
 
 // export const alterOwnerStmtDecoder =
@@ -25,4 +26,5 @@ export const alterOwnerStmtDecoder: d.Decoder<AlterOwnerStmt> = d.exact({
       location: d.number,
     }),
   }),
+  comment: d.optional(d.string),
 });

@@ -1,4 +1,4 @@
-import { AlterSeqStmt } from "~/types";
+import { AlterSeqStmt } from "../types";
 import defElem from "./defElem";
 import comment from "./comment";
 

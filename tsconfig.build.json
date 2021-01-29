@@ -10,10 +10,7 @@
     "strict": true,
     "outDir": "./dist",
     "declaration": true,
-    "baseUrl": ".",
-    "paths": {
-      "~*": ["./src/*"],
-    }
+    "baseUrl": "."
   },
 
   "include": ["src/**/*"]

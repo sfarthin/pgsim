@@ -30,7 +30,7 @@ import {
   NotNullConstraint,
   ForeignKeyConstraint,
   ConType,
-} from "~/types";
+} from "../types";
 
 const defaultConstraint: Rule<{
   comment: string;

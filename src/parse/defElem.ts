@@ -18,7 +18,7 @@ import {
   START,
   INCREMENT,
 } from "./util";
-import { DefElem } from "~/types";
+import { DefElem } from "../types";
 
 export const defElem: Rule<DefElem> = or([
   transform(phrase([OWNED, BY, NONE]), (v, ctx) => ({

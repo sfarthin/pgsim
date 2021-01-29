@@ -13,7 +13,7 @@ import {
   commentsOnSameLine,
   finalizeComment,
 } from "./util";
-import { AlterSeqStmt, RangeVar } from "~/types";
+import { AlterSeqStmt, RangeVar } from "../types";
 import { defElem } from "./defElem";
 
 export const alterSeqStmt: Rule<AlterSeqStmt> = transform(

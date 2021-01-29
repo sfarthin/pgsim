@@ -216,7 +216,7 @@ export function zeroToTen<T, R>(rule: Rule<T>) {
 }
 
 export const whitespace = transform(regexChar(/[ \t\r\n]/), () => null);
-const whitespaceWithoutNewline = regexChar(/[ \t\r]/);
+export const whitespaceWithoutNewline = regexChar(/[ \t\r]/);
 
 function notConstant(keyword: string): Rule<string> {
   const rule: Rule<string> = (ctx: Context) => {
@@ -1051,6 +1051,7 @@ export const ADD = keyword("ADD");
 export const VALUE = keyword("VALUE");
 export const RENAME = keyword("RENAME");
 export const TO = keyword("TO");
+export const OWNER = keyword("OWNER");
 
 export const SEMICOLON = constant(";");
 export const EQUALS = constant("=");

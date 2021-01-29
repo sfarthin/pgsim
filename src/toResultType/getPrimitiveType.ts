@@ -1,4 +1,4 @@
-import { ColumnDef } from "~/types";
+import { ColumnDef } from "../types";
 
 export type PrimitiveType =
   | "smallint" // 2 bytes	small-range integer	-32768 to +32767

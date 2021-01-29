@@ -1,4 +1,4 @@
-import { CreateEnumStmt } from "~/types";
+import { CreateEnumStmt } from "../types";
 import comment from "./comment";
 
 export default function variableSetStmt(

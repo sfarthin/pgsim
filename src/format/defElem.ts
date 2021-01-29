@@ -1,4 +1,4 @@
-import { DefElem } from "~/types";
+import { DefElem } from "../types";
 
 export default function defElem(defElem: DefElem): string {
   if (defElem.defname === "owned_by") {

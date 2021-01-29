@@ -1,4 +1,4 @@
-import { CreateSeqStmt } from "~/types";
+import { CreateSeqStmt } from "../types";
 import comment from "./comment";
 import defElem from "./defElem";
 

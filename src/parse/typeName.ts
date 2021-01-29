@@ -11,7 +11,7 @@ import {
   combineComments,
 } from "./util";
 import { aConstInteger } from "./aConst";
-import { A_Const, TypeName } from "~/types";
+import { A_Const, TypeName } from "../types";
 
 const includesReferenceCatalog = [
   "time with time zone",

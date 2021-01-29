@@ -1,5 +1,3 @@
-import { hasUncaughtExceptionCaptureCallback } from "process";
-
 export default function omitDeep(
   input: object,
   excludes: Array<number | string>

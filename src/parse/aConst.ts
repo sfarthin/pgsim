@@ -9,7 +9,7 @@ import {
   quotedString,
   Rule,
 } from "./util";
-import { A_Const } from "~/types";
+import { A_Const } from "../types";
 
 export const aConstInteger = transform(oneToMany(NUMERAL), (s) => ({
   Integer: { ival: Number(s.join("")) },

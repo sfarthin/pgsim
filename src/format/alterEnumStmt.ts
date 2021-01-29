@@ -1,4 +1,4 @@
-import { AlterEnumStmt } from "~/types";
+import { AlterEnumStmt } from "../types";
 import comment from "./comment";
 
 const beforeAndAfter = (c: AlterEnumStmt): string => {

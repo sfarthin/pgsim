@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "generate": "echo 'todo'",
-    "build": "yarn build:parser && rm -rf ./dist && tsc -p ./tsconfig.build.json",
+    "build": "rm -rf ./dist && tsc -p ./tsconfig.build.json",
     "test": "tsc && jest && eslint --ext .ts ."
   },
   "devDependencies": {

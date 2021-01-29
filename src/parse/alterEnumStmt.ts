@@ -20,7 +20,7 @@ import {
   RENAME,
   TO,
 } from "./util";
-import { AlterEnumStmt } from "~/types";
+import { AlterEnumStmt } from "../types";
 
 const afterOrBefore = transform(
   or([

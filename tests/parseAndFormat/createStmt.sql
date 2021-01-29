@@ -72,7 +72,7 @@ CREATE /*foo */ TABLE adsiiodnsaoidnoasindosaind9 -- foo
 
     caz timestamp with time zone,
     cbx timestamptz,
-    cax time with time zone,
+    cax time with time zone default now(),
     cbxx timetz   
 );
 
