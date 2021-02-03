@@ -37,8 +37,12 @@ const defaultConstraint: Rule<{
   value: DefaultConstraint;
 }> = transform(sequence([DEFAULT, __, rawExpr]), (value, ctx) => {
   return {
-    comment: value[1],
-    value: { contype: 2, location: ctx.pos, raw_expr: value[2] },
+    comment: combineComments(value[1], value[2].comment),
+    value: {
+      contype: 2,
+      location: ctx.pos,
+      raw_expr: { ...value[2], comment: undefined },
+    },
   };
 });
 

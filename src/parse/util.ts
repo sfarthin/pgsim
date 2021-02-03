@@ -454,6 +454,412 @@ export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R>(
     Rule<R>
   ]
 ): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R]>;
+export function sequence<
+  A,
+  B,
+  C,
+  D,
+  E,
+  F,
+  G,
+  H,
+  I,
+  J,
+  K,
+  L,
+  M,
+  N,
+  O,
+  P,
+  Q,
+  R,
+  S
+>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>,
+    Rule<P>,
+    Rule<Q>,
+    Rule<R>,
+    Rule<S>
+  ]
+): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S]>;
+export function sequence<
+  A,
+  B,
+  C,
+  D,
+  E,
+  F,
+  G,
+  H,
+  I,
+  J,
+  K,
+  L,
+  M,
+  N,
+  O,
+  P,
+  Q,
+  R,
+  S,
+  T
+>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>,
+    Rule<P>,
+    Rule<Q>,
+    Rule<R>,
+    Rule<S>,
+    Rule<T>
+  ]
+): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T]>;
+export function sequence<
+  A,
+  B,
+  C,
+  D,
+  E,
+  F,
+  G,
+  H,
+  I,
+  J,
+  K,
+  L,
+  M,
+  N,
+  O,
+  P,
+  Q,
+  R,
+  S,
+  T,
+  U
+>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>,
+    Rule<P>,
+    Rule<Q>,
+    Rule<R>,
+    Rule<S>,
+    Rule<T>,
+    Rule<U>
+  ]
+): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U]>;
+export function sequence<
+  A,
+  B,
+  C,
+  D,
+  E,
+  F,
+  G,
+  H,
+  I,
+  J,
+  K,
+  L,
+  M,
+  N,
+  O,
+  P,
+  Q,
+  R,
+  S,
+  T,
+  U,
+  V
+>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>,
+    Rule<P>,
+    Rule<Q>,
+    Rule<R>,
+    Rule<S>,
+    Rule<T>,
+    Rule<U>,
+    Rule<V>
+  ]
+): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V]>;
+export function sequence<
+  A,
+  B,
+  C,
+  D,
+  E,
+  F,
+  G,
+  H,
+  I,
+  J,
+  K,
+  L,
+  M,
+  N,
+  O,
+  P,
+  Q,
+  R,
+  S,
+  T,
+  U,
+  V,
+  W
+>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>,
+    Rule<P>,
+    Rule<Q>,
+    Rule<R>,
+    Rule<S>,
+    Rule<T>,
+    Rule<U>,
+    Rule<V>,
+    Rule<W>
+  ]
+): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W]>;
+export function sequence<
+  A,
+  B,
+  C,
+  D,
+  E,
+  F,
+  G,
+  H,
+  I,
+  J,
+  K,
+  L,
+  M,
+  N,
+  O,
+  P,
+  Q,
+  R,
+  S,
+  T,
+  U,
+  V,
+  W,
+  X
+>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>,
+    Rule<P>,
+    Rule<Q>,
+    Rule<R>,
+    Rule<S>,
+    Rule<T>,
+    Rule<U>,
+    Rule<V>,
+    Rule<W>,
+    Rule<X>
+  ]
+): Rule<
+  [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X]
+>;
+export function sequence<
+  A,
+  B,
+  C,
+  D,
+  E,
+  F,
+  G,
+  H,
+  I,
+  J,
+  K,
+  L,
+  M,
+  N,
+  O,
+  P,
+  Q,
+  R,
+  S,
+  T,
+  U,
+  V,
+  W,
+  X,
+  Y
+>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>,
+    Rule<P>,
+    Rule<Q>,
+    Rule<R>,
+    Rule<S>,
+    Rule<T>,
+    Rule<U>,
+    Rule<V>,
+    Rule<W>,
+    Rule<X>,
+    Rule<Y>
+  ]
+): Rule<
+  [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y]
+>;
+export function sequence<
+  A,
+  B,
+  C,
+  D,
+  E,
+  F,
+  G,
+  H,
+  I,
+  J,
+  K,
+  L,
+  M,
+  N,
+  O,
+  P,
+  Q,
+  R,
+  S,
+  T,
+  U,
+  V,
+  W,
+  X,
+  Y,
+  Z
+>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>,
+    Rule<P>,
+    Rule<Q>,
+    Rule<R>,
+    Rule<S>,
+    Rule<T>,
+    Rule<U>,
+    Rule<V>,
+    Rule<W>,
+    Rule<X>,
+    Rule<Y>,
+    Rule<Z>
+  ]
+): Rule<
+  [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
+>;
 
 export function sequence(rules: Rule<any>[]): Rule<any> {
   const newRule: Rule<any> = (ctx) => {
@@ -758,7 +1164,7 @@ export const _ = transform(
     // We can have many comments, as long theres not newlines before them
     zeroToMany(or([cStyleComment, sqlStyleComment, whitespaceWithoutNewline])),
   ]),
-  (v) => combineComments(...v[1])
+  (v) => combineComments(...v[1]).trim()
 );
 
 const lookForWhiteSpaceOrComment = // we want to ensure the next character is a whitespace
@@ -780,33 +1186,6 @@ const lookForWhiteSpaceOrComment = // we want to ensure the next character is a 
       constant("("), // <-- in column definition
     ])
   );
-
-export function keyword(str: string): Rule<{ start: number; value: string }> {
-  return (ctx) => {
-    const result = transform(
-      sequence([
-        constant(str),
-        // we want to ensure the next character is a whitespace
-        // or start of a comment, but we do not want to incliude
-        // it in the sequence.
-        //
-        // Examples:
-        // ✓ SET statement_timeout = 0;
-        // ✓ SET/* foo */statement_timeout = 0;
-        // ✗ SETstatement_timeout = 0;
-        lookForWhiteSpaceOrComment,
-      ]),
-      (v) => ({ start: v[0].start, value: str })
-    )(ctx);
-
-    result.expected =
-      result.type === ResultType.Success
-        ? []
-        : [{ type: "keyword", value: `"${str}"`, pos: ctx.pos }];
-
-    return result;
-  };
-}
 
 /**
  * Unlike a sequence, a phrase handles whitespace and comments
@@ -1013,49 +1392,131 @@ export function list<T>(
 /**
  * Keywords / constants
  */
+const keywordList = [
+  "ADD",
+  "AFTER",
+  "ALTER",
+  "AS",
+  "BEFORE",
+  "BY",
+  "CACHE",
+  "CASCADE",
+  "CONCURRENTLY",
+  "COLUMN",
+  "CREATE",
+  "CYCLE",
+  "DEFAULT",
+  "DROP",
+  "ENUM",
+  "EXISTS",
+  "FOREIGN",
+  "IF",
+  "INCREMENT",
+  "INDEX",
+  "KEY",
+  "MAXVALUE",
+  "MINVALUE",
+  "NO",
+  "NONE",
+  "NOT",
+  "NULL",
+  "ON",
+  "ONLY",
+  "OWNED",
+  "OWNER",
+  "PRIMARY",
+  "PUBLIC",
+  "REFERENCES",
+  "RENAME",
+  "RESTRICT",
+  "SEQUENCE",
+  "SET",
+  "START",
+  "TABLE",
+  "TO",
+  "UNIQUE",
+  "USING",
+  "VALUE",
+  "WITH",
+] as const;
 
-export const SET = keyword("SET");
+export function keyword(
+  str: typeof keywordList[number]
+): Rule<{ start: number; value: string }> {
+  return (ctx) => {
+    const result = transform(
+      sequence([
+        constant(str),
+        // we want to ensure the next character is a whitespace
+        // or start of a comment, but we do not want to incliude
+        // it in the sequence.
+        //
+        // Examples:
+        // ✓ SET statement_timeout = 0;
+        // ✓ SET/* foo */statement_timeout = 0;
+        // ✗ SETstatement_timeout = 0;
+        lookForWhiteSpaceOrComment,
+      ]),
+      (v) => ({ start: v[0].start, value: str })
+    )(ctx);
+
+    result.expected =
+      result.type === ResultType.Success
+        ? []
+        : [{ type: "keyword", value: `"${str}"`, pos: ctx.pos }];
+
+    return result;
+  };
+}
+export const ADD = keyword("ADD");
+export const AFTER = keyword("AFTER");
 export const ALTER = keyword("ALTER");
-export const TABLE = keyword("TABLE");
-export const PUBLIC = keyword("PUBLIC");
-export const CREATE = keyword("CREATE");
-export const TYPE = keyword("TYPE");
-export const DROP = keyword("DROP");
 export const AS = keyword("AS");
-export const ENUM = keyword("ENUM");
-export const SEQUENCE = keyword("SEQUENCE");
-export const IF = keyword("IF");
-export const NOT = keyword("NOT");
-export const EXISTS = keyword("EXISTS");
-export const OWNED = keyword("OWNED");
+export const BEFORE = keyword("BEFORE");
 export const BY = keyword("BY");
-export const NONE = keyword("NONE");
-export const NO = keyword("NO");
+export const CACHE = keyword("CACHE");
+export const CASCADE = keyword("CASCADE");
+export const CONCURRENTLY = keyword("CONCURRENTLY");
+export const COLUMN = keyword("COLUMN");
+export const CREATE = keyword("CREATE");
 export const CYCLE = keyword("CYCLE");
+export const DEFAULT = keyword("DEFAULT");
+export const DROP = keyword("DROP");
+export const ENUM = keyword("ENUM");
+export const EXISTS = keyword("EXISTS");
+export const FOREIGN = keyword("FOREIGN");
+export const IF = keyword("IF");
+export const INCREMENT = keyword("INCREMENT");
+export const INDEX = keyword("INDEX");
+export const KEY = keyword("KEY");
 export const MAXVALUE = keyword("MAXVALUE");
 export const MINVALUE = keyword("MINVALUE");
-export const CACHE = keyword("CACHE");
-export const REFERENCES = keyword("REFERENCES");
-export const DEFAULT = keyword("DEFAULT");
-export const WITH = keyword("WITH");
-export const START = keyword("START");
-export const INCREMENT = keyword("INCREMENT");
-export const UNIQUE = keyword("UNIQUE");
+export const NO = keyword("NO");
+export const NONE = keyword("NONE");
+export const NOT = keyword("NOT");
 export const NULL = keyword("NULL");
-export const PRIMARY = keyword("PRIMARY");
-export const KEY = keyword("KEY");
-export const FOREIGN = keyword("FOREIGN");
-export const CASCADE = keyword("CASCADE");
-export const RESTRICT = keyword("RESTRICT");
-export const ADD = keyword("ADD");
-export const VALUE = keyword("VALUE");
-export const RENAME = keyword("RENAME");
-export const TO = keyword("TO");
+export const ON = keyword("ON");
+export const ONLY = keyword("ONLY");
+export const OWNED = keyword("OWNED");
 export const OWNER = keyword("OWNER");
+export const PRIMARY = keyword("PRIMARY");
+export const PUBLIC = keyword("PUBLIC");
+export const REFERENCES = keyword("REFERENCES");
+export const RENAME = keyword("RENAME");
+export const RESTRICT = keyword("RESTRICT");
+export const SEQUENCE = keyword("SEQUENCE");
+export const SET = keyword("SET");
+export const START = keyword("START");
+export const TABLE = keyword("TABLE");
+export const TO = keyword("TO");
+export const TYPE = keyword("TYPE" as any); // <-- One exeption where we can use it ad an identifier
+export const UNIQUE = keyword("UNIQUE");
+export const USING = keyword("USING");
+export const VALUE = keyword("VALUE");
+export const WITH = keyword("WITH");
 
 export const SEMICOLON = constant(";");
 export const EQUALS = constant("=");
-
 export const NUMERAL = regexChar(/[0-9]/);
 export const PERIOD = constant(".");
 export const QUOTE = constant("'");
@@ -1063,8 +1524,6 @@ export const NOT_QUOTE = notConstant("'");
 export const LPAREN = constant("(");
 export const RPAREN = constant(")");
 export const COMMA = constant(",");
-export const AFTER = constant("AFTER");
-export const BEFORE = constant("BEFORE");
 
 export const ifNotExists: Rule<string> = (ctx: Context) => {
   const rule = transform(sequence([IF, __, NOT, __, EXISTS]), (v) =>
@@ -1096,10 +1555,17 @@ export const identifier: Rule<string> = (ctx: Context) => {
   )(ctx);
 
   if (result.type === ResultType.Fail) {
-    result.expected;
     return {
       ...result,
       expected: [{ type: "identifier", value: "identifier", pos: ctx.pos }],
+    };
+  }
+
+  if ((keywordList as readonly string[]).includes(result.value.toUpperCase())) {
+    return {
+      type: ResultType.Fail,
+      expected: [{ type: "identifier", value: "identifier", pos: ctx.pos }],
+      pos: ctx.pos,
     };
   }
 

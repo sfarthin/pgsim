@@ -10,10 +10,13 @@ import { CreateEnumStmt, createEnumStmtDecoder } from "./createEnumStmt";
 import { DropStmt, dropStmtDecoder } from "./dropStmt";
 import { AlterEnumStmt, alterEnumStmtDecoder } from "./alterEnumStmt";
 import { AlterOwnerStmt, alterOwnerStmtDecoder } from "./alterOwnerStmt";
+import { IndexStmt, indexStmtDecoder } from "./indexStmt";
 import dispatch from "./dispatch";
 
 export * from "./aExpr";
 export * from "./alias";
+export * from "./alterEnumStmt";
+export * from "./alterOwnerStmt";
 export * from "./alterSeqStmt";
 export * from "./alterTableStmt";
 export * from "./booleanTest";
@@ -28,19 +31,18 @@ export * from "./defElem";
 export * from "./dropStmt";
 export * from "./fromClause";
 export * from "./funcCall";
+export * from "./indexStmt";
 export * from "./InsertStmt";
 export * from "./joinExpr";
 export * from "./nullTest";
 export * from "./rangeVar";
+export * from "./rawExpr";
 export * from "./selectStmt";
 export * from "./targetValue";
 export * from "./tuple1";
 export * from "./typeCast";
-export * from "./variableSetStmt";
-export * from "./rawExpr";
 export * from "./typeName";
-export * from "./alterEnumStmt";
-export * from "./alterOwnerStmt";
+export * from "./variableSetStmt";
 
 export type Stmt = {
   RawStmt: {
@@ -48,15 +50,17 @@ export type Stmt = {
     stmt_location?: number;
     stmt: // SUPPORTED START
     | { Comment: string } // <-- on our parser only, for trailing comments
-      | { CreateStmt: CreateStmt } // Parsed/Formatted *mostly*
-      | { CreateEnumStmt: CreateEnumStmt } // Parsed/Formatted
-      | { AlterSeqStmt: AlterSeqStmt } // Parsed/Formatted
-      | { CreateSeqStmt: CreateSeqStmt } // Parsed/Formatted
-      | { VariableSetStmt: VariableSetStmt } // Parsed/Formatted
+      | { CreateStmt: CreateStmt }
+      | { CreateEnumStmt: CreateEnumStmt }
+      | { AlterSeqStmt: AlterSeqStmt }
+      | { CreateSeqStmt: CreateSeqStmt }
+      | { VariableSetStmt: VariableSetStmt }
       | { AlterEnumStmt: AlterEnumStmt }
       | { AlterTableStmt: AlterTableStmt }
       | { DropStmt: DropStmt }
-      | { AlterOwnerStmt: AlterOwnerStmt };
+      | { AlterOwnerStmt: AlterOwnerStmt }
+      | { IndexStmt: IndexStmt };
+
     // | { RenameStmt: Record<string, unknown> }
     // | { CompositeTypeStmt: Record<string, unknown> }
 
@@ -66,7 +70,7 @@ export type Stmt = {
     // | { UpdateStmt: Record<string, unknown> }
     // | { ViewStmt: Record<string, unknown> }
     // // Pass 3
-    // | { IndexStmt: Record<string, unknown> }
+
     // | { CommentStmt: Record<string, unknown> }
     // | { TransactionStmt: Record<string, unknown> } // BEGIN...END
     // | { CreateRoleStmt: Record<string, unknown> }
@@ -140,6 +144,7 @@ export const stmtDecoder: Decoder<Stmt> = exact({
       DropStmt: dropStmtDecoder,
       AlterEnumStmt: alterEnumStmtDecoder,
       AlterOwnerStmt: alterOwnerStmtDecoder,
+      IndexStmt: indexStmtDecoder,
       Comment: string,
 
       // RenameStmt: pojo,
@@ -148,7 +153,6 @@ export const stmtDecoder: Decoder<Stmt> = exact({
       // InsertStmt: insertStmtDecoder,
       // SelectStmt: selectStmtDecoder,
 
-      // IndexStmt: pojo,
       // UpdateStmt: pojo,
       // ViewStmt: pojo,
       // DropStmt: pojo,

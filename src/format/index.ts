@@ -6,9 +6,11 @@ import alterSeqStmt from "./alterSeqStmt";
 import dropStmt from "./dropStmt";
 import alterEnumStmt from "./alterEnumStmt";
 import alterOwnerStmt from "./alterOwnerStmt";
+import alterTableStmt from "./alterTableStmt";
 import comment from "./comment";
 import { Stmt, StatementType } from "../types";
 import { toLineAndColumn } from "../parse/error";
+import indexStmt from "./indexStmt";
 
 type Opts = {
   ignore?: StatementType[];
@@ -56,6 +58,10 @@ function toString(stmt: Stmt, opts?: Opts): string {
     return alterEnumStmt(s.AlterEnumStmt);
   } else if ("AlterOwnerStmt" in s) {
     return alterOwnerStmt(s.AlterOwnerStmt);
+  } else if ("IndexStmt" in s) {
+    return indexStmt(s.IndexStmt);
+  } else if ("AlterTableStmt" in s) {
+    return alterTableStmt(s.AlterTableStmt);
   } else if ("Comment" in s) {
     return comment(s.Comment);
   }

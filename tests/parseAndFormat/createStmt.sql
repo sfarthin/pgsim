@@ -94,3 +94,7 @@ create table reference_group_examples (
     c integer,
     FOREIGN KEY (b,c) REFERENCES other_table (c1, c2)
 );
+
+create table foo (
+    a some_custom_type
+);

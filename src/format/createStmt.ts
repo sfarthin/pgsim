@@ -162,11 +162,11 @@ export function toType(columnDef: ColumnDef): string {
     case "xml":
       return name;
     default:
-      throw new Error(name);
+      return name;
   }
 }
 
-function toColumn(columnDef: ColumnDef): string {
+export function toColumn(columnDef: ColumnDef): string {
   const colname = columnDef.colname.match(/^[a-zA-Z][a-zA-Z0-9]*$/)
     ? columnDef.colname
     : JSON.stringify(columnDef.colname);

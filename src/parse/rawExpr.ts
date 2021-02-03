@@ -5,8 +5,8 @@ import { funcCall } from "./funcCall";
 import { RawExpr } from "../types";
 
 // THis should include equestions and type casts.
-export const rawExpr: Rule<RawExpr> = or([
+export const rawExpr: Rule<RawExpr & { comment?: string }> = or([
   transform(aConst, (A_Const) => ({ A_Const })),
   transform(typeCast, (TypeCast) => ({ TypeCast })),
-  transform(funcCall, (FuncCall) => ({ FuncCall })),
+  transform(funcCall, ({ value, comment }) => ({ FuncCall: value, comment })),
 ]);

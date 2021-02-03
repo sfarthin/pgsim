@@ -9,8 +9,10 @@ export type RawExpr =
   | { TypeCast: TypeCast }
   | { FuncCall: FuncCall };
 
-export const rawExprDecoder: Decoder<RawExpr> = dispatch({
-  A_Const: aConstDecoder,
-  TypeCast: typeCastDecoder,
-  FuncCall: funcCallDecoder,
-});
+export function getRawExprDecoder(): Decoder<RawExpr> {
+  return dispatch({
+    A_Const: aConstDecoder,
+    TypeCast: typeCastDecoder,
+    FuncCall: funcCallDecoder,
+  });
+}

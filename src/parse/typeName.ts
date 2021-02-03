@@ -9,6 +9,7 @@ import {
   sequence,
   __,
   combineComments,
+  identifier,
 } from "./util";
 import { aConstInteger } from "./aConst";
 import { A_Const, TypeName } from "../types";
@@ -61,7 +62,12 @@ const defaultTypeMods = {
 };
 
 const keywordSet = (arr: string[]): Rule<string> =>
-  or(arr.map((s) => transform(keyword(s), (v) => v.value)) as [Rule<string>]);
+  or(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    arr.map((s) => transform(keyword(s as any), (v) => v.value)) as [
+      Rule<string>
+    ]
+  );
 
 // const colTypeWithParam = or([]);
 const colTypeWithParamKeywords = [
@@ -222,7 +228,7 @@ const typeNameWithParam: Rule<{ value: TypeName; comment: string }> = transform(
 const typeNameWithNoParam: Rule<{
   value: TypeName;
   comment: string;
-}> = transform(colTypeNoParam, (value, ctx) => {
+}> = transform(or([colTypeNoParam, identifier]), (value, ctx) => {
   const col = value;
   const typmods = defaultTypeMods[
     col.toLowerCase() as keyof typeof defaultTypeMods

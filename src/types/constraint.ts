@@ -12,7 +12,7 @@ import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { PGString, stringDecoder } from "./constant";
 import { tuple1 } from "./tuple1";
 import { TargetValue, targetValueDecoder } from "./targetValue";
-import { RawExpr, rawExprDecoder } from "./rawExpr";
+import { RawExpr, getRawExprDecoder } from "./rawExpr";
 import { Location, locationDecoder } from "./location";
 import { dispatchByField } from "./dispatch";
 
@@ -85,7 +85,7 @@ export type DefaultConstraint = {
 export const defaultConstraintDecoder: Decoder<DefaultConstraint> = exact({
   contype: constant(ConType.DEFAULT) as Decoder<ConType.DEFAULT>,
   location: locationDecoder,
-  raw_expr: rawExprDecoder,
+  raw_expr: getRawExprDecoder(),
 });
 
 /**

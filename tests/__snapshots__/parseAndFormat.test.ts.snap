@@ -14,7 +14,6 @@ ALTER TYPE foo ADD VALUE 'asdsad' AFTER 'foo2';
 ALTER TYPE foo ADD VALUE IF NOT EXISTS 'asdsad' BEFORE 'foo2';
 
 -- 1
---  
 -- 2
 -- 3
 -- 4
@@ -51,6 +50,42 @@ ALTER SEQUENCE foo
 	-- foo
 	-- foo2
 	INCREMENT BY 1;
+"
+`;
+
+exports[`Parse and format alterTableStmt.sql 1`] = `
+"ALTER TABLE ONLY accounts 
+	ALTER id SET DEFAULT 1;
+
+ALTER TABLE accounts 
+	ALTER id SET DEFAULT '1';
+
+ALTER TABLE IF EXISTS accounts 
+	ALTER id SET DEFAULT '1';
+
+ALTER TABLE IF EXISTS ONLY accounts 
+	ALTER id SET DEFAULT TRUE;
+
+ALTER TABLE IF EXISTS ONLY accounts 
+	ALTER id SET DEFAULT foo();
+
+-- 1
+-- 2
+-- 3
+-- 4
+-- 5
+-- 6
+ALTER TABLE IF EXISTS ONLY accounts 
+	-- 7
+	-- 8
+	-- 9
+	-- 10
+	-- 11
+	-- 12
+	-- 13
+	-- 14
+	-- 15
+	ALTER id SET DEFAULT foo('foo', 1);
 "
 `;
 
@@ -233,6 +268,10 @@ CREATE TABLE reference_group_examples (
 	c INTEGER,
 	FOREIGN KEY (b, c) REFERENCES other_table (c1, c2)
 );
+
+CREATE TABLE foo (
+	a SOME_CUSTOM_TYPE
+);
 "
 `;
 
@@ -266,6 +305,37 @@ DROP TABLE yo CASCADE;
 -- yo
 -- yo
 DROP TABLE yo;
+"
+`;
+
+exports[`Parse and format indexStmt.sql 1`] = `
+"-- CREATE [ UNIQUE ] INDEX [ CONCURRENTLY ] [ name ] ON table [ USING method ]
+--     ( { column | ( expression ) } [ COLLATE collation ] [ opclass ] [ ASC | DESC ] [ NULLS { FIRST | LAST } ] [, ...] )
+--     [ WITH ( storage_parameter = value [, ... ] ) ]
+--     [ TABLESPACE tablespace ]
+--     [ WHERE predicate ]
+
+CREATE UNIQUE INDEX foo ON foo_bar (plaid_id);
+
+-- 1
+-- 2
+-- 3
+-- 4
+-- 5
+-- 6
+-- 7
+-- 8
+-- 9
+-- 10
+-- 11
+-- 12
+CREATE INDEX foo ON foo_bar (plaid_id);
+
+CREATE INDEX ON foo_bar (foo);
+
+CREATE UNIQUE INDEX foo ON foo_bar USING hash (plaid_id);
+
+CREATE UNIQUE INDEX foo ON foo_bar USING hash (plaid_id, foobar);
 "
 `;
 

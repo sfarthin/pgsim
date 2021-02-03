@@ -24,6 +24,8 @@ import { createStmt } from "./createStmt";
 import { dropStmt } from "./dropStmt";
 import { alterEnumStmt } from "./alterEnumStmt";
 import { alterOwnerStmt } from "./alterOwnerStmt";
+import { indexStmt } from "./indexStmt";
+import { alterTableStmt } from "./alterTableStmt";
 
 const CommentStatement = transform(
   sequence([
@@ -49,6 +51,8 @@ const stmts: Rule<Stmt[]> = transform(
           transform(dropStmt, (v) => ({ DropStmt: v })),
           transform(alterEnumStmt, (v) => ({ AlterEnumStmt: v })),
           transform(alterOwnerStmt, (v) => ({ AlterOwnerStmt: v })),
+          transform(indexStmt, (v) => ({ IndexStmt: v })),
+          transform(alterTableStmt, (v) => ({ AlterTableStmt: v })),
 
           // Standalone comments
           CommentStatement,
