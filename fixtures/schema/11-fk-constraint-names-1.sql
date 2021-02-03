@@ -1,8 +1,0 @@
-CREATE TABLE aaa (id INT, PRIMARY KEY (id));
-
--- Name via CONSTRAINT clause
-CREATE TABLE bbb (
-  id BIGSERIAL PRIMARY KEY,
-  a INT NOT NULL,
-  CONSTRAINT xyz FOREIGN KEY (a) REFERENCES aaa (id)
-);

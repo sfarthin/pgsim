@@ -6,8 +6,8 @@ import verify from "../src/verifySql";
 
 /**
  * By ensuring the native parser is verified by the decoder
- * and the PEG.js parser matches the base output of the
- * native parser, we can verify the PEG.js is a valid superset
+ * and the our parser matches the base output of the
+ * native parser, we can verify that our parser is a valid superset
  */
 
 const files: { [s: string]: string } = readdirSync(

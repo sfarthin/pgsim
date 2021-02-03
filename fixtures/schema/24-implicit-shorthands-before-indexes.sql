@@ -1,4 +1,0 @@
-CREATE TABLE aaa (
-  a INT UNIQUE,
-  UNIQUE (a)
-);

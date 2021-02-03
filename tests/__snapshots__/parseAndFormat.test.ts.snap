@@ -86,6 +86,30 @@ ALTER TABLE IF EXISTS ONLY accounts
 	-- 14
 	-- 15
 	ALTER id SET DEFAULT foo('foo', 1);
+
+-- 1
+-- 2
+-- 3
+-- yoyo
+ALTER TABLE foo 
+	-- 4
+	-- 5
+	-- 6
+	-- 7
+	-- 8
+	-- 9
+	-- 10
+	-- 11
+	-- 12
+	ADD buckets INTEGER NOT NULL DEFAULT foo('');
+
+ALTER TABLE foo 
+	-- bar 
+	-- foo
+	ADD buckets INTEGER PRIMARY KEY,
+	-- foo
+	-- bar
+	DROP foo;
 "
 `;
 

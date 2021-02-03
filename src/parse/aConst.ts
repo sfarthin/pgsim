@@ -27,7 +27,14 @@ const nullKeyword = transform(constant("null"), () => ({
 }));
 
 const aConstKeyword = transform(
-  or([constant("on"), constant("off"), constant("false"), constant("warning")]),
+  or([
+    constant("on"),
+    constant("off"),
+    constant("false"),
+    constant("warning"),
+    constant("content"),
+    constant("heap"),
+  ]),
   (s) => ({ String: { str: s.value } })
 );
 
