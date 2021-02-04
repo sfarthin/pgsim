@@ -16,6 +16,7 @@ import {
   endOfStatement,
   combineComments,
   COMMA,
+  PERIOD,
 } from "./util";
 import { alterTableCmd } from "./alterTableCmd";
 
@@ -30,7 +31,15 @@ export const alterTableStmt: Rule<AlterTableStmt> = transform(
     __,
     optional(ONLY),
     __,
-    transform(identifier, (v, ctx) => ({ value: v, pos: ctx.pos })),
+    transform(
+      sequence([optional(sequence([identifier, PERIOD])), identifier]),
+      (v, ctx) => ({
+        ...(v[0] ? { schemaname: v[0][0] } : {}),
+        relname: v[1],
+        relpersistence: "p" as const,
+        location: ctx.pos,
+      })
+    ),
     alterTableCmd, // 10
     zeroToMany(sequence([COMMA, alterTableCmd])),
     endOfStatement,
@@ -40,16 +49,8 @@ export const alterTableStmt: Rule<AlterTableStmt> = transform(
     return {
       relation: {
         RangeVar: {
-          // schemaname?: string;
-          relname: v[9].value,
-          // 0 = No, 1 = Yes, 2 = Default
-          // https://docs.huihoo.com/doxygen/postgresql/primnodes_8h.html#a3a00c823fb80690cdf8373d6cb30b9c8
-          // inhOpt?: number;
-          // p = permanent table, u = unlogged table, t = temporary table
-          relpersistence: "p",
-          location: v[9].pos,
+          ...v[9],
           ...(!v[7] ? { inh: true } : {}),
-          // alias?: { Alias: Alias };
         },
       },
       cmds: [v[10]]

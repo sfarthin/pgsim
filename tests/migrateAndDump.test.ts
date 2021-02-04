@@ -1,13 +1,13 @@
 import { Stmt } from "../src/types";
-import parse from "../src/parse";
 import format from "../src/format";
+import parse from "../src/parse";
+import migrate from "../src/migrate";
 import dump from "../src/dump";
 import { readFileSync, readdirSync, existsSync, writeFileSync } from "fs";
 import { join } from "path";
 import { execSync } from "child_process";
 import crypto from "crypto";
 import assert from "assert";
-// import deepEqual from "deep-equal";
 
 /**
  * Lets
@@ -77,12 +77,22 @@ describe("Migrate and Dump", () => {
     // if (file === "createSeqStmt.sql") {
     it(file, async () => {
       const { sql, fullPath } = files[file];
-      const nDump = parse(nativeDump(fullPath, file, sql));
-      const nativeAst = removeVariableSetStmt(nDump);
+      const nDump = format(
+        removeVariableSetStmt(parse(nativeDump(fullPath, file, sql)))
+      );
 
-      console.log(format(nativeAst));
+      const myDump = dump(sql);
 
-      assert.strictEqual(dump(sql), format(nativeAst));
+      assert.strictEqual(myDump, nDump);
+
+      const ast = parse(sql);
+      const firstPart = dump([ast[0]]);
+
+      const migration = migrate(firstPart, myDump);
+
+      // console.log(`${firstPart}\n${migration}`);
+
+      assert.strictEqual(dump(`${firstPart}\n${migration}`), nDump);
     });
     // }
   }

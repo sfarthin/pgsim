@@ -1,9 +1,7 @@
 
-create table foo (column1 INT);
+create table foo (column1 INT, column2 INT);
 
-alter table foo add column2 int;
-
-create table a(column1 text);
+alter table foo drop column2;
 
 -- Test run:
 -- pg_sim.dump === pg_dump

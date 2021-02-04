@@ -144,6 +144,10 @@ function reduceComments(acc: Stmt[], stmt: Stmt): Stmt[] {
  * failed.
  */
 export default function parse(inputSql: string, filename = ""): Stmt[] {
+  if (inputSql === "") {
+    return [];
+  }
+
   const context: Context = {
     endOfStatement: [],
     startOfNextStatement: [],

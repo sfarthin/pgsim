@@ -20,7 +20,7 @@ import {
   or,
   PERIOD,
 } from "./util";
-import { ColumnDef, Constraint, CreateStmt, RangeVar } from "../types";
+import { ColumnDef, Constraint, CreateStmt } from "../types";
 import { columnDef } from "./columnDef";
 import { tableConstraint } from "./constraint";
 

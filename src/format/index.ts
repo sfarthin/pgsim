@@ -12,6 +12,7 @@ import comment from "./comment";
 import { Stmt, StatementType } from "../types";
 import { toLineAndColumn } from "../parse/error";
 import indexStmt from "./indexStmt";
+import parse from "../parse";
 
 type Opts = {
   ignore?: StatementType[];
@@ -72,7 +73,13 @@ function toString(stmt: Stmt, opts?: Opts): string {
   throw new Error(`Cannot format ${Object.keys(s)}`);
 }
 
-export default function format(stmts: Stmt[], opts?: Opts): string {
+export default function format(_stmts: Stmt[] | string, opts?: Opts): string {
+  const stmts = typeof _stmts === "string" ? parse(_stmts) : _stmts;
+
+  if (stmts.length === 0) {
+    return "";
+  }
+
   return stmts
     .map((stmt) => {
       try {

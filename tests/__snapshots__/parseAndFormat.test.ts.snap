@@ -297,8 +297,14 @@ CREATE TABLE foo (
 	a SOME_CUSTOM_TYPE
 );
 
+-- we can parse the schema
 CREATE TABLE buckets.foo (
 	a INTEGER
+);
+
+-- we can parse the schema, and automatically remove public from schema name.
+CREATE TABLE public.foo (
+	b INTEGER
 );
 "
 `;
