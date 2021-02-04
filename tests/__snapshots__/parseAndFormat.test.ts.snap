@@ -296,6 +296,10 @@ CREATE TABLE reference_group_examples (
 CREATE TABLE foo (
 	a SOME_CUSTOM_TYPE
 );
+
+CREATE TABLE buckets.foo (
+	a INTEGER
+);
 "
 `;
 
@@ -361,6 +365,12 @@ CREATE UNIQUE INDEX foo ON foo_bar USING hash (plaid_id);
 
 CREATE UNIQUE INDEX foo ON foo_bar USING hash (plaid_id, foobar);
 "
+`;
+
+exports[`Parse and format selectStmt.sql 1`] = `
+"-- SELECT from dump.
+SELECT FALSE
+SELECT pg_catalog.set_config('search_path', '', FALSE)"
 `;
 
 exports[`Parse and format variableSetStmt.sql 1`] = `

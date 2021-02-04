@@ -98,3 +98,13 @@ create table reference_group_examples (
 create table foo (
     a some_custom_type
 );
+
+-- we can parse the schema
+create table buckets.foo (
+    a int
+);
+
+-- we can parse the schema, and automatically remove public from schema name.
+create table public.foo (
+    b int
+);

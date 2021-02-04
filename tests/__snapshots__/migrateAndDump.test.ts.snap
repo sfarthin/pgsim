@@ -1,4 +1,7 @@
---
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Migrate and Dump createTable.sql 1`] = `
+"--
 -- PostgreSQL database dump
 --
 
@@ -26,7 +29,8 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public.foo (
     column1 integer,
-    column2 integer
+    column2 integer,
+    column3 integer
 );
 
 
@@ -34,3 +38,5 @@ CREATE TABLE public.foo (
 -- PostgreSQL database dump complete
 --
 
+"
+`;

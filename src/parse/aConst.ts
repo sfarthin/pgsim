@@ -31,6 +31,7 @@ const aConstKeyword = transform(
     constant("on"),
     constant("off"),
     constant("false"),
+    constant("true"),
     constant("warning"),
     constant("content"),
     constant("heap"),

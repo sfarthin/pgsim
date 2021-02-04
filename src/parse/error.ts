@@ -23,12 +23,12 @@ const indent = ({
   };
 }): string => {
   const printLineNumber = (i: number): string => {
-    if (prefixNumeralLength - (startLine + i).toString().length < 0) {
+    if (prefixNumeralLength - (startLine + i + 1).toString().length < 0) {
       return [...new Array(prefixNumeralLength)].map(() => " ").join("");
     }
 
     const prefixSpaces = [
-      ...new Array(prefixNumeralLength - (startLine + i).toString().length),
+      ...new Array(prefixNumeralLength - (startLine + i + 1).toString().length),
     ]
       .map(() => " ")
       .join("");

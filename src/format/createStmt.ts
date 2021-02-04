@@ -180,6 +180,7 @@ export function toColumn(columnDef: ColumnDef): string {
 
 export default function (createStmt: CreateStmt): string {
   const tableName = createStmt.relation.RangeVar.relname;
+  const schemaname = createStmt.relation.RangeVar.schemaname;
 
   const columnDefs = (
     createStmt.tableElts?.map((t) => ("ColumnDef" in t ? t.ColumnDef : null)) ??
@@ -192,7 +193,9 @@ export default function (createStmt: CreateStmt): string {
     ) ?? []
   ).filter((c) => !!c) as Constraint[];
 
-  return `${comment(createStmt.comment)}CREATE TABLE ${tableName} (
+  return `${comment(createStmt.comment)}CREATE TABLE ${
+    schemaname ? `${schemaname}.` : ""
+  }${tableName} (
 ${[...columnDefs.map(toColumn), ...constraints.map(toTableConstraint)].join(
   ",\n"
 )}

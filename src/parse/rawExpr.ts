@@ -6,7 +6,7 @@ import { RawExpr } from "../types";
 
 // THis should include equestions and type casts.
 export const rawExpr: Rule<RawExpr & { comment?: string }> = or([
+  transform(typeCast, (TypeCast) => ({ TypeCast })), // intentially before aConst
   transform(aConst, (A_Const) => ({ A_Const })),
-  transform(typeCast, (TypeCast) => ({ TypeCast })),
   transform(funcCall, ({ value, comment }) => ({ FuncCall: value, comment })),
 ]);

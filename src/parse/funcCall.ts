@@ -10,19 +10,27 @@ import {
   __,
   optional,
   combineComments,
+  or,
+  constant,
+  Context,
 } from "./util";
 import { FuncCall } from "../types";
 import { rawExpr } from "./rawExpr";
 
+const modifiedExpr = (ctx: Context) => rawExpr(ctx);
+
 // THis should include equestions and type casts.
 export const funcCall: Rule<{ value: FuncCall; comment: string }> = transform(
   sequence([
-    identifier,
+    or([
+      transform(constant("pg_catalog.set_config"), (v) => v.value),
+      identifier,
+    ]),
     __,
     LPAREN,
     __,
-    optional((ctx) => rawExpr(ctx)), // 4
-    zeroToMany(sequence([__, COMMA, __, (ctx) => rawExpr(ctx)])), //5
+    optional(modifiedExpr), // 4
+    zeroToMany(sequence([__, COMMA, __, modifiedExpr])), //5
     __,
     RPAREN,
   ]),
@@ -32,13 +40,11 @@ export const funcCall: Rule<{ value: FuncCall; comment: string }> = transform(
     );
     return {
       value: {
-        funcname: [
-          {
-            String: {
-              str: v[0],
-            },
+        funcname: v[0].split(".").map((k) => ({
+          String: {
+            str: k,
           },
-        ],
+        })),
         ...(args.length > 0 ? { args } : {}),
         // func_variadic?: boolean; // select concat(variadic array [1,2,3])
         // agg_distinct?: boolean;

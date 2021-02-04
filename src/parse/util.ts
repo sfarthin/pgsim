@@ -1112,7 +1112,7 @@ export const cStyleCommentWithoutNewline = transform(
 export const sqlStyleComment = transform(
   sequence([
     constant("--"),
-    zeroToOne(whitespace),
+    zeroToOne(whitespaceWithoutNewline),
     zeroToMany(notNewline),
     or([newline, endOfInput]),
   ]),
@@ -1425,12 +1425,12 @@ const keywordList = [
   "OWNED",
   "OWNER",
   "PRIMARY",
-  "PUBLIC",
   "REFERENCES",
   "RENAME",
   "RESTRICT",
   "SEQUENCE",
   "SET",
+  "SELECT",
   "START",
   "TABLE",
   "TO",
@@ -1500,11 +1500,12 @@ export const ONLY = keyword("ONLY");
 export const OWNED = keyword("OWNED");
 export const OWNER = keyword("OWNER");
 export const PRIMARY = keyword("PRIMARY");
-export const PUBLIC = keyword("PUBLIC");
+export const PUBLIC = keyword("PUBLIC" as any); // <-- One exeption where we can use it ad an identifier
 export const REFERENCES = keyword("REFERENCES");
 export const RENAME = keyword("RENAME");
 export const RESTRICT = keyword("RESTRICT");
 export const SEQUENCE = keyword("SEQUENCE");
+export const SELECT = keyword("SELECT");
 export const SET = keyword("SET");
 export const START = keyword("START");
 export const TABLE = keyword("TABLE");

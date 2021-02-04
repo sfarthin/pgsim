@@ -1,7 +1,7 @@
 import { exact, Decoder, string, number, optional } from "decoders";
 import { CreateStmt, createStmtDecoder } from "./createStmt";
 import { AlterTableStmt, alterTableStmtDecoder } from "./alterTableStmt";
-// import { SelectStmt, selectStmtDecoder } from "./selectStmt";
+import { SelectStmt, selectStmtDecoder } from "./selectStmt";
 import { CreateSeqStmt, createSeqStmtDecoder } from "./createSeqStmt";
 import { AlterSeqStmt, alterSeqStmtDecoder } from "./alterSeqStmt";
 // import { insertStmtDecoder, InsertStmt } from "./insertStmt";
@@ -59,14 +59,15 @@ export type Stmt = {
       | { AlterTableStmt: AlterTableStmt }
       | { DropStmt: DropStmt }
       | { AlterOwnerStmt: AlterOwnerStmt }
-      | { IndexStmt: IndexStmt };
+      | { IndexStmt: IndexStmt }
+      | { SelectStmt: SelectStmt };
 
     // | { RenameStmt: Record<string, unknown> }
     // | { CompositeTypeStmt: Record<string, unknown> }
 
     // // Pass 2
     // | { InsertStmt: InsertStmt }
-    // | { SelectStmt: SelectStmt }
+
     // | { UpdateStmt: Record<string, unknown> }
     // | { ViewStmt: Record<string, unknown> }
     // // Pass 3
@@ -146,12 +147,12 @@ export const stmtDecoder: Decoder<Stmt> = exact({
       AlterOwnerStmt: alterOwnerStmtDecoder,
       IndexStmt: indexStmtDecoder,
       Comment: string,
+      SelectStmt: selectStmtDecoder,
 
       // RenameStmt: pojo,
       // CompositeTypeStmt: pojo,
 
       // InsertStmt: insertStmtDecoder,
-      // SelectStmt: selectStmtDecoder,
 
       // UpdateStmt: pojo,
       // ViewStmt: pojo,

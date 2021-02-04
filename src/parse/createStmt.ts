@@ -18,6 +18,7 @@ import {
   zeroToMany,
   commentsOnSameLine,
   or,
+  PERIOD,
 } from "./util";
 import { ColumnDef, Constraint, CreateStmt, RangeVar } from "../types";
 import { columnDef } from "./columnDef";
@@ -82,14 +83,18 @@ export const createStmt: Rule<CreateStmt> = transform(
     __,
     optional(ifNotExists),
     __,
-    transform(identifier, (v, ctx) => ({
-      RangeVar: {
-        relname: v,
-        relpersistence: "p",
-        inh: true,
-        location: ctx.pos,
-      },
-    })) as Rule<{ RangeVar: RangeVar }>,
+    transform(
+      sequence([optional(sequence([identifier, PERIOD])), identifier]),
+      (v, ctx) => ({
+        RangeVar: {
+          ...(v[0] ? { schemaname: v[0][0] } : {}),
+          relname: v[1],
+          relpersistence: "p" as const,
+          inh: true,
+          location: ctx.pos,
+        },
+      })
+    ),
     __,
     columnDefs,
     __,
