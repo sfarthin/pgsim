@@ -342,6 +342,8 @@ DROP TABLE yo;
 "
 `;
 
+exports[`Parse and format empty.sql 1`] = `""`;
+
 exports[`Parse and format indexStmt.sql 1`] = `
 "-- CREATE [ UNIQUE ] INDEX [ CONCURRENTLY ] [ name ] ON table [ USING method ]
 --     ( { column | ( expression ) } [ COLLATE collation ] [ opclass ] [ ASC | DESC ] [ NULLS { FIRST | LAST } ] [, ...] )

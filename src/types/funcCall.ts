@@ -10,7 +10,10 @@ import {
 } from "decoders";
 import { PGString, stringDecoder } from "./constant";
 import { Location, locationDecoder } from "./location";
-import { RawExpr, getRawExprDecoder } from "./rawExpr";
+import { RawExpr } from "./rawExpr";
+import { aConstDecoder } from "./constant";
+import { typeCastDecoder } from "./typeCast";
+import dispatch from "./dispatch";
 
 export type FuncCall = {
   funcname: PGString[];
@@ -25,7 +28,14 @@ export type FuncCall = {
 export const funcCallDecoder: Decoder<FuncCall> = either3(
   exact({
     funcname: array(stringDecoder),
-    args: optional(array(getRawExprDecoder())),
+    args: optional(
+      array(
+        dispatch({
+          A_Const: aConstDecoder,
+          TypeCast: typeCastDecoder,
+        })
+      )
+    ),
     func_variadic: optional(boolean),
     agg_distinct: optional(boolean),
     over: optional(mixed),

@@ -1,10 +1,10 @@
 import { exact, Decoder } from "decoders";
 import { Location, locationDecoder } from "./location";
 import { typeNameDecoder, TypeName } from "./typeName";
-import { A_Const, aConstDecoder } from "./constant";
+import { RawExpr, getRawExprDecoder } from "./rawExpr";
 
 export type TypeCast = {
-  arg?: { A_Const: A_Const };
+  arg?: RawExpr;
   typeName: {
     TypeName: TypeName;
   };
@@ -12,7 +12,7 @@ export type TypeCast = {
 };
 
 export const typeCastDecoder: Decoder<TypeCast> = exact({
-  arg: exact({ A_Const: aConstDecoder }),
+  arg: getRawExprDecoder(),
   typeName: exact({ TypeName: typeNameDecoder }),
   location: locationDecoder,
 });

@@ -83,16 +83,23 @@ describe("Migrate and Dump", () => {
 
       const myDump = dump(sql);
 
-      assert.strictEqual(myDump, nDump);
+      assert.strictEqual(myDump, nDump, `\u001b[41;1mDump\u001b[0m Error`);
 
       const ast = parse(sql);
-      const firstPart = dump([ast[0]]);
 
-      const migration = migrate(firstPart, myDump);
+      for (let i = 0; i < ast.length; i++) {
+        const firstPart = dump(ast.slice(0, i));
 
-      // console.log(`${firstPart}\n${migration}`);
+        const migration = migrate(firstPart, myDump);
 
-      assert.strictEqual(dump(`${firstPart}\n${migration}`), nDump);
+        assert.strictEqual(
+          dump(`${firstPart}\n${migration}`),
+          nDump,
+          `\u001b[41;1mMigration Failed:\u001b[0m\n\n---------\nInitial:\n---------\n${firstPart}\n\n---------\nMigration:\n---------\n\u001b[45;1m${
+            migration ? migration : "No migrations!"
+          }\u001b[0m\n\n---------\nResult:\n---------\n${myDump}\n---------`
+        );
+      }
     });
     // }
   }

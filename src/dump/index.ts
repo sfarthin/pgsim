@@ -7,7 +7,11 @@ import alterTableStmt from "./alterTableStmt";
 import createStmt from "./createStmt";
 
 export default function dump(input: string | Stmt[]): string {
-  const stmts = typeof input === "string" ? parse(input) : input;
+  // Since we mutate the ast, make sure we clone a fresh version coming in.
+  const stmts =
+    typeof input === "string"
+      ? parse(input)
+      : JSON.parse(JSON.stringify(input));
 
   const dump: {
     CreateStmt: CreateStmt[];
@@ -16,7 +20,7 @@ export default function dump(input: string | Stmt[]): string {
   };
 
   for (const index in stmts) {
-    const stmt = { ...stmts[index].RawStmt.stmt };
+    const stmt = stmts[index].RawStmt.stmt;
 
     if ("CreateStmt" in stmt) {
       createStmt(dump.CreateStmt, stmt.CreateStmt);

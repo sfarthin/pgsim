@@ -25,7 +25,8 @@ import { columnDef } from "./columnDef";
 import { tableConstraint } from "./constraint";
 
 const columnDefOrConstraint: Rule<
-  ({ ColumnDef: ColumnDef } | { Constraint: Constraint })[]
+  | ({ ColumnDef: ColumnDef } | { Constraint: Constraint })[]
+  | { comment: string }
 > = transform(
   sequence([
     zeroToMany(
@@ -38,11 +39,15 @@ const columnDefOrConstraint: Rule<
       ])
     ),
     __,
-    or([columnDef, tableConstraint]),
+    optional(or([columnDef, tableConstraint])),
     __,
   ]),
 
   (v) => {
+    if (!v[2]) {
+      return { comment: combineComments(v[1], v[3]) };
+    }
+
     return [
       ...v[0].map((i) => {
         const columnDefOrTableConstraint = i[1];
@@ -81,7 +86,7 @@ export const createStmt: Rule<CreateStmt> = transform(
     __,
     TABLE,
     __,
-    optional(ifNotExists),
+    optional(ifNotExists), // 5
     __,
     transform(
       sequence([optional(sequence([identifier, PERIOD])), identifier]),
@@ -96,13 +101,14 @@ export const createStmt: Rule<CreateStmt> = transform(
       })
     ),
     __,
-    columnDefs,
+    columnDefs, // 9
     __,
     endOfStatement,
   ]),
 
   (value) => {
-    const tableElts = value[9];
+    //
+    const tableElts = "comment" in value[9] ? [] : value[9];
     const relation = value[7];
     const ifNotExists = value[5];
     const comment = combineComments(
@@ -111,6 +117,7 @@ export const createStmt: Rule<CreateStmt> = transform(
       value[4],
       value[6],
       value[8],
+      "comment" in value[9] ? value[9].comment : null,
       value[10]
     );
 

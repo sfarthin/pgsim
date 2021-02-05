@@ -33,9 +33,5 @@ export default function migrate(
 
   migration.push(createStmt(fromCreateStmt, toCreateStmt));
 
-  if (migration.filter(Boolean).length <= 1) {
-    return "";
-  }
-
   return migration.filter(Boolean).join("\n");
 }

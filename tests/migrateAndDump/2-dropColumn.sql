@@ -2,6 +2,7 @@
 create table foo (column1 INT, column2 INT);
 
 alter table foo drop column2;
+alter table foo drop column1;
 
 -- Test run:
 -- pg_sim.dump === pg_dump
