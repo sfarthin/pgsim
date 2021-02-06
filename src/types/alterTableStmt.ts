@@ -17,7 +17,7 @@ import {
   columnDefDecoder,
 } from "./createStmt";
 import { Constraint, constraintDecoder } from "./constraint";
-import { RawExpr, getRawExprDecoder } from "./rawExpr";
+import { RawExpr, rawExprDecoder } from "./rawExpr";
 
 export enum AlterTableCmdSubType {
   ADD_COLUMN = 0,
@@ -373,7 +373,7 @@ export const alterTableSetDefaultDecoder: Decoder<AlterTableSetDefault> = exact(
       AlterTableCmdSubType.SET_DEFAULT
     ) as Decoder<AlterTableCmdSubType.SET_DEFAULT>,
     name: string,
-    def: getRawExprDecoder(),
+    def: (blob) => rawExprDecoder(blob),
     behavior: number,
     comment: optional(string),
   }

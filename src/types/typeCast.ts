@@ -1,7 +1,7 @@
 import { exact, Decoder } from "decoders";
 import { Location, locationDecoder } from "./location";
 import { typeNameDecoder, TypeName } from "./typeName";
-import { RawExpr, getRawExprDecoder } from "./rawExpr";
+import { RawExpr, rawExprDecoder } from "./rawExpr";
 
 export type TypeCast = {
   arg?: RawExpr;
@@ -12,7 +12,7 @@ export type TypeCast = {
 };
 
 export const typeCastDecoder: Decoder<TypeCast> = exact({
-  arg: getRawExprDecoder(),
+  arg: (blob) => rawExprDecoder(blob),
   typeName: exact({ TypeName: typeNameDecoder }),
   location: locationDecoder,
 });

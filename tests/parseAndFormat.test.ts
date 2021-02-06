@@ -4,6 +4,8 @@ import { join } from "path";
 
 import verify from "../src/verifySql";
 
+Error.stackTraceLimit = 100;
+
 /**
  * By ensuring the native parser is verified by the decoder
  * and the our parser matches the base output of the

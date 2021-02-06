@@ -1,50 +1,6 @@
-import {
-  ColumnDef,
-  ConType,
-  CreateStmt,
-  DefaultConstraint,
-  RawExpr,
-} from "../types";
+import { ColumnDef, ConType, CreateStmt, DefaultConstraint } from "../types";
 import formatCreateStmt, { toType } from "../format/createStmt";
 import formatRawExpr from "../format/rawExpr";
-
-function doesRawExprMatch(a: RawExpr, b: RawExpr): boolean {
-  if ("A_Const" in a && "A_Const" in b) {
-    return (
-      ("Float" in a.A_Const.val &&
-        "Float" in b.A_Const.val &&
-        a.A_Const.val.Float.str === b.A_Const.val.Float.str) ||
-      ("String" in a.A_Const.val &&
-        "String" in b.A_Const.val &&
-        a.A_Const.val.String.str === b.A_Const.val.String.str) ||
-      ("Integer" in a.A_Const.val &&
-        "Integer" in b.A_Const.val &&
-        a.A_Const.val.Integer.ival === b.A_Const.val.Integer.ival) ||
-      ("Null" in a.A_Const.val && "Null" in b.A_Const.val)
-    );
-  }
-
-  if ("TypeCast" in a && "TypeCast" in b) {
-    return (
-      !!a.TypeCast.arg &&
-      !!b.TypeCast.arg &&
-      doesRawExprMatch(a.TypeCast.arg, b.TypeCast.arg)
-    );
-  }
-
-  if ("FuncCall" in a && "FuncCall" in b) {
-    return (
-      a.FuncCall.funcname.map((s) => s.String.str).join(".") ===
-        b.FuncCall.funcname.map((s) => s.String.str).join(".") &&
-      a.FuncCall.args?.length === b.FuncCall.args?.length &&
-      !!a.FuncCall.args?.every((v, i) =>
-        doesRawExprMatch(v, (b.FuncCall.args as any)[i])
-      )
-    );
-  }
-
-  return false;
-}
 
 function alterCmds(fromTable: CreateStmt, toTable: CreateStmt): string[] {
   const cmds: string[] = [];
@@ -95,10 +51,8 @@ function alterCmds(fromTable: CreateStmt, toTable: CreateStmt): string[] {
       newDefaultConstraint?.Constraint.raw_expr &&
       (!originalDefault?.Constraint.raw_expr ||
         (originalDefault?.Constraint.raw_expr &&
-          !doesRawExprMatch(
-            newDefaultConstraint?.Constraint.raw_expr,
-            originalDefault?.Constraint.raw_expr
-          )))
+          formatRawExpr(newDefaultConstraint?.Constraint.raw_expr) !==
+            formatRawExpr(originalDefault?.Constraint.raw_expr)))
     ) {
       cmds.push(
         `ALTER ${fromColumn?.colname} SET DEFAULT ${formatRawExpr(

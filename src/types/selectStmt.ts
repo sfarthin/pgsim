@@ -10,7 +10,7 @@ import {
 } from "decoders";
 import { Location, locationDecoder } from "./location";
 import { targetValueDecoder, TargetValue } from "./targetValue";
-import { RawExpr, getRawExprDecoder } from "./rawExpr";
+import { RawExpr, rawExprDecoder } from "./rawExpr";
 
 export type ResTarget = {
   name?: string;
@@ -71,7 +71,7 @@ export const selectStmtDecoder: Decoder<SelectStmt> = exact({
   targetList: array(
     exact({
       ResTarget: exact({
-        val: getRawExprDecoder(),
+        val: (blob) => rawExprDecoder(blob),
         location: optional(number),
       }),
     })
