@@ -2,23 +2,31 @@ import { Constraint, ConType } from "../types";
 import rawExpr from "./rawExpr";
 
 export function toConstraint(constraint: Constraint): string {
+  const con =
+    "conname" in constraint ? `CONSTRAINT ${constraint.conname} ` : "";
+
+  const keys =
+    "keys" in constraint && constraint.keys
+      ? ` (${constraint.keys.map((j) => j.String.str)})`
+      : "";
+
   switch (constraint.contype) {
     case ConType.FOREIGN_KEY:
       const table = constraint.pktable.RangeVar.relname.toLowerCase();
       const columns = constraint.pk_attrs
         ? `(${constraint.pk_attrs?.map((v) => v.String.str).join(", ")})`
         : "";
-      return `REFERENCES ${table}${columns}`;
+      return `${con}REFERENCES ${table}${columns}`;
     case ConType.PRIMARY_KEY:
-      return "PRIMARY KEY";
+      return `${con}PRIMARY KEY${keys}`;
     case ConType.DEFAULT:
-      return `DEFAULT ${rawExpr(constraint.raw_expr)}`;
+      return `${con}DEFAULT ${rawExpr(constraint.raw_expr)}`;
     case ConType.NOT_NULL:
-      return "NOT NULL";
+      return `${con}NOT NULL`;
     case ConType.NULL:
-      return "NULL";
+      return `${con}NULL`;
     case ConType.UNIQUE:
-      return "UNIQUE";
+      return `${con}UNIQUE${keys}`;
     default:
       throw new Error(`Unhandled constraint type: ${constraint.contype}`);
   }

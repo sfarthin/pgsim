@@ -19,6 +19,7 @@ import {
   __,
   COMMA,
   zeroToMany,
+  CONSTRAINT,
 } from "./util";
 import { rawExpr } from "./rawExpr";
 import {
@@ -30,6 +31,7 @@ import {
   NotNullConstraint,
   ForeignKeyConstraint,
   ConType,
+  PGString,
 } from "../types";
 
 const defaultConstraint: Rule<{
@@ -117,18 +119,100 @@ const nullConstraint: Rule<{
 const primaryKeyConstraint: Rule<{
   comment: string;
   value: PrimaryKeyConstraint;
-}> = transform(sequence([PRIMARY, __, KEY]), (value, ctx) => ({
-  comment: value[1],
-  value: { contype: 5, location: ctx.pos },
-}));
+}> = transform(
+  sequence([
+    optional(sequence([CONSTRAINT, __, identifier])),
+    __,
+    PRIMARY,
+    __,
+    KEY,
+    __,
+    optional(
+      sequence([
+        LPAREN,
+        __,
+        identifier,
+        zeroToMany(sequence([__, COMMA, __, identifier])),
+        __,
+        RPAREN,
+      ])
+    ),
+  ]),
+  (value, ctx) => {
+    return {
+      comment: combineComments(
+        value[0]?.[1],
+        value[1],
+        value[3],
+        value[5],
+        value[6]?.[1],
+        ...(value[6]
+          ? value[6][3].map((k) => combineComments(k[0], k[2]))
+          : []),
+        value[6]?.[4]
+      ),
+      value: {
+        contype: 5,
+        ...(value[0] ? { conname: value[0][2] } : {}),
+        location: ctx.pos,
+        ...(value[6]
+          ? {
+              keys: [
+                { String: { str: value[6][2] } },
+                ...value[6]?.[3].map((k) => ({
+                  String: {
+                    str: k[3],
+                  },
+                })),
+              ],
+            }
+          : {}),
+      },
+    };
+  }
+);
 
 const uniqueConstrant: Rule<{
   comment: string;
   value: UniqueConstraint;
-}> = transform(UNIQUE, (v, ctx) => ({
-  comment: "",
-  value: { contype: 6, location: ctx.pos },
-}));
+}> = transform(
+  sequence([
+    optional(sequence([CONSTRAINT, __, identifier])),
+    __,
+    UNIQUE,
+    __,
+    optional(
+      sequence([
+        LPAREN,
+        __,
+        identifier,
+        zeroToMany(sequence([__, COMMA, __, identifier])),
+        __,
+        RPAREN,
+      ])
+    ),
+  ]),
+  (v, ctx) => ({
+    comment: "",
+    value: {
+      contype: 6,
+      location: ctx.pos,
+      ...(v[0] ? { conname: v[0][2] } : {}),
+      ...(v[4]
+        ? {
+            keys: [
+              { String: { str: v[4][2] } },
+              ...v[4]?.[3].map((k) => ({
+                String: {
+                  str: k[3],
+                },
+              })),
+            ],
+          }
+        : {}),
+    },
+  })
+);
 
 export const constraint = or([
   notNullConstraint,

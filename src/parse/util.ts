@@ -1402,6 +1402,7 @@ const keywordList = [
   "CACHE",
   "CASCADE",
   "CONCURRENTLY",
+  "CONSTRAINT",
   "COLUMN",
   "CREATE",
   "CYCLE",
@@ -1477,6 +1478,7 @@ export const BY = keyword("BY");
 export const CACHE = keyword("CACHE");
 export const CASCADE = keyword("CASCADE");
 export const CONCURRENTLY = keyword("CONCURRENTLY");
+export const CONSTRAINT = keyword("CONSTRAINT");
 export const COLUMN = keyword("COLUMN");
 export const CREATE = keyword("CREATE");
 export const CYCLE = keyword("CYCLE");

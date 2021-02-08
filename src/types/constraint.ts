@@ -96,7 +96,7 @@ export type UniqueConstraint = {
   contype: ConType.UNIQUE;
   location: Location;
   conname?: string;
-  keys?: [PGString];
+  keys?: PGString[];
 };
 
 export const uniqueConstraintDecoder = exact({

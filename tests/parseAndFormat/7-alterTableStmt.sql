@@ -18,3 +18,9 @@ alter table foo
     add/* foo */ buckets int PRIMARY KEY, -- foo
     -- bar
     drop foo;
+
+ALTER TABLE ONLY accounts
+-- foo
+    ADD/* 1 */ CONSTRAINT /* 2 */accounts_pkey /* 3 */PRIMARY KEY/* 4 */ (/* 5 */id /* 6 */);
+
+ALTER TABLE ONLY institutions ADD CONSTRAINT institutions_plaid_type_key UNIQUE (plaid_type);

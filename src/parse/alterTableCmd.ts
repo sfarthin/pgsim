@@ -4,21 +4,19 @@ import {
   AlterTableAddColumn,
   AlterTableCmdSubType,
   AlterTableDropColumn,
+  AlterTableAddConstraint,
 } from "../types";
 import { rawExpr } from "./rawExpr";
 import {
   sequence,
   transform,
   optional,
-  ONLY,
   IF,
   ALTER,
   EXISTS,
-  TABLE,
   NOT,
   Rule,
   identifier,
-  _,
   __,
   oneToMany,
   ADD,
@@ -36,7 +34,6 @@ import { typeName } from "./typeName";
 import { constraint } from "./constraint";
 
 // TODO:
-// | AlterTableAddConstraint
 // | AlterTableDropConstraint
 // | AlterTableRowSecurity
 // | AlterTableInherit
@@ -50,6 +47,20 @@ import { constraint } from "./constraint";
 // | AlterTableAttachPartition
 // | AlterTableDropNotNull
 // | AlterTableSetNotNull;
+
+const alterTableAddConstraint: Rule<AlterTableAddConstraint> = transform(
+  sequence([__, ADD, __, constraint, __]),
+  (v) => {
+    return {
+      subtype: AlterTableCmdSubType.ADD_CONSTRAINT,
+      def: {
+        Constraint: v[3].value,
+      },
+      behavior: 0,
+      comment: combineComments(v[0], v[2], v[3].comment, v[4]),
+    };
+  }
+);
 
 const alterTableDropColumn: Rule<AlterTableDropColumn> = transform(
   sequence([
@@ -163,6 +174,7 @@ const alterTableSetDefault: Rule<AlterTableSetDefault> = transform(
 );
 
 export const alterTableCmd: Rule<AlterTableCmd> = or([
+  alterTableAddConstraint,
   alterTableSetDefault,
   alterTableAddColumn,
   alterTableDropColumn,

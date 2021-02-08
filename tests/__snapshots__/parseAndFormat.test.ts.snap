@@ -1,186 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Parse and format alterEnumStmt.sql 1`] = `
-"-- https://www.postgresql.org/docs/current/sql-altertype.html
-
-ALTER TYPE foo ADD VALUE 'ag';
-
-ALTER TYPE foo ADD VALUE 'asdsadyoyoy' BEFORE 'foo2';
-
-ALTER TYPE foo ADD VALUE 'asdsad';
-
-ALTER TYPE foo ADD VALUE 'asdsad' AFTER 'foo2';
-
-ALTER TYPE foo ADD VALUE IF NOT EXISTS 'asdsad' BEFORE 'foo2';
-
--- 1
--- 2
--- 3
--- 4
--- 5
--- 6
--- 7
--- 8
--- 9
--- 10
--- 11
-ALTER TYPE foo RENAME VALUE 'existing_enum_value' TO 'new_enum_value';
-"
-`;
-
-exports[`Parse and format alterOwnerStmt.sql 1`] = `
-"-- 1
--- 2
--- 3
--- 4
--- 5
--- 6
--- 7
-ALTER TYPE foo OWNER TO new_owner;
-"
-`;
-
-exports[`Parse and format alterSeqStmt.sql 1`] = `
-"-- Hello
-ALTER SEQUENCE foo 
-	OWNED BY a.aaa;
-
--- Hello
-ALTER SEQUENCE foo 
-	-- foo
-	-- foo2
-	INCREMENT BY 1;
-"
-`;
-
-exports[`Parse and format alterTableStmt.sql 1`] = `
-"ALTER TABLE ONLY accounts 
-	ALTER id SET DEFAULT 1;
-
-ALTER TABLE accounts 
-	ALTER id SET DEFAULT '1';
-
-ALTER TABLE IF EXISTS accounts 
-	ALTER id SET DEFAULT '1';
-
-ALTER TABLE IF EXISTS ONLY accounts 
-	ALTER id SET DEFAULT TRUE;
-
-ALTER TABLE IF EXISTS ONLY accounts 
-	ALTER id SET DEFAULT foo();
-
--- 1
--- 2
--- 3
--- 4
--- 5
--- 6
-ALTER TABLE IF EXISTS ONLY accounts 
-	-- 7
-	-- 8
-	-- 9
-	-- 10
-	-- 11
-	-- 12
-	-- 13
-	-- 14
-	-- 15
-	ALTER id SET DEFAULT foo('foo', 1);
-
--- 1
--- 2
--- 3
--- yoyo
-ALTER TABLE foo 
-	-- 4
-	-- 5
-	-- 6
-	-- 7
-	-- 8
-	-- 9
-	-- 10
-	-- 11
-	-- 12
-	ADD buckets INTEGER NOT NULL DEFAULT foo('');
-
-ALTER TABLE foo 
-	-- bar 
-	-- foo
-	ADD buckets INTEGER PRIMARY KEY,
-	-- foo
-	-- bar
-	DROP foo;
-"
-`;
-
-exports[`Parse and format createEnumStmt.sql 1`] = `
-"-- Top 1
--- Top 2
-
--- 1
--- 2
--- 3
--- 4
--- 5
--- 6
--- 7
--- 8
--- 9
--- 10
--- 11
-CREATE TYPE foo AS ENUM (
-	-- comment on a
-	'a',
-	-- comment on b
-	'b',
-	-- comment on c
-	'c',
-	-- comment on d
-	'd',
-	-- comment on e
-	'e'
-);
-
--- Bottom 1
--- Bottom 2
-"
-`;
-
-exports[`Parse and format createSeqStmt.sql 1`] = `
-"-- This has no options
-CREATE SEQUENCE foo;
-
--- 1
--- 2
-CREATE SEQUENCE foo 
-	-- Start With 1
-	START WITH 1
-	-- INCREMENT BY 1
-	INCREMENT BY 1
-	NO MINVALUE
-	NO MAXVALUE
-	NO CYCLE
-	CACHE 1
-	-- foo bac
-	OWNED BY NONE;
-
--- another comment
--- and another
--- foo bar
-
-CREATE SEQUENCE IF NOT EXISTS foo2 
-	MINVALUE 4
-	MAXVALUE 6
-	-- different variation
-	INCREMENT BY 2
-	-- different variation
-	START WITH 2
-	CYCLE
-	OWNED BY foo.bar;
-"
-`;
-
-exports[`Parse and format createStmt.sql 1`] = `
+exports[`Parse and format 1-createStmt.sql 1`] = `
 "-- foo
 -- foo
 CREATE TABLE adsiiodnsaoidnoasindosaind9 (
@@ -309,7 +129,197 @@ CREATE TABLE public.foo (
 "
 `;
 
-exports[`Parse and format dropStmt.sql 1`] = `
+exports[`Parse and format 2-createEnumStmt.sql 1`] = `
+"-- Top 1
+-- Top 2
+
+-- 1
+-- 2
+-- 3
+-- 4
+-- 5
+-- 6
+-- 7
+-- 8
+-- 9
+-- 10
+-- 11
+CREATE TYPE foo AS ENUM (
+	-- comment on a
+	'a',
+	-- comment on b
+	'b',
+	-- comment on c
+	'c',
+	-- comment on d
+	'd',
+	-- comment on e
+	'e'
+);
+
+-- Bottom 1
+-- Bottom 2
+"
+`;
+
+exports[`Parse and format 3-createSeqStmt.sql 1`] = `
+"-- This has no options
+CREATE SEQUENCE foo;
+
+-- 1
+-- 2
+CREATE SEQUENCE foo 
+	-- Start With 1
+	START WITH 1
+	-- INCREMENT BY 1
+	INCREMENT BY 1
+	NO MINVALUE
+	NO MAXVALUE
+	NO CYCLE
+	CACHE 1
+	-- foo bac
+	OWNED BY NONE;
+
+-- another comment
+-- and another
+-- foo bar
+
+CREATE SEQUENCE IF NOT EXISTS foo2 
+	MINVALUE 4
+	MAXVALUE 6
+	-- different variation
+	INCREMENT BY 2
+	-- different variation
+	START WITH 2
+	CYCLE
+	OWNED BY foo.bar;
+"
+`;
+
+exports[`Parse and format 4-alterEnumStmt.sql 1`] = `
+"-- https://www.postgresql.org/docs/current/sql-altertype.html
+
+ALTER TYPE foo ADD VALUE 'ag';
+
+ALTER TYPE foo ADD VALUE 'asdsadyoyoy' BEFORE 'foo2';
+
+ALTER TYPE foo ADD VALUE 'asdsad';
+
+ALTER TYPE foo ADD VALUE 'asdsad' AFTER 'foo2';
+
+ALTER TYPE foo ADD VALUE IF NOT EXISTS 'asdsad' BEFORE 'foo2';
+
+-- 1
+-- 2
+-- 3
+-- 4
+-- 5
+-- 6
+-- 7
+-- 8
+-- 9
+-- 10
+-- 11
+ALTER TYPE foo RENAME VALUE 'existing_enum_value' TO 'new_enum_value';
+"
+`;
+
+exports[`Parse and format 5-alterOwnerStmt.sql 1`] = `
+"-- 1
+-- 2
+-- 3
+-- 4
+-- 5
+-- 6
+-- 7
+ALTER TYPE foo OWNER TO new_owner;
+"
+`;
+
+exports[`Parse and format 6-alterSeqStmt.sql 1`] = `
+"-- Hello
+ALTER SEQUENCE foo 
+	OWNED BY a.aaa;
+
+-- Hello
+ALTER SEQUENCE foo 
+	-- foo
+	-- foo2
+	INCREMENT BY 1;
+"
+`;
+
+exports[`Parse and format 7-alterTableStmt.sql 1`] = `
+"ALTER TABLE ONLY accounts 
+	ALTER id SET DEFAULT 1;
+
+ALTER TABLE accounts 
+	ALTER id SET DEFAULT '1';
+
+ALTER TABLE IF EXISTS accounts 
+	ALTER id SET DEFAULT '1';
+
+ALTER TABLE IF EXISTS ONLY accounts 
+	ALTER id SET DEFAULT TRUE;
+
+ALTER TABLE IF EXISTS ONLY accounts 
+	ALTER id SET DEFAULT foo();
+
+-- 1
+-- 2
+-- 3
+-- 4
+-- 5
+-- 6
+ALTER TABLE IF EXISTS ONLY accounts 
+	-- 7
+	-- 8
+	-- 9
+	-- 10
+	-- 11
+	-- 12
+	-- 13
+	-- 14
+	-- 15
+	ALTER id SET DEFAULT foo('foo', 1);
+
+-- 1
+-- 2
+-- 3
+-- yoyo
+ALTER TABLE foo 
+	-- 4
+	-- 5
+	-- 6
+	-- 7
+	-- 8
+	-- 9
+	-- 10
+	-- 11
+	-- 12
+	ADD buckets INTEGER NOT NULL DEFAULT foo('');
+
+ALTER TABLE foo 
+	-- bar 
+	-- foo
+	ADD buckets INTEGER PRIMARY KEY,
+	-- foo
+	-- bar
+	DROP foo;
+
+ALTER TABLE ONLY accounts 
+	-- foo
+	-- 1
+	-- 2
+	-- 3
+	-- 4
+	-- 5
+	-- 6
+	ADD  CONSTRAINT accounts_pkey PRIMARY KEY (id);
+"
+`;
+
+exports[`Parse and format 8-dropStmt.sql 1`] = `
 "-- DROP SEQUENCE [ IF EXISTS ] name [, ...] [ CASCADE | RESTRICT ]
 -- 1
 -- 2
@@ -342,9 +352,9 @@ DROP TABLE yo;
 "
 `;
 
-exports[`Parse and format empty.sql 1`] = `""`;
+exports[`Parse and format 9-empty.sql 1`] = `""`;
 
-exports[`Parse and format indexStmt.sql 1`] = `
+exports[`Parse and format 10-indexStmt.sql 1`] = `
 "-- CREATE [ UNIQUE ] INDEX [ CONCURRENTLY ] [ name ] ON table [ USING method ]
 --     ( { column | ( expression ) } [ COLLATE collation ] [ opclass ] [ ASC | DESC ] [ NULLS { FIRST | LAST } ] [, ...] )
 --     [ WITH ( storage_parameter = value [, ... ] ) ]
@@ -375,13 +385,7 @@ CREATE UNIQUE INDEX foo ON foo_bar USING hash (plaid_id, foobar);
 "
 `;
 
-exports[`Parse and format selectStmt.sql 1`] = `
-"-- SELECT from dump.
-SELECT FALSE
-SELECT pg_catalog.set_config('search_path', '', FALSE)"
-`;
-
-exports[`Parse and format variableSetStmt.sql 1`] = `
+exports[`Parse and format 11-variableSetStmt.sql 1`] = `
 "SET statement_timeout = 0;
 
 SET lock_timeout = 0;
@@ -399,5 +403,15 @@ SET client_min_messages = 'warning';
 SET statement_timeout = 0;
 
 SET client_encoding = ' UTF8';
+"
+`;
+
+exports[`Parse and format 12-selectStmt.sql 1`] = `
+"-- SELECT from dump.
+SELECT FALSE;
+
+SELECT pg_catalog.set_config('search_path', '', FALSE);
+
+SELECT nextval('accounts_id_seq'::regclass);
 "
 `;

@@ -18,6 +18,7 @@ import {
 } from "./createStmt";
 import { Constraint, constraintDecoder } from "./constraint";
 import { RawExpr, rawExprDecoder } from "./rawExpr";
+import { PGString } from "./constant";
 
 export enum AlterTableCmdSubType {
   ADD_COLUMN = 0,
@@ -91,9 +92,11 @@ export const alterTableDropColumnDecoder: Decoder<AlterTableDropColumn> = exact(
  */
 export type AlterTableAddConstraint = {
   subtype: AlterTableCmdSubType.ADD_CONSTRAINT;
+  conname?: string;
   def: {
     Constraint: Constraint;
   };
+  keys?: PGString[];
   behavior: number;
   comment?: string;
 };

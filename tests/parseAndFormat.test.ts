@@ -3,6 +3,8 @@ import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 
 import verify from "../src/verifySql";
+import parse from "../src/parse";
+import format from "../src/format";
 
 Error.stackTraceLimit = 100;
 
@@ -26,10 +28,14 @@ const files: { [s: string]: string } = readdirSync(
 
 describe("Parse and format", () => {
   for (const file in files) {
-    // if (file === "createSeqStmt.sql") {
+    // if (file === "12-selectStmt.sql") {
     it(file, () => {
-      const statementName = file.replace(/\..*$/gi, "");
+      const statementName = file
+        .replace(/\..*$/gi, "")
+        .replace(/^[0-9]+\-/gi, "");
       const sql = files[file];
+
+      // console.log(JSON.stringify(parse(sql), null, 2), format(parse(sql)));
       const { formattedSql, ast } = verify(sql, file);
 
       // 3. Make sure the filename should match the statement type.
