@@ -76,7 +76,7 @@ export default function verifySql(
   const realAst = nParse(sql, basename(filename));
 
   // 3. Then we make sure our parser matches the output of the native parser
-  const ast = parse(sql, basename(filename));
+  const ast = parse(sql, basename(filename), realAst);
 
   const astNoComments = removeComments(ast);
   const actualAstNoComments = removeComments(realAst);

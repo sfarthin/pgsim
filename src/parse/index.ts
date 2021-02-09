@@ -143,7 +143,11 @@ function reduceComments(acc: Stmt[], stmt: Stmt): Stmt[] {
  * with much better error reporting, showing source line position where it
  * failed.
  */
-export default function parse(inputSql: string, filename = ""): Stmt[] {
+export default function parse(
+  inputSql: string,
+  filename = "",
+  expectedAst: Stmt[] = []
+): Stmt[] {
   if (inputSql === "") {
     return [];
   }
@@ -161,5 +165,12 @@ export default function parse(inputSql: string, filename = ""): Stmt[] {
     return result.value.reduce(reduceComments, []);
   }
 
-  throw new Error(getFriendlyErrorMessage(filename, context.str, result));
+  throw new Error(
+    getFriendlyErrorMessage({
+      filename,
+      str: context.str,
+      result,
+      expectedAst: expectedAst[context.endOfStatement.length],
+    })
+  );
 }

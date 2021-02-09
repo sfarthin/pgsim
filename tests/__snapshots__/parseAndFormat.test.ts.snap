@@ -316,6 +316,24 @@ ALTER TABLE ONLY accounts
 	-- 5
 	-- 6
 	ADD  CONSTRAINT accounts_pkey PRIMARY KEY (id);
+
+ALTER TABLE ONLY institutions 
+	ADD  CONSTRAINT institutions_plaid_type_key UNIQUE (plaid_type);
+
+-- foo
+ALTER TABLE ONLY foo 
+	-- 1
+	-- 2
+	-- 3
+	-- 4
+	-- 5
+	-- 6
+	-- 7
+	-- 8
+	-- 9
+	-- 10
+	-- 11
+	ADD  CONSTRAINT foo_bar_id_fkey FOREIGN KEY(bar_id) REFERENCES bar(id);
 "
 `;
 

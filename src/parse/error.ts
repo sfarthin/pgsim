@@ -7,6 +7,7 @@ import {
   cStyleComment,
   identifier,
 } from "./util";
+import { Stmt } from "../types";
 
 const indent = ({
   lines,
@@ -101,11 +102,17 @@ const findNextToken = (str: string, _pos: number) => {
 /**
  * Prints parser errors nicely
  */
-export const getFriendlyErrorMessage = (
-  filename: string,
-  str: string,
-  result: FailResult
-): string => {
+export const getFriendlyErrorMessage = ({
+  filename,
+  str,
+  result,
+  expectedAst,
+}: {
+  filename: string;
+  str: string;
+  result: FailResult;
+  expectedAst?: Stmt | undefined;
+}): string => {
   // console.log(
   //   result,
   //   toLineAndColumn(str, result.expected[0].pos),
@@ -161,6 +168,9 @@ export const getFriendlyErrorMessage = (
       prefixNumeralLength,
       startLine: start.line + 1,
     }) + "\n";
+  if (expectedAst) {
+    error += `\n\n${JSON.stringify(expectedAst.RawStmt.stmt, null, 2)}`;
+  }
   error += "\n";
 
   return error;

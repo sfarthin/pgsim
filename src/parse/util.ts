@@ -1393,6 +1393,7 @@ export function list<T>(
  * Keywords / constants
  */
 const keywordList = [
+  "ACTION",
   "ADD",
   "AFTER",
   "ALTER",
@@ -1407,6 +1408,7 @@ const keywordList = [
   "CREATE",
   "CYCLE",
   "DEFAULT",
+  "DELETE",
   "DROP",
   "ENUM",
   "EXISTS",
@@ -1436,6 +1438,7 @@ const keywordList = [
   "TABLE",
   "TO",
   "UNIQUE",
+  "UPDATE",
   "USING",
   "VALUE",
   "WITH",
@@ -1469,6 +1472,11 @@ export function keyword(
     return result;
   };
 }
+
+export const DELETE = keyword("DELETE");
+export const UPDATE = keyword("UPDATE");
+
+export const ACTION = keyword("ACTION");
 export const ADD = keyword("ADD");
 export const AFTER = keyword("AFTER");
 export const ALTER = keyword("ALTER");

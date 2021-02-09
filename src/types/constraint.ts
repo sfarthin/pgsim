@@ -6,7 +6,6 @@ import {
   boolean,
   optional,
   array,
-  unknown,
 } from "decoders";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { PGString, stringDecoder } from "./constant";
@@ -113,15 +112,15 @@ export const uniqueConstraintDecoder = exact({
 export type ForeignKeyConstraint = {
   contype: ConType.FOREIGN_KEY;
   location: Location;
-  fk_upd_action: string;
-  fk_del_action: string;
-  fk_matchtype: string;
+  fk_upd_action?: string;
+  fk_del_action?: string;
+  fk_matchtype?: string;
   initially_valid: boolean;
   pktable: {
     RangeVar: RangeVar;
   };
   pk_attrs?: PGString[];
-  conname?: unknown;
+  conname?: string;
   fk_attrs?: PGString[];
   comment?: string;
 };
@@ -137,7 +136,7 @@ export const foreignKeyConstraint: Decoder<ForeignKeyConstraint> = exact({
     RangeVar: rangeVarDecoder,
   }),
   pk_attrs: optional(array(stringDecoder)),
-  conname: unknown,
+  conname: optional(string),
   fk_attrs: optional(array(stringDecoder)),
 });
 
@@ -148,16 +147,17 @@ export const foreignKeyConstraint: Decoder<ForeignKeyConstraint> = exact({
 export type ReferenceConstraint = {
   contype: ConType.REFERENCE;
   location: Location;
-  fk_upd_action: string;
-  fk_del_action: string;
-  fk_matchtype: string;
+  fk_upd_action?: string;
+  fk_del_action?: string;
+  fk_matchtype?: string;
   initially_valid: boolean;
   pktable: {
     RangeVar: RangeVar;
   };
-  pk_attrs?: [PGString];
-  conname?: unknown;
-  fk_attrs?: unknown;
+  pk_attrs?: PGString[];
+  conname?: string;
+  fk_attrs?: PGString[];
+  comment?: string;
 };
 
 export const referenceConstraint: Decoder<ReferenceConstraint> = exact({
@@ -170,9 +170,9 @@ export const referenceConstraint: Decoder<ReferenceConstraint> = exact({
   pktable: exact({
     RangeVar: rangeVarDecoder,
   }),
-  pk_attrs: optional(tuple1(stringDecoder)),
-  conname: unknown,
-  fk_attrs: unknown,
+  pk_attrs: optional(array(stringDecoder)),
+  conname: optional(string),
+  fk_attrs: optional(array(stringDecoder)),
 });
 
 /**
@@ -237,27 +237,27 @@ export function isPrimaryKey(
   return false;
 }
 
-export function getReference(
-  constraints: { Constraint: Constraint }[]
-): { tablename: string; colname: string } | null {
-  if (!constraints) {
-    return null;
-  }
+// export function getReference(
+//   constraints: { Constraint: Constraint }[]
+// ): { tablename: string; colname: string } | null {
+//   if (!constraints) {
+//     return null;
+//   }
 
-  for (const constraint of constraints) {
-    if (constraint.Constraint.contype === ConType.REFERENCE) {
-      const tablename = constraint.Constraint.pktable.RangeVar.relname;
-      const colname = constraint.Constraint.pk_attrs?.[0].String.str;
+//   for (const constraint of constraints) {
+//     if (constraint.Constraint.contype === ConType.REFERENCE) {
+//       const tablename = constraint.Constraint.pktable.RangeVar.relname;
+//       const colname = constraint.Constraint.pk_attrs?.[0].String.str;
 
-      if (!colname) {
-        throw new Error("Unsure of of reference");
-      }
-      return { tablename, colname };
-    }
-  }
+//       if (!colname) {
+//         throw new Error("Unsure of of reference");
+//       }
+//       return { tablename, colname };
+//     }
+//   }
 
-  return null;
-}
+//   return null;
+// }
 
 export function isNullable(constraints: { Constraint: Constraint }[]): boolean {
   for (const constraint of constraints) {

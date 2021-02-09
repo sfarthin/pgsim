@@ -1,7 +1,6 @@
 import { AlterTableCmd, AlterTableStmt, AlterTableCmdSubType } from "../types";
 import comment from "./comment";
 import rawExpr from "./rawExpr";
-import constraint from "./constraint";
 import { toType } from "./createStmt";
 import toConstraints from "./constraint";
 
@@ -12,7 +11,7 @@ function alterTableCmd(c: AlterTableCmd): string {
     case AlterTableCmdSubType.SET_DEFAULT:
       return `ALTER ${c.name} SET DEFAULT ${c.def ? rawExpr(c.def) : 1}`;
     case AlterTableCmdSubType.ADD_CONSTRAINT:
-      return `ADD ${constraint([c.def.Constraint])}`;
+      return `ADD ${toConstraints([c.def.Constraint], true)}`;
     case AlterTableCmdSubType.ADD_COLUMN: {
       const colname = c.def.ColumnDef.colname.match(/^[a-zA-Z][a-zA-Z0-9]*$/)
         ? c.def.ColumnDef.colname
@@ -23,7 +22,7 @@ function alterTableCmd(c: AlterTableCmd): string {
 
       return `ADD ${colname} ${toType(
         c.def.ColumnDef
-      ).toUpperCase()}${toConstraints(constraints)}`;
+      ).toUpperCase()}${toConstraints(constraints, true)}`;
     }
   }
   throw new Error(`Cannot handle ${c.subtype}`);

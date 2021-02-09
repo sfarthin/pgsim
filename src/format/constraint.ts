@@ -1,7 +1,10 @@
 import { Constraint, ConType } from "../types";
 import rawExpr from "./rawExpr";
 
-export function toConstraint(constraint: Constraint): string {
+export function toConstraint(
+  constraint: Constraint,
+  fromAlterStmt?: boolean
+): string {
   const con =
     "conname" in constraint ? `CONSTRAINT ${constraint.conname} ` : "";
 
@@ -16,7 +19,15 @@ export function toConstraint(constraint: Constraint): string {
       const columns = constraint.pk_attrs
         ? `(${constraint.pk_attrs?.map((v) => v.String.str).join(", ")})`
         : "";
-      return `${con}REFERENCES ${table}${columns}`;
+      const fkColumns = constraint.fk_attrs
+        ? `(${constraint.fk_attrs?.map((v) => v.String.str).join(", ")})`
+        : "";
+      if (fromAlterStmt) {
+        return `${con}FOREIGN KEY${fkColumns} REFERENCES ${table}${columns}`;
+      } else {
+        return `${con}REFERENCES ${table}${columns}`;
+      }
+
     case ConType.PRIMARY_KEY:
       return `${con}PRIMARY KEY${keys}`;
     case ConType.DEFAULT:
@@ -32,9 +43,14 @@ export function toConstraint(constraint: Constraint): string {
   }
 }
 
-export default function (constraints: Constraint[]): string {
+export default function (
+  constraints: Constraint[],
+  fromAlterStmt?: boolean
+): string {
   if (constraints.length) {
-    return ` ${constraints.map(toConstraint).join(" ")}`;
+    return ` ${constraints
+      .map((c) => toConstraint(c, fromAlterStmt))
+      .join(" ")}`;
   }
   return "";
 }

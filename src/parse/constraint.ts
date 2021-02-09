@@ -20,6 +20,14 @@ import {
   COMMA,
   zeroToMany,
   CONSTRAINT,
+  RESTRICT,
+  CASCADE,
+  SET,
+  NO,
+  ACTION,
+  ON,
+  DELETE,
+  UPDATE,
 } from "./util";
 import { rawExpr } from "./rawExpr";
 import {
@@ -31,7 +39,6 @@ import {
   NotNullConstraint,
   ForeignKeyConstraint,
   ConType,
-  PGString,
 } from "../types";
 
 const defaultConstraint: Rule<{
@@ -41,16 +48,144 @@ const defaultConstraint: Rule<{
   return {
     comment: combineComments(value[1], value[2].comment),
     value: {
-      contype: 2,
+      contype: ConType.DEFAULT,
       location: ctx.pos,
       raw_expr: { ...value[2], comment: undefined },
     },
   };
 });
 
-const referencesConstraint: Rule<{
+const referentialActionOption = or([
+  RESTRICT,
+  CASCADE,
+  sequence([SET, __, NULL]),
+  sequence([NO, __, ACTION]),
+  sequence([SET, __, DEFAULT]),
+]);
+
+const referentialActions = or([
+  sequence([
+    ON,
+    __,
+    UPDATE,
+    __,
+    referentialActionOption,
+    optional(sequence([__, ON, __, DELETE, __, referentialActionOption])),
+  ]),
+  sequence([
+    ON,
+    __,
+    DELETE,
+    __,
+    referentialActionOption,
+    optional(sequence([__, ON, __, UPDATE, __, referentialActionOption])),
+  ]),
+]);
+
+const foreignKeyConstraintExtended: Rule<{
   comment: string;
-  value: ReferenceConstraint;
+  value: ForeignKeyConstraint;
+}> = transform(
+  sequence([
+    optional(sequence([CONSTRAINT, __, identifier])),
+    __,
+    FOREIGN,
+    __,
+    KEY,
+    __, // 5
+    optional(
+      sequence([
+        LPAREN,
+        __,
+        identifier,
+        zeroToMany(sequence([__, COMMA, __, identifier])),
+        __,
+        RPAREN,
+      ])
+    ),
+    __,
+    REFERENCES,
+    __,
+    transform(identifier, (v, ctx) => ({
+      RangeVar: {
+        inh: true,
+        relname: v,
+        relpersistence: "p" as const,
+        location: ctx.pos,
+      },
+    })), // 10
+    __,
+    optional(
+      sequence([
+        LPAREN,
+        __,
+        identifier,
+        zeroToMany(sequence([__, COMMA, __, identifier])),
+        __,
+        RPAREN,
+      ])
+    ),
+    __,
+    optional(referentialActions),
+  ]),
+  (v, ctx) => {
+    return {
+      comment: combineComments(
+        v[0]?.[1],
+        v[1],
+        v[3],
+        v[5],
+        v[6]?.[1],
+        ...(v[6]?.[3]?.map((k) => combineComments(k[0], k[2])) ?? []),
+        v[6]?.[4],
+        v[7],
+        v[9],
+        v[11],
+        v[12]?.[1],
+        ...(v[12]?.[3]?.map((k) => combineComments(k[0], k[2])) ?? []),
+        v[12]?.[4],
+        v[13]
+      ),
+      value: {
+        contype: ConType.FOREIGN_KEY,
+        location: ctx.pos,
+        ...(v[0] ? { conname: v[0][2] } : {}),
+        initially_valid: true,
+        fk_del_action: "a",
+        fk_matchtype: "s",
+        fk_upd_action: "a",
+        // initially_valid: true,
+        pktable: v[10],
+        ...(v[12]
+          ? {
+              pk_attrs: [v[12]?.[2]]
+                .concat(v[12]?.[3].map((k) => k[3]))
+                .map((str) => ({
+                  String: {
+                    str,
+                  },
+                })),
+            }
+          : {}),
+        ...(v[6]
+          ? {
+              fk_attrs: [v[6]?.[2]]
+                .concat(v[6]?.[3].map((k) => k[3]))
+                .map((str) => ({
+                  String: {
+                    str,
+                  },
+                })),
+            }
+          : {}),
+      },
+    };
+  }
+);
+
+const foreignKeyConstraint: Rule<{
+  comment: string;
+  value: ForeignKeyConstraint;
 }> = transform(
   sequence([
     REFERENCES,
@@ -77,7 +212,7 @@ const referencesConstraint: Rule<{
         value[4]?.[3]
       ),
       value: {
-        contype: 8,
+        contype: ConType.FOREIGN_KEY,
         fk_del_action: "a",
         fk_matchtype: "s",
         fk_upd_action: "a",
@@ -105,7 +240,7 @@ const notNullConstraint: Rule<{
   value: NotNullConstraint;
 }> = transform(sequence([NOT, __, NULL]), (value, ctx) => ({
   comment: value[1],
-  value: { contype: 1, location: ctx.pos },
+  value: { contype: ConType.NOT_NULL, location: ctx.pos },
 }));
 
 const nullConstraint: Rule<{
@@ -113,7 +248,7 @@ const nullConstraint: Rule<{
   value: NullConstraint;
 }> = transform(NULL, (v, ctx) => ({
   comment: "",
-  value: { contype: 0, location: ctx.pos },
+  value: { contype: ConType.NULL, location: ctx.pos },
 }));
 
 const primaryKeyConstraint: Rule<{
@@ -152,7 +287,7 @@ const primaryKeyConstraint: Rule<{
         value[6]?.[4]
       ),
       value: {
-        contype: 5,
+        contype: ConType.PRIMARY_KEY,
         ...(value[0] ? { conname: value[0][2] } : {}),
         location: ctx.pos,
         ...(value[6]
@@ -195,7 +330,7 @@ const uniqueConstrant: Rule<{
   (v, ctx) => ({
     comment: "",
     value: {
-      contype: 6,
+      contype: ConType.UNIQUE,
       location: ctx.pos,
       ...(v[0] ? { conname: v[0][2] } : {}),
       ...(v[4]
@@ -220,7 +355,8 @@ export const constraint = or([
   primaryKeyConstraint,
   uniqueConstrant,
   defaultConstraint,
-  referencesConstraint,
+  foreignKeyConstraintExtended,
+  foreignKeyConstraint,
 ]);
 
 // ForeignKeyConstraint

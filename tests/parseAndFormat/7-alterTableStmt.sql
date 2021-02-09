@@ -24,3 +24,11 @@ ALTER TABLE ONLY accounts
     ADD/* 1 */ CONSTRAINT /* 2 */accounts_pkey /* 3 */PRIMARY KEY/* 4 */ (/* 5 */id /* 6 */);
 
 ALTER TABLE ONLY institutions ADD CONSTRAINT institutions_plaid_type_key UNIQUE (plaid_type);
+
+-- foo
+ALTER TABLE ONLY foo
+    -- 1
+    ADD /* 2 */CONSTRAINT /* 3 */ foo_bar_id_fkey /* 4 */ FOREIGN KEY /* 5 */ ( /* 6 */bar_id/* 7 */)/* 8 */ REFERENCES /* 9 */bar/* 10 */(id)/* 11 */;
+
+ALTER TABLE ONLY accounts
+    ADD CONSTRAINT accounts_master_account_id_fkey FOREIGN KEY (master_account_id) REFERENCES master_accounts(id) ON UPDATE CASCADE ON DELETE CASCADE
