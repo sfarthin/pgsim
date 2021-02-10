@@ -1441,6 +1441,7 @@ const keywordList = [
   "UPDATE",
   "USING",
   "VALUE",
+  "VIEW",
   "WITH",
 ] as const;
 
@@ -1524,6 +1525,7 @@ export const TYPE = keyword("TYPE" as any); // <-- One exeption where we can use
 export const UNIQUE = keyword("UNIQUE");
 export const USING = keyword("USING");
 export const VALUE = keyword("VALUE");
+export const VIEW = keyword("VIEW");
 export const WITH = keyword("WITH");
 
 export const SEMICOLON = constant(";");
@@ -1560,10 +1562,21 @@ export const ifNotExists: Rule<string> = (ctx: Context) => {
 };
 
 export const identifier: Rule<string> = (ctx: Context) => {
-  const result = transform(
-    sequence([regexChar(/[a-zA-Z_]/), zeroToMany(regexChar(/[a-zA-Z0-9_]/))]),
-    (v) => v[0].concat(v[1].join("")).toLowerCase()
-  )(ctx);
+  const result = or([
+    transform(
+      sequence([regexChar(/[a-zA-Z_]/), zeroToMany(regexChar(/[a-zA-Z0-9_]/))]),
+      (v) => v[0].concat(v[1].join("")).toLowerCase()
+    ),
+    transform(
+      sequence([
+        constant('"'),
+        regexChar(/[a-zA-Z_]/),
+        zeroToMany(regexChar(/[a-zA-Z0-9_]/)),
+        constant('"'),
+      ]),
+      (v) => v[1].concat(v[2].join("")).toLowerCase()
+    ),
+  ])(ctx);
 
   if (result.type === ResultType.Fail) {
     return {
@@ -1582,6 +1595,18 @@ export const identifier: Rule<string> = (ctx: Context) => {
 
   return result;
 };
+
+export function maybeInParens<T>(
+  rule: Rule<T>
+): Rule<{ value: T; comment: string }> {
+  return or([
+    transform(rule, (value) => ({ comment: "", value })),
+    transform(sequence([LPAREN, __, rule, __, RPAREN]), (v) => ({
+      comment: combineComments(v[1], v[3]),
+      value: v[2],
+    })),
+  ]);
+}
 
 export const tableIdentifier = transform(
   sequence([optional(sequence([identifier, PERIOD])), identifier]),

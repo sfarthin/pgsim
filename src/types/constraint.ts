@@ -6,6 +6,7 @@ import {
   boolean,
   optional,
   array,
+  either5,
 } from "decoders";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { PGString, stringDecoder } from "./constant";
@@ -112,8 +113,8 @@ export const uniqueConstraintDecoder = exact({
 export type ForeignKeyConstraint = {
   contype: ConType.FOREIGN_KEY;
   location: Location;
-  fk_upd_action?: string;
-  fk_del_action?: string;
+  fk_upd_action?: "r" | "c" | "n" | "a" | "d";
+  fk_del_action?: "r" | "c" | "n" | "a" | "d";
   fk_matchtype?: string;
   initially_valid: boolean;
   pktable: {
@@ -125,11 +126,19 @@ export type ForeignKeyConstraint = {
   comment?: string;
 };
 
+const actionDecoders = either5(
+  constant("r") as Decoder<"r">,
+  constant("c") as Decoder<"c">,
+  constant("n") as Decoder<"n">,
+  constant("a") as Decoder<"a">,
+  constant("d") as Decoder<"d">
+);
+
 export const foreignKeyConstraint: Decoder<ForeignKeyConstraint> = exact({
   contype: constant(ConType.FOREIGN_KEY) as Decoder<ConType.FOREIGN_KEY>,
   location: locationDecoder,
-  fk_upd_action: string,
-  fk_del_action: string,
+  fk_upd_action: optional(actionDecoders),
+  fk_del_action: optional(actionDecoders),
   fk_matchtype: string,
   initially_valid: boolean,
   pktable: exact({

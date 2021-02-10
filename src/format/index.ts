@@ -7,6 +7,7 @@ import dropStmt from "./dropStmt";
 import alterEnumStmt from "./alterEnumStmt";
 import alterOwnerStmt from "./alterOwnerStmt";
 import alterTableStmt from "./alterTableStmt";
+import viewStmt from "./viewStmt";
 import selectStmt from "./selectStmt";
 import comment from "./comment";
 import { Stmt, StatementType } from "../types";
@@ -68,6 +69,8 @@ function toString(stmt: Stmt, opts?: Opts): string {
     return comment(s.Comment);
   } else if ("SelectStmt" in s) {
     return selectStmt(s.SelectStmt);
+  } else if ("ViewStmt" in s) {
+    return viewStmt(s.ViewStmt);
   }
 
   throw new Error(`Cannot format ${Object.keys(s)}`);

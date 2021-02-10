@@ -1,6 +1,21 @@
 import { Constraint, ConType } from "../types";
 import rawExpr from "./rawExpr";
 
+function referentialActionOption(v: "r" | "c" | "n" | "a" | "d") {
+  switch (v) {
+    case "r":
+      return "RESTRICT";
+    case "c":
+      return "CASCADE";
+    case "n":
+      return "SET NULL";
+    case "a":
+      return "NO ACTION";
+    case "d":
+      return "SET DEFAULT";
+  }
+}
+
 export function toConstraint(
   constraint: Constraint,
   fromAlterStmt?: boolean
@@ -22,8 +37,22 @@ export function toConstraint(
       const fkColumns = constraint.fk_attrs
         ? `(${constraint.fk_attrs?.map((v) => v.String.str).join(", ")})`
         : "";
+
+      let actions = "";
+      if (constraint.fk_upd_action) {
+        actions += ` ON UPDATE ${referentialActionOption(
+          constraint.fk_upd_action
+        )}`;
+      }
+
+      if (constraint.fk_del_action) {
+        actions += ` ON DELETE ${referentialActionOption(
+          constraint.fk_del_action
+        )}`;
+      }
+
       if (fromAlterStmt) {
-        return `${con}FOREIGN KEY${fkColumns} REFERENCES ${table}${columns}`;
+        return `${con}FOREIGN KEY${fkColumns} REFERENCES ${table}${columns}${actions}`;
       } else {
         return `${con}REFERENCES ${table}${columns}`;
       }

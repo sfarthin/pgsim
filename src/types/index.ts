@@ -11,6 +11,7 @@ import { DropStmt, dropStmtDecoder } from "./dropStmt";
 import { AlterEnumStmt, alterEnumStmtDecoder } from "./alterEnumStmt";
 import { AlterOwnerStmt, alterOwnerStmtDecoder } from "./alterOwnerStmt";
 import { IndexStmt, indexStmtDecoder } from "./indexStmt";
+import { ViewStmt, viewStmtDecoder } from "./viewStmt";
 import dispatch from "./dispatch";
 
 export * from "./aExpr";
@@ -43,6 +44,7 @@ export * from "./tuple1";
 export * from "./typeCast";
 export * from "./typeName";
 export * from "./variableSetStmt";
+export * from "./viewStmt";
 
 export type Stmt = {
   RawStmt: {
@@ -60,7 +62,8 @@ export type Stmt = {
       | { DropStmt: DropStmt }
       | { AlterOwnerStmt: AlterOwnerStmt }
       | { IndexStmt: IndexStmt }
-      | { SelectStmt: SelectStmt };
+      | { SelectStmt: SelectStmt }
+      | { ViewStmt: ViewStmt };
 
     // | { RenameStmt: Record<string, unknown> }
     // | { CompositeTypeStmt: Record<string, unknown> }
@@ -69,7 +72,6 @@ export type Stmt = {
     // | { InsertStmt: InsertStmt }
 
     // | { UpdateStmt: Record<string, unknown> }
-    // | { ViewStmt: Record<string, unknown> }
     // // Pass 3
 
     // | { CommentStmt: Record<string, unknown> }
@@ -148,6 +150,7 @@ export const stmtDecoder: Decoder<Stmt> = exact({
       IndexStmt: indexStmtDecoder,
       Comment: string,
       SelectStmt: selectStmtDecoder,
+      ViewStmt: viewStmtDecoder,
 
       // RenameStmt: pojo,
       // CompositeTypeStmt: pojo,
@@ -155,7 +158,6 @@ export const stmtDecoder: Decoder<Stmt> = exact({
       // InsertStmt: insertStmtDecoder,
 
       // UpdateStmt: pojo,
-      // ViewStmt: pojo,
       // DropStmt: pojo,
       // DefineStmt: pojo,
       // CreateFunctionStmt: pojo,

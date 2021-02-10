@@ -32,7 +32,7 @@ import {
 import { rawExpr } from "./rawExpr";
 import {
   DefaultConstraint,
-  ReferenceConstraint,
+  // ReferenceConstraint,
   UniqueConstraint,
   PrimaryKeyConstraint,
   NullConstraint,
@@ -55,32 +55,84 @@ const defaultConstraint: Rule<{
   };
 });
 
-const referentialActionOption = or([
-  RESTRICT,
-  CASCADE,
-  sequence([SET, __, NULL]),
-  sequence([NO, __, ACTION]),
-  sequence([SET, __, DEFAULT]),
+const referentialActionOption: Rule<{
+  comment: string;
+  value: "r" | "c" | "n" | "a" | "d";
+}> = or([
+  transform(RESTRICT, () => ({ value: "r", comment: "" })), // r
+  transform(CASCADE, () => ({ value: "c", comment: "" })), // c
+  transform(sequence([SET, __, NULL]), (v) => ({
+    value: "n",
+    comment: v[1],
+  })), // n
+  transform(sequence([NO, __, ACTION]), (v) => ({ value: "a", comment: v[1] })), // a
+  transform(sequence([SET, __, DEFAULT]), (v) => ({
+    value: "d",
+    comment: v[1],
+  })), // d
 ]);
 
-const referentialActions = or([
-  sequence([
-    ON,
-    __,
-    UPDATE,
-    __,
-    referentialActionOption,
-    optional(sequence([__, ON, __, DELETE, __, referentialActionOption])),
+const referentialActions: Rule<{
+  comment: string;
+  value: {
+    fk_del_action?: "a" | "r" | "c" | "n" | "d";
+    fk_upd_action?: "a" | "r" | "c" | "n" | "d";
+  };
+}> = transform(
+  or([
+    sequence([
+      ON,
+      __,
+      UPDATE,
+      __,
+      referentialActionOption,
+      optional(sequence([__, ON, __, DELETE, __, referentialActionOption])),
+    ]),
+    sequence([
+      ON,
+      __,
+      DELETE,
+      __,
+      referentialActionOption,
+      optional(sequence([__, ON, __, UPDATE, __, referentialActionOption])),
+    ]),
   ]),
-  sequence([
-    ON,
-    __,
-    DELETE,
-    __,
-    referentialActionOption,
-    optional(sequence([__, ON, __, UPDATE, __, referentialActionOption])),
-  ]),
-]);
+  (v) => {
+    const value: {
+      fk_upd_action?: "a" | "r" | "c" | "n" | "d";
+      fk_del_action?: "a" | "r" | "c" | "n" | "d";
+    } = {};
+
+    if (v[2].value === "UPDATE") {
+      value.fk_upd_action = v[4].value;
+    }
+
+    if (v[2].value === "DELETE") {
+      value.fk_del_action = v[4].value;
+    }
+
+    if (v[5]?.[3].value === "UPDATE") {
+      value.fk_upd_action = v[5]?.[5].value;
+    }
+
+    if (v[5]?.[3].value === "DELETE") {
+      value.fk_del_action = v[5]?.[5].value;
+    }
+
+    return {
+      value,
+      comment: combineComments(
+        v[1],
+        v[3],
+        v[4].comment,
+        v[5]?.[0],
+        v[5]?.[2],
+        v[5]?.[4],
+        v[5]?.[5].comment
+      ),
+    };
+  }
+);
 
 const foreignKeyConstraintExtended: Rule<{
   comment: string;
@@ -154,7 +206,7 @@ const foreignKeyConstraintExtended: Rule<{
         fk_del_action: "a",
         fk_matchtype: "s",
         fk_upd_action: "a",
-        // initially_valid: true,
+        ...v[14]?.value,
         pktable: v[10],
         ...(v[12]
           ? {

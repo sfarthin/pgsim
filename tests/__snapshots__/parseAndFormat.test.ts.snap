@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`Parse and format 1-createStmt.sql 1`] = `
+exports[`Parse and format 01-createStmt.sql 1`] = `
 "-- foo
 -- foo
 CREATE TABLE adsiiodnsaoidnoasindosaind9 (
@@ -129,7 +129,7 @@ CREATE TABLE public.foo (
 "
 `;
 
-exports[`Parse and format 2-createEnumStmt.sql 1`] = `
+exports[`Parse and format 02-createEnumStmt.sql 1`] = `
 "-- Top 1
 -- Top 2
 
@@ -162,7 +162,7 @@ CREATE TYPE foo AS ENUM (
 "
 `;
 
-exports[`Parse and format 3-createSeqStmt.sql 1`] = `
+exports[`Parse and format 03-createSeqStmt.sql 1`] = `
 "-- This has no options
 CREATE SEQUENCE foo;
 
@@ -196,7 +196,7 @@ CREATE SEQUENCE IF NOT EXISTS foo2
 "
 `;
 
-exports[`Parse and format 4-alterEnumStmt.sql 1`] = `
+exports[`Parse and format 04-alterEnumStmt.sql 1`] = `
 "-- https://www.postgresql.org/docs/current/sql-altertype.html
 
 ALTER TYPE foo ADD VALUE 'ag';
@@ -224,7 +224,7 @@ ALTER TYPE foo RENAME VALUE 'existing_enum_value' TO 'new_enum_value';
 "
 `;
 
-exports[`Parse and format 5-alterOwnerStmt.sql 1`] = `
+exports[`Parse and format 05-alterOwnerStmt.sql 1`] = `
 "-- 1
 -- 2
 -- 3
@@ -236,7 +236,7 @@ ALTER TYPE foo OWNER TO new_owner;
 "
 `;
 
-exports[`Parse and format 6-alterSeqStmt.sql 1`] = `
+exports[`Parse and format 06-alterSeqStmt.sql 1`] = `
 "-- Hello
 ALTER SEQUENCE foo 
 	OWNED BY a.aaa;
@@ -249,7 +249,7 @@ ALTER SEQUENCE foo
 "
 `;
 
-exports[`Parse and format 7-alterTableStmt.sql 1`] = `
+exports[`Parse and format 07-alterTableStmt.sql 1`] = `
 "ALTER TABLE ONLY accounts 
 	ALTER id SET DEFAULT 1;
 
@@ -333,11 +333,14 @@ ALTER TABLE ONLY foo
 	-- 9
 	-- 10
 	-- 11
-	ADD  CONSTRAINT foo_bar_id_fkey FOREIGN KEY(bar_id) REFERENCES bar(id);
+	ADD  CONSTRAINT foo_bar_id_fkey FOREIGN KEY(bar_id) REFERENCES bar(id) ON UPDATE NO ACTION ON DELETE NO ACTION;
+
+ALTER TABLE ONLY foo_boo_fooboo 
+	ADD  CONSTRAINT foo_boo FOREIGN KEY(boo) REFERENCES fooo(id) ON UPDATE CASCADE ON DELETE CASCADE;
 "
 `;
 
-exports[`Parse and format 8-dropStmt.sql 1`] = `
+exports[`Parse and format 08-dropStmt.sql 1`] = `
 "-- DROP SEQUENCE [ IF EXISTS ] name [, ...] [ CASCADE | RESTRICT ]
 -- 1
 -- 2
@@ -370,7 +373,7 @@ DROP TABLE yo;
 "
 `;
 
-exports[`Parse and format 9-empty.sql 1`] = `""`;
+exports[`Parse and format 09-empty.sql 1`] = `""`;
 
 exports[`Parse and format 10-indexStmt.sql 1`] = `
 "-- CREATE [ UNIQUE ] INDEX [ CONCURRENTLY ] [ name ] ON table [ USING method ]
@@ -431,5 +434,12 @@ SELECT FALSE;
 SELECT pg_catalog.set_config('search_path', '', FALSE);
 
 SELECT nextval('accounts_id_seq'::regclass);
+"
+`;
+
+exports[`Parse and format 13-viewStmt.sql 1`] = `
+"CREATE VIEW foo AS (
+	SELECT 1
+);
 "
 `;

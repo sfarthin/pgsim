@@ -19,7 +19,7 @@ export default function parse(sql: string, filename: string): Stmt[] {
 
   if (stderr || error) {
     if (error) {
-      throw new Error(`${sql}\n\n${String(error)}`);
+      throw new Error(`${sql}\n\n${filename}: ${String(error)}`);
     } else {
       throw new Error(stderr || "");
     }
