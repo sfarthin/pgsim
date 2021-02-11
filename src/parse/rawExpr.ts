@@ -13,6 +13,7 @@ import { aConst } from "./aConst";
 import { typeCast } from "./typeCast";
 import { funcCall } from "./funcCall";
 import { RawExpr } from "../types";
+import { columnRef } from "./columnRef";
 
 // THis should include equestions and type casts.
 export const rawExpr: Rule<RawExpr & { comment?: string }> = transform(
@@ -23,6 +24,10 @@ export const rawExpr: Rule<RawExpr & { comment?: string }> = transform(
       transform(funcCall, ({ value, comment }) => ({
         FuncCall: value,
         comment,
+      })),
+      transform(columnRef, (value) => ({
+        ColumnRef: value,
+        comment: "",
       })),
     ]),
     optional(

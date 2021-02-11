@@ -9,18 +9,17 @@ import {
   unknown,
 } from "decoders";
 import { Location, locationDecoder } from "./location";
-import { targetValueDecoder, TargetValue } from "./targetValue";
-import { RawExpr, rawExprDecoder } from "./rawExpr";
+import { rawExprDecoder, RawExpr } from "./rawExpr";
 
 export type ResTarget = {
   name?: string;
-  val: TargetValue;
+  val: RawExpr;
   location: Location;
 };
 
 export const resTargetDecoder: Decoder<ResTarget> = exact({
   name: optional(string),
-  val: targetValueDecoder,
+  val: rawExprDecoder,
   location: locationDecoder,
 });
 
@@ -29,10 +28,7 @@ export const verifyResTarget = guard(resTargetDecoder);
 export type SelectStmt = {
   op: number;
   targetList: {
-    ResTarget?: {
-      val: RawExpr;
-      location?: number;
-    };
+    ResTarget?: ResTarget;
   }[];
   fromClause?: unknown;
   whereClause?: unknown;
@@ -70,10 +66,7 @@ export type SelectStmt = {
 export const selectStmtDecoder: Decoder<SelectStmt> = exact({
   targetList: array(
     exact({
-      ResTarget: exact({
-        val: (blob) => rawExprDecoder(blob),
-        location: optional(number),
-      }),
+      ResTarget: resTargetDecoder,
     })
   ),
   fromClause: optional(array(unknown)),

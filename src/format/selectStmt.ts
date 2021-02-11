@@ -9,7 +9,7 @@ export function innerSelect(c: SelectStmt, opts: { numTabs: number }): string {
 
   // Lets add the appropiate amount of tabs.
   const introTabs = [...new Array(opts.numTabs)].map(() => "\t").join("");
-  return `${introTabs}${sql.split("\n").join(`${introTabs}\n`)}`;
+  return `${introTabs}${sql.split("\n").join(`\n${introTabs}`)}`;
 }
 
 export default function (c: SelectStmt): string {

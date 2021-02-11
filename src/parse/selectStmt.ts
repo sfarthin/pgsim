@@ -7,6 +7,10 @@ import {
   endOfStatement,
   combineComments,
   _,
+  FROM,
+  optional,
+  identifier,
+  WHERE,
 } from "./util";
 import { rawExpr } from "./rawExpr";
 import { SelectStmt } from "../types";
@@ -17,12 +21,34 @@ export const selectStmt: Rule<SelectStmt> = transform(
     SELECT,
     __,
     transform(rawExpr, (value, ctx) => ({ value, pos: ctx.pos })),
-    __,
+    optional(
+      sequence([
+        __,
+        FROM,
+        __,
+        transform(identifier, (value, ctx) => ({ value, pos: ctx.pos })),
+        sequence([
+          __,
+          WHERE,
+          __,
+          transform(rawExpr, (value, ctx) => ({ value, pos: ctx.pos })),
+        ]),
+      ])
+    ), // 4
+
     endOfStatement,
   ]),
   (v) => {
     return {
-      comment: combineComments(v[0], v[2], v[4], v[5]),
+      comment: combineComments(
+        v[0],
+        v[2],
+        v[4]?.[0],
+        v[4]?.[2],
+        v[4]?.[4]?.[0],
+        v[4]?.[4]?.[2],
+        v[5]
+      ),
       targetList: [
         {
           ResTarget: {
@@ -31,6 +57,25 @@ export const selectStmt: Rule<SelectStmt> = transform(
           },
         },
       ],
+      ...(v[4]?.[3]
+        ? {
+            fromClause: [
+              {
+                RangeVar: {
+                  relname: v[4]?.[3].value,
+                  inh: true,
+                  relpersistence: "p",
+                  location: v[4]?.[3].pos,
+                },
+              },
+            ],
+          }
+        : {}),
+      ...(v[4]?.[4]?.[3]
+        ? {
+            whereClause: rawExpr,
+          }
+        : {}),
       op: 0,
     };
   }

@@ -23,7 +23,7 @@ export const viewStmt: Rule<ViewStmt> = transform(
     VIEW,
     __,
     transform(identifier, (value, ctx) => ({ value, pos: ctx.pos })),
-    __, // 5
+    __, // 6
     AS,
     __,
     maybeInParens(selectStmt),
@@ -38,8 +38,19 @@ export const viewStmt: Rule<ViewStmt> = transform(
         inh: true,
       },
     },
-    query: { SelectStmt: v[9].value },
+    query: {
+      SelectStmt: {
+        ...v[9].value,
+        comment: combineComments(
+          v[8],
+          v[9].topComment,
+          v[9].value.comment,
+          v[9].bottomComment,
+          v[10]
+        ),
+      },
+    },
     withCheckOption: 0,
-    comment: combineComments(v[0], v[2], v[4], v[6], v[8], v[9].comment, v[10]),
+    comment: combineComments(v[0], v[2], v[4], v[6]),
   })
 );

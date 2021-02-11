@@ -1413,6 +1413,7 @@ const keywordList = [
   "ENUM",
   "EXISTS",
   "FOREIGN",
+  "FROM",
   "IF",
   "INCREMENT",
   "INDEX",
@@ -1443,6 +1444,7 @@ const keywordList = [
   "VALUE",
   "VIEW",
   "WITH",
+  "WHERE",
 ] as const;
 
 export function keyword(
@@ -1496,6 +1498,7 @@ export const DROP = keyword("DROP");
 export const ENUM = keyword("ENUM");
 export const EXISTS = keyword("EXISTS");
 export const FOREIGN = keyword("FOREIGN");
+export const FROM = keyword("FROM");
 export const IF = keyword("IF");
 export const INCREMENT = keyword("INCREMENT");
 export const INDEX = keyword("INDEX");
@@ -1527,6 +1530,7 @@ export const USING = keyword("USING");
 export const VALUE = keyword("VALUE");
 export const VIEW = keyword("VIEW");
 export const WITH = keyword("WITH");
+export const WHERE = keyword("WHERE");
 
 export const SEMICOLON = constant(";");
 export const EQUALS = constant("=");
@@ -1598,12 +1602,13 @@ export const identifier: Rule<string> = (ctx: Context) => {
 
 export function maybeInParens<T>(
   rule: Rule<T>
-): Rule<{ value: T; comment: string }> {
+): Rule<{ value: T; topComment: string; bottomComment: string }> {
   return or([
-    transform(rule, (value) => ({ comment: "", value })),
+    transform(rule, (value) => ({ topComment: "", bottomComment: "", value })),
     transform(sequence([LPAREN, __, rule, __, RPAREN]), (v) => ({
-      comment: combineComments(v[1], v[3]),
+      topComment: v[1],
       value: v[2],
+      bottomComment: v[3],
     })),
   ]);
 }
@@ -1615,7 +1620,6 @@ export const tableIdentifier = transform(
       ? [v[0][0].toLocaleLowerCase(), v[1].toLocaleLowerCase()]
       : [v[1].toLocaleLowerCase()]
 );
-tableIdentifier.identifier = "table identifier";
 
 export const integer = transform(oneToMany(NUMERAL), (s) => Number(s.join("")));
 integer.identifier = "integer";
