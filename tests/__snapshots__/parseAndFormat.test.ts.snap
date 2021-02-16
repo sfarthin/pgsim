@@ -448,5 +448,9 @@ CREATE VIEW foo AS (
 	-- 7
 	SELECT 1
 );
+
+CREATE VIEW myview AS (
+	SELECT mytable.mycolumn FROM mytable
+);
 "
 `;

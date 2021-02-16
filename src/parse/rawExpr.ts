@@ -14,9 +14,12 @@ import { typeCast } from "./typeCast";
 import { funcCall } from "./funcCall";
 import { RawExpr } from "../types";
 import { columnRef } from "./columnRef";
+import { aExpr } from "./aExpr";
 
 // THis should include equestions and type casts.
-export const rawExpr: Rule<RawExpr & { comment?: string }> = transform(
+export const rawExprWithoutAExpr: Rule<
+  RawExpr & { comment?: string }
+> = transform(
   sequence([
     or([
       transform(typeCast, (TypeCast) => ({ TypeCast })), // intentially before aConst
@@ -74,3 +77,11 @@ export const rawExpr: Rule<RawExpr & { comment?: string }> = transform(
     return v[0];
   }
 );
+
+export const rawExpr: Rule<RawExpr & { comment?: string }> = or([
+  rawExprWithoutAExpr,
+  transform(aExpr, ({ value, comment }) => ({
+    A_Expr: value,
+    comment,
+  })),
+]);

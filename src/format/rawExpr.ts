@@ -2,6 +2,8 @@ import { RawExpr } from "../types";
 import typeCast from "./typeCast";
 import aConst from "./aConst";
 import funcCall from "./funcCall";
+import aExpr from "./aExpr";
+import columnRef from "./columnRef";
 
 export default function rawExpr(c: RawExpr): string {
   if ("TypeCast" in c) {
@@ -10,7 +12,11 @@ export default function rawExpr(c: RawExpr): string {
     return aConst(c.A_Const);
   } else if ("FuncCall" in c) {
     return funcCall(c.FuncCall);
+  } else if ("A_Expr" in c) {
+    return aExpr(c.A_Expr);
+  } else if ("ColumnRef" in c) {
+    return columnRef(c.ColumnRef);
   }
 
-  throw new Error("Not handled");
+  throw new Error(`Not handled: ${Object.keys(c)[0]}`);
 }

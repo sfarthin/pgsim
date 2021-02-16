@@ -22,17 +22,21 @@ export const selectStmt: Rule<SelectStmt> = transform(
     __,
     transform(rawExpr, (value, ctx) => ({ value, pos: ctx.pos })),
     optional(
+      // 4
       sequence([
         __,
         FROM,
         __,
         transform(identifier, (value, ctx) => ({ value, pos: ctx.pos })),
-        sequence([
-          __,
-          WHERE,
-          __,
-          transform(rawExpr, (value, ctx) => ({ value, pos: ctx.pos })),
-        ]),
+        optional(
+          // 4
+          sequence([
+            __,
+            WHERE,
+            __,
+            transform(rawExpr, (value, ctx) => ({ value, pos: ctx.pos })),
+          ])
+        ),
       ])
     ), // 4
 
@@ -73,7 +77,7 @@ export const selectStmt: Rule<SelectStmt> = transform(
         : {}),
       ...(v[4]?.[4]?.[3]
         ? {
-            whereClause: rawExpr,
+            whereClause: v[4]?.[4]?.[3].value,
           }
         : {}),
       op: 0,

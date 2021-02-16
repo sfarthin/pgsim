@@ -1,15 +1,7 @@
-import {
-  string,
-  number,
-  exact,
-  Decoder,
-  optional,
-  guard,
-  array,
-  unknown,
-} from "decoders";
+import * as d from "decoders";
 import { Location, locationDecoder } from "./location";
 import { rawExprDecoder, RawExpr } from "./rawExpr";
+import { RangeVar, rangeVarDecoder } from "./rangeVar";
 
 export type ResTarget = {
   name?: string;
@@ -17,21 +9,19 @@ export type ResTarget = {
   location: Location;
 };
 
-export const resTargetDecoder: Decoder<ResTarget> = exact({
-  name: optional(string),
+export const resTargetDecoder: d.Decoder<ResTarget> = d.exact({
+  name: d.optional(d.string),
   val: rawExprDecoder,
   location: locationDecoder,
 });
-
-export const verifyResTarget = guard(resTargetDecoder);
 
 export type SelectStmt = {
   op: number;
   targetList: {
     ResTarget?: ResTarget;
   }[];
-  fromClause?: unknown;
-  whereClause?: unknown;
+  fromClause?: { RangeVar: RangeVar }[];
+  whereClause?: RawExpr;
   groupClause?: unknown;
   withClause?: unknown;
   intoClause?: unknown; // SELECT * INTO TABLE onek2 FROM onek;
@@ -63,24 +53,24 @@ export type SelectStmt = {
 //     limitCount?: unknown;
 //   };
 
-export const selectStmtDecoder: Decoder<SelectStmt> = exact({
-  targetList: array(
-    exact({
+export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
+  targetList: d.array(
+    d.exact({
       ResTarget: resTargetDecoder,
     })
   ),
-  fromClause: optional(array(unknown)),
-  whereClause: unknown,
-  groupClause: unknown,
-  intoClause: unknown,
-  withClause: unknown,
-  limitOffset: unknown,
-  limitCount: unknown,
-  havingClause: unknown,
-  distinctClause: unknown,
-  lockingClause: unknown,
-  sortClause: unknown,
-  op: number,
+  fromClause: d.optional(d.array(d.exact({ RangeVar: rangeVarDecoder }))),
+  whereClause: d.optional(rawExprDecoder),
+  groupClause: d.unknown,
+  intoClause: d.unknown,
+  withClause: d.unknown,
+  limitOffset: d.unknown,
+  limitCount: d.unknown,
+  havingClause: d.unknown,
+  distinctClause: d.unknown,
+  lockingClause: d.unknown,
+  sortClause: d.unknown,
+  op: d.number,
 });
 //   ,
 //   exact({
@@ -101,7 +91,3 @@ export const selectStmtDecoder: Decoder<SelectStmt> = exact({
 //     limitCount: unknown,
 //   })
 // );
-
-export const verifySelectStatement = guard(
-  exact({ SelectStmt: selectStmtDecoder })
-);
