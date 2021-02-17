@@ -20,7 +20,11 @@ export const selectStmt: Rule<SelectStmt> = transform(
     _,
     SELECT,
     __,
-    transform(rawExpr, (value, ctx) => ({ value, pos: ctx.pos })),
+    transform(rawExpr, ({ value, comment }, ctx) => ({
+      value,
+      pos: ctx.pos,
+      comment,
+    })),
     optional(
       // 4
       sequence([
@@ -34,7 +38,11 @@ export const selectStmt: Rule<SelectStmt> = transform(
             __,
             WHERE,
             __,
-            transform(rawExpr, (value, ctx) => ({ value, pos: ctx.pos })),
+            transform(rawExpr, ({ value, comment }, ctx) => ({
+              value,
+              pos: ctx.pos,
+              comment,
+            })),
           ])
         ),
       ])
@@ -47,10 +55,12 @@ export const selectStmt: Rule<SelectStmt> = transform(
       comment: combineComments(
         v[0],
         v[2],
+        v[3].comment,
         v[4]?.[0],
         v[4]?.[2],
         v[4]?.[4]?.[0],
         v[4]?.[4]?.[2],
+        v[4]?.[4]?.[3].comment,
         v[5]
       ),
       targetList: [

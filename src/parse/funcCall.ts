@@ -35,8 +35,8 @@ export const funcCall: Rule<{ value: FuncCall; comment: string }> = transform(
     RPAREN,
   ]),
   (v, ctx) => {
-    const args = (v[4] ? [v[4]] : []).concat(
-      v[5].length > 0 ? v[5].map((o) => o[3]) : []
+    const args = (v[4] ? [v[4].value] : []).concat(
+      v[5].length > 0 ? v[5].map((o) => o[3].value) : []
     );
     return {
       value: {
@@ -54,7 +54,9 @@ export const funcCall: Rule<{ value: FuncCall; comment: string }> = transform(
       comment: combineComments(
         v[1],
         v[3],
-        ...v[5].map((l) => combineComments(l[0], l[2]), v[6])
+        v[4]?.comment,
+        ...v[5].map((l) => combineComments(l[0], l[2], l[3].comment)),
+        v[6]
       ),
     };
   }

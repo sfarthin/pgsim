@@ -17,19 +17,20 @@ import { columnRef } from "./columnRef";
 import { aExpr } from "./aExpr";
 
 // THis should include equestions and type casts.
-export const rawExprWithoutAExpr: Rule<
-  RawExpr & { comment?: string }
-> = transform(
+export const rawExprWithoutAExpr: Rule<{
+  value: RawExpr;
+  comment: string;
+}> = transform(
   sequence([
     or([
-      transform(typeCast, (TypeCast) => ({ TypeCast })), // intentially before aConst
-      transform(aConst, (A_Const) => ({ A_Const })),
+      transform(typeCast, (TypeCast) => ({ value: { TypeCast }, comment: "" })), // intentially before aConst
+      transform(aConst, (A_Const) => ({ value: { A_Const }, comment: "" })),
       transform(funcCall, ({ value, comment }) => ({
-        FuncCall: value,
+        value: { FuncCall: value },
         comment,
       })),
       transform(columnRef, (value) => ({
-        ColumnRef: value,
+        value: { ColumnRef: value },
         comment: "",
       })),
     ]),
@@ -47,29 +48,32 @@ export const rawExprWithoutAExpr: Rule<
     if (v[1]) {
       const type = Object.keys(v[0])[0] as "FuncCall" | "TypeCast" | "A_Const";
       return {
-        TypeCast: {
-          arg: {
-            [type]: {
-              // @ts-expect-error we know type is a key of a RawExpr
-              ...v[0][type],
-              // @ts-expect-error we know type is a key of a RawExpr
-              comment: combineComments(v[0][type].comment, v[1][0], v[1][2]),
-            },
-          } as RawExpr,
-          typeName: {
-            TypeName: {
-              names: [
-                {
-                  String: {
-                    str: v[1][3].value,
+        comment: combineComments(v[1][0], v[1][2]),
+        value: {
+          TypeCast: {
+            arg: {
+              [type]: {
+                // @ts-expect-error we know type is a key of a RawExpr
+                ...v[0][type],
+                // @ts-expect-error we know type is a key of a RawExpr
+                comment: combineComments(v[0][type].comment, v[1][0], v[1][2]),
+              },
+            } as RawExpr,
+            typeName: {
+              TypeName: {
+                names: [
+                  {
+                    String: {
+                      str: v[1][3].value,
+                    },
                   },
-                },
-              ],
-              typemod: -1,
-              location: v[1][3].pos,
+                ],
+                typemod: -1,
+                location: v[1][3].pos,
+              },
             },
+            location: v[1][1].pos,
           },
-          location: v[1][1].pos,
         },
       };
     }
@@ -78,10 +82,10 @@ export const rawExprWithoutAExpr: Rule<
   }
 );
 
-export const rawExpr: Rule<RawExpr & { comment?: string }> = or([
-  rawExprWithoutAExpr,
+export const rawExpr: Rule<{ value: RawExpr; comment: string }> = or([
   transform(aExpr, ({ value, comment }) => ({
-    A_Expr: value,
+    value: { A_Expr: value },
     comment,
   })),
+  rawExprWithoutAExpr,
 ]);

@@ -3,15 +3,15 @@ import comment from "./comment";
 import rawExpr from "./rawExpr";
 
 export function innerSelect(c: SelectStmt, opts: { numTabs: number }): string {
-  const select = `${comment(c.comment)}SELECT ${c.targetList
+  const select = `${comment(c.comment)}SELECT\n\t${c.targetList
     .map((v) => (v.ResTarget?.val ? rawExpr(v.ResTarget?.val) : false))
     .join(", ")}`;
 
   const from = c.fromClause
-    ? ` FROM ${c.fromClause.map((v) => v.RangeVar.relname).join(", ")}`
+    ? `\nFROM\n\t${c.fromClause.map((v) => v.RangeVar.relname).join(", ")}`
     : "";
 
-  const where = c.whereClause ? ` WHERE ${rawExpr(c.whereClause)}` : "";
+  const where = c.whereClause ? `\nWHERE\n\t${rawExpr(c.whereClause)}` : "";
 
   const sql = `${select}${from}${where}`;
 

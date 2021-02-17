@@ -35,6 +35,7 @@ export const rawExprDecoder: Decoder<RawExpr> = dispatch({
   A_Expr: (blob) => aExprDecoder(blob),
   BooleanTest: (blob) => booleanTestDecoder(blob), // someting IS true
   NullTest: (blob) => nullTestDecoder(blob), // something is NULL
+  ColumnRef: (blob) => columnRefDecoder(blob),
   CaseExpr: unknown,
   SubLink: unknown,
   SQLValueFunction: unknown,
@@ -42,5 +43,4 @@ export const rawExprDecoder: Decoder<RawExpr> = dispatch({
   MinMaxExpr: unknown,
   A_Indirection: unknown,
   A_ArrayExpr: unknown,
-  ColumnRef: (blob) => columnRefDecoder(blob),
 });

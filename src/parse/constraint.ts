@@ -50,7 +50,7 @@ const defaultConstraint: Rule<{
     value: {
       contype: ConType.DEFAULT,
       location: ctx.pos,
-      raw_expr: { ...value[2], comment: undefined },
+      raw_expr: value[2].value,
     },
   };
 });

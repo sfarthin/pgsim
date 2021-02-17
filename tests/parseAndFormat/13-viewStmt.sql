@@ -2,4 +2,4 @@
 
 
 CREATE VIEW myView AS SELECT myTable.myColumn FROM myTable;
-CREATE VIEW myView AS SELECT myTable.myColumn FROM myTable WHERE 1 = 1;
+CREATE VIEW myView AS SELECT /* 1 */myColumn /* 2 */FROM /* 3 */myTable /* 4 */WHERE/* 5 */foo/* 6 */=/* 7 */1;

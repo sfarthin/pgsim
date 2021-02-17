@@ -16,7 +16,7 @@ const operation = constant("=");
 
 export const aExpr: Rule<{ value: AExpr; comment: string }> = transform(
   sequence([modifiedExpr, __, operation, __, modifiedExpr]),
-  (v, ctx) => ({
+  (v) => ({
     comment: combineComments(v[0].comment, v[1], v[3], v[4].comment),
     value: {
       kind: 0,
@@ -27,9 +27,9 @@ export const aExpr: Rule<{ value: AExpr; comment: string }> = transform(
           },
         },
       ],
-      lexpr: { ...v[0], comment: "" },
-      rexpr: { ...v[4], comment: "" },
-      location: ctx.pos,
+      lexpr: v[0].value,
+      rexpr: v[4].value,
+      location: v[2].start,
     },
   })
 );

@@ -157,7 +157,7 @@ const alterTableSetDefault: Rule<AlterTableSetDefault> = transform(
     return {
       subtype: AlterTableCmdSubType.SET_DEFAULT,
       name: v[5],
-      def: { ...v[11], comment: undefined },
+      def: v[11].value,
       behavior: 0,
       comment: combineComments(
         v[0],

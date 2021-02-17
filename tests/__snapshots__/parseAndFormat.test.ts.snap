@@ -452,5 +452,9 @@ CREATE VIEW foo AS (
 CREATE VIEW myview AS (
 	SELECT mytable.mycolumn FROM mytable
 );
+
+CREATE VIEW myview AS (
+	SELECT mycolumn FROM mytable WHERE foo = 1
+);
 "
 `;
