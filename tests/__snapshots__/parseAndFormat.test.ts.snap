@@ -429,11 +429,14 @@ SET client_encoding = ' UTF8';
 
 exports[`Parse and format 12-selectStmt.sql 1`] = `
 "-- SELECT from dump.
-SELECT FALSE;
+SELECT
+	FALSE;
 
-SELECT pg_catalog.set_config('search_path', '', FALSE);
+SELECT
+	pg_catalog.set_config('search_path', '', FALSE);
 
-SELECT nextval('accounts_id_seq'::regclass);
+SELECT
+	nextval('accounts_id_seq'::regclass);
 "
 `;
 
@@ -446,15 +449,31 @@ CREATE VIEW foo AS (
 	-- 5
 	-- 6
 	-- 7
-	SELECT 1
+	SELECT
+		1
 );
 
 CREATE VIEW myview AS (
-	SELECT mytable.mycolumn FROM mytable
+	SELECT
+		mytable.mycolumn
+	FROM
+		mytable
 );
 
 CREATE VIEW myview AS (
-	SELECT mycolumn FROM mytable WHERE foo = 1
+	-- 1
+	-- 2
+	-- 3
+	-- 4
+	-- 5
+	-- 6
+	-- 7
+	SELECT
+		mycolumn
+	FROM
+		mytable
+	WHERE
+		foo = 1
 );
 "
 `;

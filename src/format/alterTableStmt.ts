@@ -30,12 +30,12 @@ function alterTableCmd(c: AlterTableCmd): string {
 
 export default function alterSeqStmt(c: AlterTableStmt): string {
   const name = c.relation.RangeVar.relname;
-  return `${comment(c.comment)}ALTER TABLE${c.missing_ok ? " IF EXISTS" : ""}${
-    !c.relation.RangeVar.inh ? " ONLY" : ""
-  } ${name} \n${c.cmds
+  return `${comment(c.codeComment)}ALTER TABLE${
+    c.missing_ok ? " IF EXISTS" : ""
+  }${!c.relation.RangeVar.inh ? " ONLY" : ""} ${name} \n${c.cmds
     ?.map(
       (e) =>
-        `${comment(e.AlterTableCmd.comment, 1)}\t${alterTableCmd(
+        `${comment(e.AlterTableCmd.codeComment, 1)}\t${alterTableCmd(
           e.AlterTableCmd
         )}`
     )

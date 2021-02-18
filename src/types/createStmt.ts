@@ -21,7 +21,7 @@ export type ColumnDef = {
   is_local: boolean;
   collClause?: unknown;
   location: Location;
-  comment?: string;
+  codeComment?: string;
 };
 
 export const columnDefDecoder: Decoder<ColumnDef> = exact({
@@ -31,7 +31,7 @@ export const columnDefDecoder: Decoder<ColumnDef> = exact({
   is_local: boolean,
   collClause: unknown,
   location: locationDecoder,
-  comment: optional(string),
+  codeComment: optional(string),
 });
 
 export type Relation = {
@@ -51,7 +51,7 @@ export type CreateStmt = {
   if_not_exists?: boolean;
   partspec?: unknown;
   partbound?: unknown;
-  comment?: string;
+  codeComment?: string;
 };
 
 export const createStmtDecoder: Decoder<CreateStmt> = exact({
@@ -70,5 +70,5 @@ export const createStmtDecoder: Decoder<CreateStmt> = exact({
   if_not_exists: optional(boolean),
   partspec: unknown,
   partbound: unknown,
-  comment: optional(string),
+  codeComment: optional(string),
 });

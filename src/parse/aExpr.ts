@@ -14,10 +14,15 @@ const modifiedExpr = (ctx: Context) => rawExprWithoutAExpr(ctx);
 
 const operation = constant("=");
 
-export const aExpr: Rule<{ value: AExpr; comment: string }> = transform(
+export const aExpr: Rule<{ value: AExpr; codeComment: string }> = transform(
   sequence([modifiedExpr, __, operation, __, modifiedExpr]),
   (v) => ({
-    comment: combineComments(v[0].comment, v[1], v[3], v[4].comment),
+    codeComment: combineComments(
+      v[0].codeComment,
+      v[1],
+      v[3],
+      v[4].codeComment
+    ),
     value: {
       kind: 0,
       name: [

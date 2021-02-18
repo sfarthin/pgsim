@@ -7,7 +7,7 @@ export type VariableSetStmt = {
   name: string;
   args?: [{ A_Const: A_Const }];
   is_local?: boolean;
-  comment?: string;
+  codeComment?: string;
 };
 
 export const variableSetStmtDecoder: Decoder<VariableSetStmt> = exact({
@@ -15,5 +15,5 @@ export const variableSetStmtDecoder: Decoder<VariableSetStmt> = exact({
   name: string,
   args: optional(tuple1(exact({ A_Const: aConstDecoder }))),
   is_local: optional(boolean),
-  comment: optional(string),
+  codeComment: optional(string),
 });

@@ -6,12 +6,12 @@ export type CreateSeqStmt = {
   sequence: { RangeVar: RangeVar };
   options?: { DefElem: DefElem }[];
   if_not_exists?: boolean;
-  comment?: string;
+  codeComment?: string;
 };
 
 export const createSeqStmtDecoder: Decoder<CreateSeqStmt> = exact({
   sequence: exact({ RangeVar: rangeVarDecoder }),
   options: optional(array(exact({ DefElem: defElemDecoder }))),
   if_not_exists: optional(boolean),
-  comment: optional(string),
+  codeComment: optional(string),
 });

@@ -58,7 +58,15 @@ export const alterTableStmt: Rule<AlterTableStmt> = transform(
         .map((AlterTableCmd) => ({ AlterTableCmd })),
       relkind: 37,
       ...(v[5] ? { missing_ok: true } : {}),
-      comment: combineComments(v[0], v[2], v[4], v[5]?.[1], v[6], v[8], v[12]),
+      codeComment: combineComments(
+        v[0],
+        v[2],
+        v[4],
+        v[5]?.[1],
+        v[6],
+        v[8],
+        v[12]
+      ),
     };
   }
 );

@@ -41,16 +41,16 @@ export const viewStmt: Rule<ViewStmt> = transform(
     query: {
       SelectStmt: {
         ...v[9].value,
-        comment: combineComments(
+        codeComment: combineComments(
           v[8],
-          v[9].topComment,
-          v[9].value.comment,
-          v[9].bottomComment,
+          v[9].topcodeComment,
+          v[9].value.codeComment,
+          v[9].bottomcodeComment,
           v[10]
         ),
       },
     },
     withCheckOption: 0,
-    comment: combineComments(v[0], v[2], v[4], v[6]),
+    codeComment: combineComments(v[0], v[2], v[4], v[6]),
   })
 );

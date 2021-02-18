@@ -42,7 +42,7 @@ export const alterOwnerStmt: Rule<AlterOwnerStmt> = transform(
         location: v[11].pos,
       },
     },
-    comment: finalizeComment(
+    codeComment: finalizeComment(
       combineComments(v[0], v[2], v[4], v[6], v[8], v[10], v[12], v[13])
     ),
   })

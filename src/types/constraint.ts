@@ -122,7 +122,7 @@ export type ForeignKeyConstraint = {
   pk_attrs?: PGString[];
   conname?: string;
   fk_attrs?: PGString[];
-  comment?: string;
+  codeComment?: string;
 };
 
 const actionDecoders = either5(
@@ -165,7 +165,7 @@ export type ReferenceConstraint = {
   pk_attrs?: PGString[];
   conname?: string;
   fk_attrs?: PGString[];
-  comment?: string;
+  codeComment?: string;
 };
 
 export const referenceConstraint: Decoder<ReferenceConstraint> = exact({

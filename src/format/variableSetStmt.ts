@@ -11,7 +11,7 @@ export default function variableSetStmt(
     throw new Error();
   }
 
-  return `${comment(variableSetStmt.comment)}SET ${
+  return `${comment(variableSetStmt.codeComment)}SET ${
     variableSetStmt.name
   } = ${aConst(c)};\n`;
 }

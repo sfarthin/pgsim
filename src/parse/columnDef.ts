@@ -32,13 +32,14 @@ export const columnDef: Rule<ColumnDef> = transform(
       ...(listOfConstraints ? { constraints: listOfConstraints } : {}),
       is_local: true,
       location: value[1].pos,
-      comment: combineComments(
+      codeComment: combineComments(
         value[0],
         value[2],
-        value[3].comment,
+        value[3].codeComment,
         value[4],
-        ...(value[5]?.map((e) => combineComments(e[0], e[1].comment, e[2])) ??
-          [])
+        ...(value[5]?.map((e) =>
+          combineComments(e[0], e[1].codeComment, e[2])
+        ) ?? [])
       ),
     };
   }

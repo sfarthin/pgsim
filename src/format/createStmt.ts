@@ -173,7 +173,7 @@ export function toColumn(columnDef: ColumnDef): string {
 
   const constraints = columnDef.constraints?.map((c) => c.Constraint) ?? [];
 
-  return `${comment(columnDef.comment, 1)}\t${colname} ${toType(
+  return `${comment(columnDef.codeComment, 1)}\t${colname} ${toType(
     columnDef
   ).toUpperCase()}${toConstraints(constraints)}`;
 }
@@ -193,7 +193,7 @@ export default function (createStmt: CreateStmt): string {
     ) ?? []
   ).filter((c) => !!c) as Constraint[];
 
-  return `${comment(createStmt.comment)}CREATE TABLE ${
+  return `${comment(createStmt.codeComment)}CREATE TABLE ${
     schemaname ? `${schemaname}.` : ""
   }${tableName} (
 ${[...columnDefs.map(toColumn), ...constraints.map(toTableConstraint)].join(

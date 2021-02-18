@@ -82,7 +82,7 @@ export const indexStmt: Rule<IndexStmt> = transform(
           },
         })),
       ...(v[3] ? { unique: true } : {}),
-      comment: combineComments(
+      codeComment: combineComments(
         v[0],
         v[2],
         v[4],

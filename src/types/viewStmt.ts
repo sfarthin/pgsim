@@ -6,12 +6,12 @@ export type ViewStmt = {
   view: { RangeVar: RangeVar };
   query: { SelectStmt: SelectStmt };
   withCheckOption: number;
-  comment?: string;
+  codeComment?: string;
 };
 
 export const viewStmtDecoder = d.exact({
   view: d.exact({ RangeVar: rangeVarDecoder }),
   query: d.exact({ SelectStmt: selectStmtDecoder }),
   withCheckOption: d.number,
-  comment: d.optional(d.string),
+  codeComment: d.optional(d.string),
 });

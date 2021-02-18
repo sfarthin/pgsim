@@ -176,7 +176,7 @@ const typemod = transform(aConstInteger, (val, ctx) => ({
 
 const typeNameWithTwoParams: Rule<{
   value: TypeName;
-  comment: string;
+  codeComment: string;
 }> = transform(
   sequence([
     colTypeWithDoubleParam,
@@ -199,7 +199,7 @@ const typeNameWithTwoParams: Rule<{
         typmods: [value[4], value[8]],
         location: ctx.pos,
       },
-      comment: combineComments(
+      codeComment: combineComments(
         value[1],
         value[3],
         value[5],
@@ -210,7 +210,10 @@ const typeNameWithTwoParams: Rule<{
   }
 );
 
-const typeNameWithParam: Rule<{ value: TypeName; comment: string }> = transform(
+const typeNameWithParam: Rule<{
+  value: TypeName;
+  codeComment: string;
+}> = transform(
   sequence([colTypeWithParam, __, LPAREN, __, typemod, __, RPAREN]),
   (value, ctx) => {
     return {
@@ -220,14 +223,14 @@ const typeNameWithParam: Rule<{ value: TypeName; comment: string }> = transform(
         typmods: [value[4]],
         location: ctx.pos,
       },
-      comment: combineComments(value[1], value[3], value[5]),
+      codeComment: combineComments(value[1], value[3], value[5]),
     };
   }
 );
 
 const typeNameWithNoParam: Rule<{
   value: TypeName;
-  comment: string;
+  codeComment: string;
 }> = transform(or([colTypeNoParam, identifier]), (value, ctx) => {
   const col = value;
   const typmods = defaultTypeMods[
@@ -257,11 +260,11 @@ const typeNameWithNoParam: Rule<{
       ...(typmods ? { typmods } : {}),
       location: ctx.pos,
     },
-    comment: "",
+    codeComment: "",
   };
 });
 
-export const typeName: Rule<{ value: TypeName; comment: string }> = or([
+export const typeName: Rule<{ value: TypeName; codeComment: string }> = or([
   typeNameWithTwoParams,
   typeNameWithParam,
   typeNameWithNoParam,

@@ -20,7 +20,10 @@ import { rawExpr } from "./rawExpr";
 const modifiedExpr = (ctx: Context) => rawExpr(ctx);
 
 // THis should include equestions and type casts.
-export const funcCall: Rule<{ value: FuncCall; comment: string }> = transform(
+export const funcCall: Rule<{
+  value: FuncCall;
+  codeComment: string;
+}> = transform(
   sequence([
     or([
       transform(constant("pg_catalog.set_config"), (v) => v.value),
@@ -51,11 +54,11 @@ export const funcCall: Rule<{ value: FuncCall; comment: string }> = transform(
         // over?: unknown;
         location: ctx.pos,
       },
-      comment: combineComments(
+      codeComment: combineComments(
         v[1],
         v[3],
-        v[4]?.comment,
-        ...v[5].map((l) => combineComments(l[0], l[2], l[3].comment)),
+        v[4]?.codeComment,
+        ...v[5].map((l) => combineComments(l[0], l[2], l[3].codeComment)),
         v[6]
       ),
     };

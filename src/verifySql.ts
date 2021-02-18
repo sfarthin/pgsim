@@ -46,7 +46,7 @@ function removeComments(stmts: Stmt[]): Stmt[] {
     (stmts.map((stmt) =>
       omitDeep(stmt as object, [
         // Only in new parser
-        "comment",
+        "codeComment",
       ])
     ) as Stmt[])
       // Only in PEGJS parser

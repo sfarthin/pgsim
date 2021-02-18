@@ -21,7 +21,7 @@ export type DropStmtSequence = {
   objects: [[PGString]];
   removeType: RemoveType.SEQUENCE;
   behavior: number;
-  comment?: string;
+  codeComment?: string;
   missing_ok?: boolean;
 };
 
@@ -29,7 +29,7 @@ export type DropStmtTable = {
   objects: [[PGString]];
   removeType: RemoveType.TABLE;
   behavior: number;
-  comment?: string;
+  codeComment?: string;
   missing_ok?: boolean;
 };
 
@@ -37,7 +37,7 @@ export type DropStmtType = {
   objects: [{ TypeName: TypeName }];
   removeType: RemoveType.TYPE;
   behavior: number;
-  comment?: string;
+  codeComment?: string;
   missing_ok?: boolean;
 };
 

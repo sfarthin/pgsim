@@ -25,7 +25,7 @@ export type DefElem =
       };
       defaction: number;
       location: Location;
-      comment?: string;
+      codeComment?: string;
     }
   | {
       defname: "owned_by";
@@ -34,7 +34,7 @@ export type DefElem =
       }[];
       defaction: number;
       location: Location;
-      comment?: string;
+      codeComment?: string;
     };
 
 export const defElemDecoder: Decoder<DefElem> = either(
@@ -50,13 +50,13 @@ export const defElemDecoder: Decoder<DefElem> = either(
     arg: optional(exact({ Integer: exact({ ival: number }) })),
     defaction: number,
     location: locationDecoder,
-    comment: optional(string),
+    codeComment: optional(string),
   }),
   exact({
     defname: constant("owned_by" as const),
     arg: array(exact({ String: exact({ str: string }) })),
     defaction: number,
     location: locationDecoder,
-    comment: optional(string),
+    codeComment: optional(string),
   })
 );

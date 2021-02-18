@@ -47,7 +47,7 @@ export const dropStmt: Rule<DropStmt> = transform(
     endOfStatement,
   ]),
   (value) => {
-    const comment = combineComments(
+    const codeComment = combineComments(
       value[0],
       value[2],
       value[4],
@@ -81,7 +81,7 @@ export const dropStmt: Rule<DropStmt> = transform(
         ] as [{ TypeName: TypeName }],
         removeType: RemoveType.TYPE,
         behavior,
-        comment,
+        codeComment,
         ...(missing_ok ? { missing_ok } : {}),
       } as DropStmtType;
     }
@@ -97,7 +97,7 @@ export const dropStmt: Rule<DropStmt> = transform(
       ] as [[PGString]],
       removeType: type === "SEQUENCE" ? RemoveType.SEQUENCE : RemoveType.TABLE,
       behavior,
-      comment,
+      codeComment,
       ...(missing_ok ? { missing_ok } : {}),
     } as DropStmtSequence | DropStmtTable;
   }

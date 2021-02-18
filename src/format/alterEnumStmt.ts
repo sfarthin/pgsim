@@ -17,12 +17,12 @@ const beforeAndAfter = (c: AlterEnumStmt): string => {
 
 export default function alterEnumStmt(c: AlterEnumStmt): string {
   if ("oldVal" in c) {
-    return `${comment(c.comment)}ALTER TYPE foo RENAME VALUE '${
+    return `${comment(c.codeComment)}ALTER TYPE foo RENAME VALUE '${
       c.oldVal
     }' TO '${c.newVal}';\n`;
   }
 
-  return `${comment(c.comment)}ALTER TYPE ${
+  return `${comment(c.codeComment)}ALTER TYPE ${
     c.typeName[0].String.str
   } ADD VALUE${c.skipIfNewValExists ? " IF NOT EXISTS" : ""} '${
     c.newVal

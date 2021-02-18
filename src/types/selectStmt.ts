@@ -31,7 +31,7 @@ export type SelectStmt = {
   havingClause?: unknown;
   lockingClause?: unknown; // SELECT ctid,cmin,* FROM combocidtest FOR UPDATE;
   sortClause?: unknown;
-  comment?: string;
+  codeComment?: string;
 };
 // | {
 //     op: number;

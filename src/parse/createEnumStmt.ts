@@ -26,14 +26,14 @@ const enumList = transform(
 
 export const createEnumStmt: Rule<CreateEnumStmt> = transform(
   phrase([CREATE, TYPE, identifier, AS, ENUM, enumList, endOfStatement]),
-  ({ comment, value }) => ({
+  ({ codeComment, value }) => ({
     typeName: [{ String: { str: value[2] } }],
-    vals: value[5].value.map(({ value, comment }) => ({
+    vals: value[5].value.map(({ value, codeComment }) => ({
       String: { str: value },
-      comment: finalizeComment(comment),
+      codeComment: finalizeComment(codeComment),
     })),
-    comment: finalizeComment(
-      combineComments(comment, value[5].comment, value[6])
+    codeComment: finalizeComment(
+      combineComments(codeComment, value[5].codeComment, value[6])
     ),
   })
 );

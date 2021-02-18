@@ -3,7 +3,7 @@ import comment from "./comment";
 import rawExpr from "./rawExpr";
 
 export function innerSelect(c: SelectStmt, opts: { numTabs: number }): string {
-  const select = `${comment(c.comment)}SELECT\n\t${c.targetList
+  const select = `${comment(c.codeComment)}SELECT\n\t${c.targetList
     .map((v) => (v.ResTarget?.val ? rawExpr(v.ResTarget?.val) : false))
     .join(", ")}`;
 

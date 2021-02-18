@@ -19,7 +19,7 @@ export type IndexStmt = {
     IndexElem: IndexElem;
   }[];
   unique?: boolean;
-  comment?: string;
+  codeComment?: string;
 };
 
 const indexElemDecoder: d.Decoder<IndexElem> = d.exact({

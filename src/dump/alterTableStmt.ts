@@ -33,9 +33,9 @@ export default function alterTableStmt(
        * ADD_COLUMN
        */
     } else if (cmd.AlterTableCmd.subtype === AlterTableCmdSubType.ADD_COLUMN) {
-      cmd.AlterTableCmd.def.ColumnDef.comment = combineComments(
-        cmd.AlterTableCmd.def.ColumnDef.comment,
-        cmd.AlterTableCmd.comment
+      cmd.AlterTableCmd.def.ColumnDef.codeComment = combineComments(
+        cmd.AlterTableCmd.def.ColumnDef.codeComment,
+        cmd.AlterTableCmd.codeComment
       );
       table.tableElts?.push(cmd.AlterTableCmd.def);
       /**

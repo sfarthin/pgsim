@@ -12,7 +12,7 @@ export type AlterOwnerStmt = {
       location: number;
     };
   };
-  comment?: string;
+  codeComment?: string;
 };
 
 // export const alterOwnerStmtDecoder =
@@ -26,5 +26,5 @@ export const alterOwnerStmtDecoder: d.Decoder<AlterOwnerStmt> = d.exact({
       location: d.number,
     }),
   }),
-  comment: d.optional(d.string),
+  codeComment: d.optional(d.string),
 });

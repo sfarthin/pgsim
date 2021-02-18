@@ -26,7 +26,7 @@ import { tableConstraint } from "./constraint";
 
 const columnDefOrConstraint: Rule<
   | ({ ColumnDef: ColumnDef } | { Constraint: Constraint })[]
-  | { comment: string }
+  | { codeComment: string }
 > = transform(
   sequence([
     zeroToMany(
@@ -45,7 +45,7 @@ const columnDefOrConstraint: Rule<
 
   (v) => {
     if (!v[2]) {
-      return { comment: combineComments(v[1], v[3]) };
+      return { codeComment: combineComments(v[1], v[3]) };
     }
 
     return [
@@ -53,15 +53,15 @@ const columnDefOrConstraint: Rule<
         const columnDefOrTableConstraint = i[1];
         return {
           ...columnDefOrTableConstraint,
-          comment: combineComments(
+          codeComment: combineComments(
             i[0],
-            columnDefOrTableConstraint.comment,
+            columnDefOrTableConstraint.codeComment,
             i[2],
             i[4]
           ),
         };
       }),
-      { ...v[2], comment: combineComments(v[1], v[2].comment, v[3]) },
+      { ...v[2], codeComment: combineComments(v[1], v[2].codeComment, v[3]) },
     ].map((c) => {
       return "colname" in c
         ? {
@@ -108,7 +108,7 @@ export const createStmt: Rule<CreateStmt> = transform(
 
   (value) => {
     //
-    const tableElts = "comment" in value[9] ? [] : value[9];
+    const tableElts = "codeComment" in value[9] ? [] : value[9];
     const relation = value[7];
     const ifNotExists = value[5];
     const comment = combineComments(
@@ -117,7 +117,7 @@ export const createStmt: Rule<CreateStmt> = transform(
       value[4],
       value[6],
       value[8],
-      "comment" in value[9] ? value[9].comment : null,
+      "codeComment" in value[9] ? value[9].codeComment : null,
       value[10]
     );
 
@@ -126,7 +126,7 @@ export const createStmt: Rule<CreateStmt> = transform(
       tableElts,
       oncommit: 0,
       ...(ifNotExists ? { if_not_exists: true } : {}),
-      comment: finalizeComment(comment),
+      codeComment: finalizeComment(comment),
     };
   }
 );

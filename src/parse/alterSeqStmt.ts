@@ -44,10 +44,10 @@ export const alterSeqStmt: Rule<AlterSeqStmt> = transform(
             options: v[2].value.map((b, i) => ({
               DefElem: {
                 ...b.value,
-                comment: finalizeComment(
+                codeComment: finalizeComment(
                   combineComments(
-                    b.comment,
-                    b.value.comment,
+                    b.codeComment,
+                    b.value.codeComment,
 
                     // If this is the last item add the inline comment after semicolon.
                     v[2] && i === v[2].value.length - 1
@@ -59,8 +59,8 @@ export const alterSeqStmt: Rule<AlterSeqStmt> = transform(
             })),
           }
         : {}),
-      comment: finalizeComment(
-        combineComments(v[0].comment, v[1], v[2]?.comment)
+      codeComment: finalizeComment(
+        combineComments(v[0].codeComment, v[1], v[2]?.codeComment)
       ),
     };
   }

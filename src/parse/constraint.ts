@@ -42,11 +42,11 @@ import {
 } from "../types";
 
 const defaultConstraint: Rule<{
-  comment: string;
+  codeComment: string;
   value: DefaultConstraint;
 }> = transform(sequence([DEFAULT, __, rawExpr]), (value, ctx) => {
   return {
-    comment: combineComments(value[1], value[2].comment),
+    codeComment: combineComments(value[1], value[2].codeComment),
     value: {
       contype: ConType.DEFAULT,
       location: ctx.pos,
@@ -56,24 +56,27 @@ const defaultConstraint: Rule<{
 });
 
 const referentialActionOption: Rule<{
-  comment: string;
+  codeComment: string;
   value: "r" | "c" | "n" | "a" | "d";
 }> = or([
-  transform(RESTRICT, () => ({ value: "r", comment: "" })), // r
-  transform(CASCADE, () => ({ value: "c", comment: "" })), // c
+  transform(RESTRICT, () => ({ value: "r", codeComment: "" })), // r
+  transform(CASCADE, () => ({ value: "c", codeComment: "" })), // c
   transform(sequence([SET, __, NULL]), (v) => ({
     value: "n",
-    comment: v[1],
+    codeComment: v[1],
   })), // n
-  transform(sequence([NO, __, ACTION]), (v) => ({ value: "a", comment: v[1] })), // a
+  transform(sequence([NO, __, ACTION]), (v) => ({
+    value: "a",
+    codeComment: v[1],
+  })), // a
   transform(sequence([SET, __, DEFAULT]), (v) => ({
     value: "d",
-    comment: v[1],
+    codeComment: v[1],
   })), // d
 ]);
 
 const referentialActions: Rule<{
-  comment: string;
+  codeComment: string;
   value: {
     fk_del_action?: "a" | "r" | "c" | "n" | "d";
     fk_upd_action?: "a" | "r" | "c" | "n" | "d";
@@ -121,21 +124,21 @@ const referentialActions: Rule<{
 
     return {
       value,
-      comment: combineComments(
+      codeComment: combineComments(
         v[1],
         v[3],
-        v[4].comment,
+        v[4].codeComment,
         v[5]?.[0],
         v[5]?.[2],
         v[5]?.[4],
-        v[5]?.[5].comment
+        v[5]?.[5].codeComment
       ),
     };
   }
 );
 
 const foreignKeyConstraintExtended: Rule<{
-  comment: string;
+  codeComment: string;
   value: ForeignKeyConstraint;
 }> = transform(
   sequence([
@@ -182,7 +185,7 @@ const foreignKeyConstraintExtended: Rule<{
   ]),
   (v, ctx) => {
     return {
-      comment: combineComments(
+      codeComment: combineComments(
         v[0]?.[1],
         v[1],
         v[3],
@@ -236,7 +239,7 @@ const foreignKeyConstraintExtended: Rule<{
 );
 
 const foreignKeyConstraint: Rule<{
-  comment: string;
+  codeComment: string;
   value: ForeignKeyConstraint;
 }> = transform(
   sequence([
@@ -257,7 +260,7 @@ const foreignKeyConstraint: Rule<{
     const pktable = value[2];
     const column = value[4]?.[2];
     return {
-      comment: combineComments(
+      codeComment: combineComments(
         value[1],
         value[3],
         value[4]?.[1],
@@ -288,23 +291,23 @@ const foreignKeyConstraint: Rule<{
 );
 
 const notNullConstraint: Rule<{
-  comment: string;
+  codeComment: string;
   value: NotNullConstraint;
 }> = transform(sequence([NOT, __, NULL]), (value, ctx) => ({
-  comment: value[1],
+  codeComment: value[1],
   value: { contype: ConType.NOT_NULL, location: ctx.pos },
 }));
 
 const nullConstraint: Rule<{
-  comment: string;
+  codeComment: string;
   value: NullConstraint;
 }> = transform(NULL, (v, ctx) => ({
-  comment: "",
+  codeComment: "",
   value: { contype: ConType.NULL, location: ctx.pos },
 }));
 
 const primaryKeyConstraint: Rule<{
-  comment: string;
+  codeComment: string;
   value: PrimaryKeyConstraint;
 }> = transform(
   sequence([
@@ -327,7 +330,7 @@ const primaryKeyConstraint: Rule<{
   ]),
   (value, ctx) => {
     return {
-      comment: combineComments(
+      codeComment: combineComments(
         value[0]?.[1],
         value[1],
         value[3],
@@ -360,7 +363,7 @@ const primaryKeyConstraint: Rule<{
 );
 
 const uniqueConstrant: Rule<{
-  comment: string;
+  codeComment: string;
   value: UniqueConstraint;
 }> = transform(
   sequence([
@@ -380,7 +383,7 @@ const uniqueConstrant: Rule<{
     ),
   ]),
   (v, ctx) => ({
-    comment: "",
+    codeComment: "",
     value: {
       contype: ConType.UNIQUE,
       location: ctx.pos,
@@ -415,7 +418,7 @@ export const constraint = or([
 
 const commaSeperatedIdentifiers: Rule<{
   values: string[];
-  comment: string;
+  codeComment: string;
 }> = transform(
   sequence([
     zeroToMany(sequence([__, identifier, __, COMMA])),
@@ -425,7 +428,7 @@ const commaSeperatedIdentifiers: Rule<{
   ]),
   (v) => {
     return {
-      comment: combineComments(
+      codeComment: combineComments(
         ...v[0].map((e) => combineComments(e[0], e[2])),
         v[1],
         v[3]
@@ -476,7 +479,7 @@ const foreignKeyTableConstraint: Rule<ForeignKeyConstraint> = transform(
 // // ForeignKeyTableConstraint = c1:FOREIGN_KEY csi:CommaSeperatedIdentifiersInParens c2:REFERENCES otherTable:Identifier csi2:CommaSeperatedIdentifiersInParens? {
 //   return {
 //     Constraint: {
-//         comment: combineComments(c1.comment, csi.comment, c2.comment)
+//         codeComment: combineComments(c1.comment, csi.comment, c2.comment)
 //     }
 // }
 // }

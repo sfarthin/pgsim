@@ -20,10 +20,10 @@ export const selectStmt: Rule<SelectStmt> = transform(
     _,
     SELECT,
     __,
-    transform(rawExpr, ({ value, comment }, ctx) => ({
+    transform(rawExpr, ({ value, codeComment }, ctx) => ({
       value,
       pos: ctx.pos,
-      comment,
+      codeComment,
     })),
     optional(
       // 4
@@ -38,10 +38,10 @@ export const selectStmt: Rule<SelectStmt> = transform(
             __,
             WHERE,
             __,
-            transform(rawExpr, ({ value, comment }, ctx) => ({
+            transform(rawExpr, ({ value, codeComment }, ctx) => ({
               value,
               pos: ctx.pos,
-              comment,
+              codeComment,
             })),
           ])
         ),
@@ -52,15 +52,15 @@ export const selectStmt: Rule<SelectStmt> = transform(
   ]),
   (v) => {
     return {
-      comment: combineComments(
+      codeComment: combineComments(
         v[0],
         v[2],
-        v[3].comment,
+        v[3].codeComment,
         v[4]?.[0],
         v[4]?.[2],
         v[4]?.[4]?.[0],
         v[4]?.[4]?.[2],
-        v[4]?.[4]?.[3].comment,
+        v[4]?.[4]?.[3].codeComment,
         v[5]
       ),
       targetList: [

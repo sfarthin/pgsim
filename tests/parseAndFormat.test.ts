@@ -3,8 +3,6 @@ import { readFileSync, readdirSync } from "fs";
 import { join } from "path";
 
 import verify from "../src/verifySql";
-import parse from "../src/parse";
-import format from "../src/format";
 
 Error.stackTraceLimit = 100;
 

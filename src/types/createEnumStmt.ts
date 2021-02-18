@@ -8,9 +8,9 @@ export type CreateEnumStmt = {
     | [{ String: StringValue }, { String: StringValue }];
   vals: {
     String: { str: string };
-    comment?: string;
+    codeComment?: string;
   }[];
-  comment?: string;
+  codeComment?: string;
 };
 
 export const createEnumStmtDecoder: Decoder<CreateEnumStmt> = exact({
@@ -18,6 +18,8 @@ export const createEnumStmtDecoder: Decoder<CreateEnumStmt> = exact({
     tuple1(exact({ String: stringValueDecoder })),
     tuple2(exact({ String: stringValueDecoder }))
   ),
-  vals: array(exact({ String: stringValueDecoder, comment: optional(string) })),
-  comment: optional(string),
+  vals: array(
+    exact({ String: stringValueDecoder, codeComment: optional(string) })
+  ),
+  codeComment: optional(string),
 });

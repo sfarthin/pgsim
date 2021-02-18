@@ -1193,25 +1193,25 @@ const lookForWhiteSpaceOrComment = // we want to ensure the next character is a 
  */
 export function phrase<A>(
   rules: [Rule<A>]
-): Rule<{ value: [A]; comment: string }>;
+): Rule<{ value: [A]; codeComment: string }>;
 export function phrase<A, B>(
   rules: [Rule<A>, Rule<B>]
-): Rule<{ value: [A, B]; comment: string }>;
+): Rule<{ value: [A, B]; codeComment: string }>;
 export function phrase<A, B, C>(
   rules: [Rule<A>, Rule<B>, Rule<C>]
-): Rule<{ value: [A, B, C]; comment: string }>;
+): Rule<{ value: [A, B, C]; codeComment: string }>;
 export function phrase<A, B, C, D>(
   rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>]
-): Rule<{ value: [A, B, C, D]; comment: string }>;
+): Rule<{ value: [A, B, C, D]; codeComment: string }>;
 export function phrase<A, B, C, D, E>(
   rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>]
-): Rule<{ value: [A, B, C, D, E]; comment: string }>;
+): Rule<{ value: [A, B, C, D, E]; codeComment: string }>;
 export function phrase<A, B, C, D, E, F>(
   rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>]
-): Rule<{ value: [A, B, C, D, E, F]; comment: string }>;
+): Rule<{ value: [A, B, C, D, E, F]; codeComment: string }>;
 export function phrase<A, B, C, D, E, F, G>(
   rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>, Rule<G>]
-): Rule<{ value: [A, B, C, D, E, F, G]; comment: string }>;
+): Rule<{ value: [A, B, C, D, E, F, G]; codeComment: string }>;
 export function phrase<A, B, C, D, E, F, G, H>(
   rules: [
     Rule<A>,
@@ -1223,7 +1223,7 @@ export function phrase<A, B, C, D, E, F, G, H>(
     Rule<G>,
     Rule<H>
   ]
-): Rule<{ value: [A, B, C, D, E, F, G, H]; comment: string }>;
+): Rule<{ value: [A, B, C, D, E, F, G, H]; codeComment: string }>;
 export function phrase<A, B, C, D, E, F, G, H, I>(
   rules: [
     Rule<A>,
@@ -1236,7 +1236,7 @@ export function phrase<A, B, C, D, E, F, G, H, I>(
     Rule<H>,
     Rule<I>
   ]
-): Rule<{ value: [A, B, C, D, E, F, G, H, I]; comment: string }>;
+): Rule<{ value: [A, B, C, D, E, F, G, H, I]; codeComment: string }>;
 export function phrase<A, B, C, D, E, F, G, H, I, J>(
   rules: [
     Rule<A>,
@@ -1250,7 +1250,7 @@ export function phrase<A, B, C, D, E, F, G, H, I, J>(
     Rule<I>,
     Rule<J>
   ]
-): Rule<{ value: [A, B, C, D, E, F, G, H, I, J]; comment: string }>;
+): Rule<{ value: [A, B, C, D, E, F, G, H, I, J]; codeComment: string }>;
 export function phrase(rules: Rule<any>[]): Rule<any> {
   const newRules: Rule<any>[] = [_]; // <-- Capture direct comments above
 
@@ -1272,7 +1272,7 @@ export function phrase(rules: Rule<any>[]): Rule<any> {
     const values = result.filter((v, i) => i % 2 === 1);
 
     return {
-      comment: combineComments(...comments),
+      codeComment: combineComments(...comments),
       value: values,
     };
   });
@@ -1302,7 +1302,7 @@ export const commentsOnSameLine = transform(
 export function listWithCommentsPerItem<T>(
   rule: Rule<T>,
   separator?: Rule<unknown>
-): Rule<{ value: { value: T; comment: string }[]; comment: string }> {
+): Rule<{ value: { value: T; codeComment: string }[]; codeComment: string }> {
   // Since we are using recursion, we need to nest this definition.
   return (ctx: Context) => {
     const result = or([
@@ -1322,12 +1322,14 @@ export function listWithCommentsPerItem<T>(
             value: [
               {
                 value: v[1],
-                comment: combineComments(commentForListItem, v[2], v[4]),
+                codeComment: combineComments(commentForListItem, v[2], v[4]),
               },
             ].concat(v[5].value),
             // If there are comments visually seperated lets not associate those comments
             // with a list item.
-            comment: combineComments(...v[0].slice(0, -1).concat(v[5].comment)),
+            codeComment: combineComments(
+              ...v[0].slice(0, -1).concat(v[5].codeComment)
+            ),
           };
         }
       ),
@@ -1336,11 +1338,11 @@ export function listWithCommentsPerItem<T>(
       transform(sequence([_, rule, commentsOnSameLine, __]), (v) => ({
         value: [
           {
-            comment: combineComments(v[0], v[2]),
+            codeComment: combineComments(v[0], v[2]),
             value: v[1],
           },
         ],
-        comment: v[3],
+        codeComment: v[3],
       })),
     ])(ctx);
 
@@ -1351,11 +1353,11 @@ export function listWithCommentsPerItem<T>(
 export function list<T>(
   rule: Rule<T>,
   separator?: Rule<unknown>
-): Rule<{ value: T[]; comment: string }> {
+): Rule<{ value: T[]; codeComment: string }> {
   // Since we are using recursion, we need to nest this definition.
   const newRule: Rule<{
     value: T[];
-    comment: string;
+    codeComment: string;
   }> = (ctx: Context) => {
     return or([
       // Recursion on rule
@@ -1373,7 +1375,7 @@ export function list<T>(
             value: [v[1]].concat(v[5].value),
             // If there are comments visually seperated lets not associate those comments
             // with a list item.
-            comment: combineComments(v[0], v[2], v[4], v[5].comment),
+            codeComment: combineComments(v[0], v[2], v[4], v[5].codeComment),
           };
         }
       ),
@@ -1381,7 +1383,7 @@ export function list<T>(
       // Single rule
       transform(sequence([__, rule, __]), (v) => ({
         value: [v[1]],
-        comment: combineComments(v[0], v[2]),
+        codeComment: combineComments(v[0], v[2]),
       })),
     ])(ctx);
   };
@@ -1602,13 +1604,17 @@ export const identifier: Rule<string> = (ctx: Context) => {
 
 export function maybeInParens<T>(
   rule: Rule<T>
-): Rule<{ value: T; topComment: string; bottomComment: string }> {
+): Rule<{ value: T; topcodeComment: string; bottomcodeComment: string }> {
   return or([
-    transform(rule, (value) => ({ topComment: "", bottomComment: "", value })),
+    transform(rule, (value) => ({
+      topcodeComment: "",
+      bottomcodeComment: "",
+      value,
+    })),
     transform(sequence([LPAREN, __, rule, __, RPAREN]), (v) => ({
-      topComment: v[1],
+      topcodeComment: v[1],
       value: v[2],
-      bottomComment: v[3],
+      bottomcodeComment: v[3],
     })),
   ]);
 }

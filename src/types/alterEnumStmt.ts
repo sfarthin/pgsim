@@ -14,7 +14,7 @@ export type AlterEnumStmt =
       newValIsAfter?: boolean;
       newValNeighbor?: string;
       skipIfNewValExists?: boolean;
-      comment?: string;
+      codeComment?: string;
     }
   | {
       typeName: [
@@ -26,7 +26,7 @@ export type AlterEnumStmt =
       ];
       oldVal: string;
       newVal: string;
-      comment?: string;
+      codeComment?: string;
     };
 
 export const alterEnumStmtDecoder: d.Decoder<AlterEnumStmt> = d.either(
