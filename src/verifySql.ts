@@ -47,6 +47,7 @@ function removeComments(stmts: Stmt[]): Stmt[] {
       omitDeep(stmt as object, [
         // Only in new parser
         "codeComment",
+        "whereClauseCodeComment",
       ])
     ) as Stmt[])
       // Only in PEGJS parser

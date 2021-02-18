@@ -4,14 +4,22 @@ import rawExpr from "./rawExpr";
 
 export function innerSelect(c: SelectStmt, opts: { numTabs: number }): string {
   const select = `${comment(c.codeComment)}SELECT\n\t${c.targetList
-    .map((v) => (v.ResTarget?.val ? rawExpr(v.ResTarget?.val) : false))
+    .map((v) =>
+      v.ResTarget?.val
+        ? `${comment(v.codeComment)}${rawExpr(v.ResTarget?.val)}`
+        : false
+    )
     .join(", ")}`;
 
   const from = c.fromClause
-    ? `\nFROM\n\t${c.fromClause.map((v) => v.RangeVar.relname).join(", ")}`
+    ? `\nFROM\n\t${c.fromClause
+        .map((v) => `${comment(v.codeComment)}${v.RangeVar.relname}`)
+        .join(", ")}`
     : "";
 
-  const where = c.whereClause ? `\nWHERE\n\t${rawExpr(c.whereClause)}` : "";
+  const where = c.whereClause
+    ? `\nWHERE\n\t${comment(c.whereClauseCodeComment)}${rawExpr(c.whereClause)}`
+    : "";
 
   const sql = `${select}${from}${where}`;
 

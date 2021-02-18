@@ -19,9 +19,11 @@ export type SelectStmt = {
   op: number;
   targetList: {
     ResTarget?: ResTarget;
+    codeComment?: string;
   }[];
-  fromClause?: { RangeVar: RangeVar }[];
+  fromClause?: { RangeVar: RangeVar; codeComment?: string }[];
   whereClause?: RawExpr;
+  whereClauseCodeComment?: string;
   groupClause?: unknown;
   withClause?: unknown;
   intoClause?: unknown; // SELECT * INTO TABLE onek2 FROM onek;
@@ -57,9 +59,14 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
   targetList: d.array(
     d.exact({
       ResTarget: resTargetDecoder,
+      codeComment: d.optional(d.string),
     })
   ),
-  fromClause: d.optional(d.array(d.exact({ RangeVar: rangeVarDecoder }))),
+  fromClause: d.optional(
+    d.array(
+      d.exact({ RangeVar: rangeVarDecoder, codeComment: d.optional(d.string) })
+    )
+  ),
   whereClause: d.optional(rawExprDecoder),
   groupClause: d.unknown,
   intoClause: d.unknown,

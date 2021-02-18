@@ -52,23 +52,14 @@ export const selectStmt: Rule<SelectStmt> = transform(
   ]),
   (v) => {
     return {
-      codeComment: combineComments(
-        v[0],
-        v[2],
-        v[3].codeComment,
-        v[4]?.[0],
-        v[4]?.[2],
-        v[4]?.[4]?.[0],
-        v[4]?.[4]?.[2],
-        v[4]?.[4]?.[3].codeComment,
-        v[5]
-      ),
+      codeComment: combineComments(v[0], v[5]),
       targetList: [
         {
           ResTarget: {
             val: v[3].value,
             location: v[3].pos,
           },
+          codeComment: combineComments(v[2], v[3].codeComment, v[4]?.[0]),
         },
       ],
       ...(v[4]?.[3]
@@ -81,6 +72,7 @@ export const selectStmt: Rule<SelectStmt> = transform(
                   relpersistence: "p",
                   location: v[4]?.[3].pos,
                 },
+                codeComment: combineComments(v[4]?.[2], v[4]?.[4]?.[0]),
               },
             ],
           }
@@ -88,6 +80,10 @@ export const selectStmt: Rule<SelectStmt> = transform(
       ...(v[4]?.[4]?.[3]
         ? {
             whereClause: v[4]?.[4]?.[3].value,
+            whereClauseCodeComment: combineComments(
+              v[4]?.[4]?.[2],
+              v[4]?.[4]?.[3].codeComment
+            ),
           }
         : {}),
       op: 0,
