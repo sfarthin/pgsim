@@ -447,9 +447,9 @@ exports[`Parse and format 13-viewStmt.sql 1`] = `
 -- 4
 CREATE VIEW foo AS (
 	-- 5
-	-- 6
 	-- 7
 	SELECT
+		-- 6
 		1
 );
 
@@ -461,18 +461,18 @@ CREATE VIEW myview AS (
 );
 
 CREATE VIEW myview AS (
-	-- 1
-	-- 2
-	-- 3
-	-- 4
-	-- 5
-	-- 6
-	-- 7
 	SELECT
+		-- 1
+		-- 2
 		mycolumn
 	FROM
+		-- 3
+		-- 4
 		mytable
 	WHERE
+		-- 5
+		-- 6
+		-- 7
 		foo = 1
 );
 "

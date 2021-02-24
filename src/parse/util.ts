@@ -1395,6 +1395,7 @@ export function list<T>(
  * Keywords / constants
  */
 const keywordList = [
+  "AND",
   "ACTION",
   "ADD",
   "AFTER",
@@ -1427,6 +1428,7 @@ const keywordList = [
   "NOT",
   "NULL",
   "ON",
+  "OR",
   "ONLY",
   "OWNED",
   "OWNER",
@@ -1482,6 +1484,7 @@ export const DELETE = keyword("DELETE");
 export const UPDATE = keyword("UPDATE");
 
 export const ACTION = keyword("ACTION");
+export const AND = keyword("AND");
 export const ADD = keyword("ADD");
 export const AFTER = keyword("AFTER");
 export const ALTER = keyword("ALTER");
@@ -1512,6 +1515,7 @@ export const NONE = keyword("NONE");
 export const NOT = keyword("NOT");
 export const NULL = keyword("NULL");
 export const ON = keyword("ON");
+export const OR = keyword("OR");
 export const ONLY = keyword("ONLY");
 export const OWNED = keyword("OWNED");
 export const OWNER = keyword("OWNER");
