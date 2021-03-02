@@ -1,5 +1,5 @@
 import * as d from "decoders";
-import { tuple1, tuple2 } from "decoders/tuple";
+import { tuple1 } from "decoders/tuple";
 import { Location, locationDecoder } from "./location";
 import { RawExpr, rawExprDecoder } from "./rawExpr";
 
@@ -12,12 +12,12 @@ export enum BoolOp {
 export type BoolExpr =
   | {
       boolop: BoolOp.NOT;
-      args?: [RawExpr];
+      args: [RawExpr];
       location: Location;
     }
   | {
       boolop: BoolOp.AND | BoolOp.OR;
-      args?: [RawExpr, RawExpr];
+      args: RawExpr[];
       location: Location;
     };
 
@@ -32,10 +32,7 @@ export const boolExprDecoder: d.Decoder<BoolExpr> = d.either(
       d.constant(BoolOp.AND) as d.Decoder<BoolOp.AND>,
       d.constant(BoolOp.OR) as d.Decoder<BoolOp.OR>
     ),
-    args: tuple2(
-      (blob) => rawExprDecoder(blob),
-      (blob) => rawExprDecoder(blob)
-    ),
+    args: d.array((blob) => rawExprDecoder(blob)),
     location: locationDecoder,
   })
 );

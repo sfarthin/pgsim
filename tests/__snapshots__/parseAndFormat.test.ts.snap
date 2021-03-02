@@ -437,6 +437,12 @@ SELECT
 
 SELECT
 	nextval('accounts_id_seq'::regclass);
+
+SELECT
+	NOT FALSE;
+
+SELECT
+	NOT FALSE;
 "
 `;
 

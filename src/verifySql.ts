@@ -90,7 +90,13 @@ export default function verifySql(
       actualAstNoComments[key],
       `AST does not match native parser for statement (${Number(key) + 1} of ${
         astNoComments.length
-      }):\n\n\u001b[44;1m${rawSql.split("\n").join("\n\u001b[44;1m")}\u001b[0m`
+      }):\n\n\u001b[44;1m${rawSql
+        .split("\n")
+        .join("\n\u001b[44;1m")}\u001b[0m\n\n${JSON.stringify(
+        actualAstNoComments[key],
+        null,
+        2
+      )}\n\n${JSON.stringify(astNoComments[key], null, 2)}`
     );
   }
 

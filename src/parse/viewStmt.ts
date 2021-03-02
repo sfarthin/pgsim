@@ -43,9 +43,9 @@ export const viewStmt: Rule<ViewStmt> = transform(
         ...v[9].value,
         codeComment: combineComments(
           v[8],
-          v[9].topcodeComment,
+          v[9].topCodeComment,
           v[9].value.codeComment,
-          v[9].bottomcodeComment,
+          v[9].bottomCodeComment,
           v[10]
         ),
       },

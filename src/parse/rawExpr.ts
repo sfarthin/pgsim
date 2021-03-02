@@ -10,6 +10,7 @@ import {
   AND,
   __,
   combineComments,
+  maybeInParens,
 } from "./util";
 import { aConst } from "./aConst";
 import { typeCast } from "./typeCast";
@@ -22,6 +23,7 @@ import { notBoolExpr } from "./boolExpr";
 const rawExprBasic: Rule<{
   value: RawExpr;
   codeComment: string;
+  hasParens?: boolean;
 }> = or([
   transform(typeCast, (TypeCast) => ({
     value: { TypeCast },
@@ -42,9 +44,10 @@ const rawExprBasic: Rule<{
   })),
 ]);
 
-export const rawExpr: Rule<{
+const _rawExpr: Rule<{
   value: RawExpr;
   codeComment: string;
+  hasParens?: boolean;
 }> = transform(
   sequence([
     rawExprBasic,
@@ -65,12 +68,20 @@ export const rawExpr: Rule<{
         ),
 
         // AND / OR
-        transform(
-          sequence([__, or([OR, AND]), __, (blob) => rawExpr(blob)]),
-          (value, ctx) => {
-            return { BoolExpr: { value, ctx } };
-          }
-        ),
+        or([
+          transform(
+            sequence([__, AND, __, (blob) => rawExpr(blob)]),
+            (value, ctx) => {
+              return { BoolExpr: { value, ctx } };
+            }
+          ),
+          transform(
+            sequence([__, OR, __, (blob) => rawExpr(blob)]),
+            (value, ctx) => {
+              return { BoolExpr: { value, ctx } };
+            }
+          ),
+        ]),
 
         // aExpr
         transform(
@@ -111,16 +122,70 @@ export const rawExpr: Rule<{
           },
         };
       } else if ("BoolExpr" in s[1]) {
-        const { value: v, ctx } = s[1].BoolExpr;
+        const { value: v } = s[1].BoolExpr;
+        const boolop = v[1].value === "OR" ? BoolOp.OR : BoolOp.AND;
+
+        // AND has precendence over OR, so lets organize it accordingly
+        // SELECT TRUE AND FALSE OR TRUE;
+        if (
+          boolop === BoolOp.AND &&
+          "BoolExpr" in v[3].value &&
+          v[3].value.BoolExpr.boolop === BoolOp.OR &&
+          !v[3].hasParens
+        ) {
+          // Lets make sure we condense AND
+          // SELECT TRUE AND TRUE AND FALSE OR TRUE;
+          const subArgs =
+            "BoolExpr" in v[3].value.BoolExpr.args[0] &&
+            v[3].value.BoolExpr.args[0].BoolExpr.boolop === BoolOp.AND
+              ? v[3].value.BoolExpr.args[0].BoolExpr.args
+              : [v[3].value.BoolExpr.args[0]];
+
+          const result: { value: RawExpr; codeComment: string } = {
+            value: {
+              BoolExpr: {
+                boolop: BoolOp.OR,
+                args: [
+                  {
+                    BoolExpr: {
+                      boolop: BoolOp.AND,
+                      args: [firstRawExpr.value, ...subArgs],
+                      location: v[1].start,
+                    },
+                  }, // <-- Will be set below
+                  ...v[3].value.BoolExpr.args.slice(1),
+                ],
+                location: v[3].value.BoolExpr.location,
+              },
+            },
+            codeComment: combineComments(
+              firstRawExpr.codeComment,
+              v[0],
+              v[2],
+              v[3].codeComment
+            ),
+          };
+          return result;
+        }
+
+        // Lets condense if we multiple OR statements
+        const nextArgs =
+          "BoolExpr" in v[3].value &&
+          v[3].value.BoolExpr &&
+          v[3].value.BoolExpr.boolop === boolop &&
+          !v[3].hasParens
+            ? v[3].value.BoolExpr.args
+            : [v[3].value];
+
         return {
           value: {
             BoolExpr: {
-              boolop: v[1].value === "OR" ? BoolOp.OR : BoolOp.AND,
+              boolop,
               args: [
                 firstRawExpr.value, // <-- Will be set below
-                v[3].value,
+                ...nextArgs,
               ],
-              location: ctx.pos,
+              location: v[1].start,
             },
           },
           codeComment: combineComments(
@@ -161,3 +226,20 @@ export const rawExpr: Rule<{
     return s[0];
   }
 );
+
+export const rawExpr: Rule<{
+  value: RawExpr;
+  codeComment: string;
+  hasParens?: boolean;
+}> = or([
+  _rawExpr,
+  transform(maybeInParens(_rawExpr), (v) => ({
+    value: v.value.value,
+    codeComment: combineComments(
+      v.topCodeComment,
+      v.value.codeComment,
+      v.bottomCodeComment
+    ),
+    hasParens: true,
+  })),
+]);

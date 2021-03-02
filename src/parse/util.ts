@@ -1608,17 +1608,17 @@ export const identifier: Rule<string> = (ctx: Context) => {
 
 export function maybeInParens<T>(
   rule: Rule<T>
-): Rule<{ value: T; topcodeComment: string; bottomcodeComment: string }> {
+): Rule<{ value: T; topCodeComment: string; bottomCodeComment: string }> {
   return or([
     transform(rule, (value) => ({
-      topcodeComment: "",
-      bottomcodeComment: "",
+      topCodeComment: "",
+      bottomCodeComment: "",
       value,
     })),
     transform(sequence([LPAREN, __, rule, __, RPAREN]), (v) => ({
-      topcodeComment: v[1],
+      topCodeComment: v[1],
       value: v[2],
-      bottomcodeComment: v[3],
+      bottomCodeComment: v[3],
     })),
   ]);
 }
