@@ -1,5 +1,6 @@
 import { CreateEnumStmt } from "../types";
 import comment from "./comment";
+import { NEWLINE, TAB } from "./whitespace";
 
 export default function variableSetStmt(
   createEnumStmt: CreateEnumStmt
@@ -7,7 +8,7 @@ export default function variableSetStmt(
   // console.log(JSON.stringify(createEnumStmt, null, 2));
   return `${comment(createEnumStmt.codeComment)}CREATE TYPE ${
     createEnumStmt.typeName[0].String.str
-  } AS ENUM (\n${createEnumStmt.vals
-    .map((s) => `${comment(s.codeComment, 1)}\t'${s.String.str}'`)
-    .join(",\n")}\n);\n`;
+  } AS ENUM (${NEWLINE}${createEnumStmt.vals
+    .map((s) => `${comment(s.codeComment, 1)}${TAB}'${s.String.str}'`)
+    .join(`,${NEWLINE}`)}${NEWLINE});${NEWLINE}`;
 }

@@ -5,6 +5,7 @@ import formatCreateStmt from "../format/createStmt";
 
 import alterTableStmt from "./alterTableStmt";
 import createStmt from "./createStmt";
+import { NEWLINE } from "../format/whitespace";
 
 export default function dump(input: string | Stmt[]): string {
   // Since we mutate the ast, make sure we clone a fresh version coming in.
@@ -38,6 +39,6 @@ export default function dump(input: string | Stmt[]): string {
         )
         // Print create statement
         .map(formatCreateStmt),
-    ].join("\n")
+    ].join(NEWLINE)
   );
 }

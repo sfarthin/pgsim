@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { NEWLINE } from "../format/whitespace";
 /**
  * Types
  */
@@ -1046,7 +1047,7 @@ export function or<T>(rules: Rule<any>[]): Rule<any> {
 }
 
 export function finalizeComment(str: string) {
-  const lines = str.split("\n");
+  const lines = str.split(NEWLINE);
 
   const stripAmount = lines.reduce((n, l) => {
     // console.log("--->", l.match(/[^\s]/i)?.index);
@@ -1057,27 +1058,27 @@ export function finalizeComment(str: string) {
   if (stripAmount > 0) {
     return lines
       .map((l) => l.substring(stripAmount))
-      .join("\n")
+      .join(NEWLINE)
       .trim()
-      .replace(/\n\s*\n/, "\n");
+      .replace(/\n\s*\n/, NEWLINE);
   }
-  return str.trim().replace(/\n\s*\n/, "\n");
+  return str.trim().replace(/\n\s*\n/, NEWLINE);
 }
 
 export function combineComments(...c: (string | null | undefined)[]) {
   return c
     .filter(Boolean)
     .map((s) => s ?? "")
-    .join("\n");
+    .join(NEWLINE);
   // .replace(/\n\s*\n\s*\n/gi, "\n\n");
   // .replace(/^[\s\n\t ]*\n/, "")
   // .replace(/\n[\s\n\t ]*$/, "");
 }
 
-const newline = constant("\n");
+const newline = constant(NEWLINE);
 newline.identifier = "newline";
 
-const notNewline = notConstant("\n");
+const notNewline = notConstant(NEWLINE);
 notNewline.identifier = "!newline";
 
 export const cStyleComment = transform(
@@ -1091,7 +1092,7 @@ export const cStyleComment = transform(
     combineComments(
       v[1]
         .join("")
-        .replace(/\n[\s\t ]*\*/gi, "\n")
+        .replace(/\n[\s\t ]*\*/gi, NEWLINE)
         .replace(/^[\s\n\t ]*\*/, "")
         .replace(/\n$/, "")
     ).trim() // we can trim individual cStyle comments because they are unlikey to be indented with other comments.
@@ -1103,7 +1104,7 @@ export const cStyleCommentWithoutNewline = transform(
     combineComments(
       v[1]
         .join("")
-        .replace(/\n[\s\t ]*\*/gi, "\n")
+        .replace(/\n[\s\t ]*\*/gi, NEWLINE)
         .replace(/^[\s\n\t ]*\*/, "")
         .replace(/\n$/, "")
     ).trim()

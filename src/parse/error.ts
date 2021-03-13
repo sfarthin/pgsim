@@ -8,6 +8,8 @@ import {
   identifier,
 } from "./util";
 import { Stmt } from "../types";
+import c from "ansi-colors";
+import { NEWLINE } from "../format/whitespace";
 
 const indent = ({
   lines,
@@ -34,7 +36,7 @@ const indent = ({
       .map(() => " ")
       .join("");
 
-    return `\u001b[34m${prefixSpaces}${startLine + i + 1}\u001b[0m`;
+    return c.green(`${prefixSpaces}${startLine + i + 1}`);
   };
 
   return lines
@@ -48,15 +50,13 @@ const indent = ({
           printLineNumber(i) +
           "    " +
           s.substring(0, column.start) +
-          "\u001b[41;1m" +
-          s.substring(column.start, column.end) +
-          "\u001b[0m" +
+          c.red(s.substring(column.start, column.end)) +
           s.substring(column.end)
         );
       }
       return `${printLineNumber(i)}    ${s}`;
     })
-    .join("\n");
+    .join(NEWLINE);
 };
 
 const NUM_CONTEXT_LINES_BEFORE = 4;
@@ -69,12 +69,12 @@ export const toLineAndColumn = (str: string, pos: number) => {
     .split("")
     .reverse()
     .join("")
-    .indexOf("\n");
+    .indexOf(NEWLINE);
 
   return { line: line, column: column === -1 ? pos : column };
 };
 
-const findNextToken = (str: string, _pos: number) => {
+export const findNextToken = (str: string, _pos: number) => {
   // Lets ignore whitespace and comments.
   const ctx = {
     pos: _pos,
@@ -106,19 +106,13 @@ export const getFriendlyErrorMessage = ({
   filename,
   str,
   result,
-  expectedAst,
-}: {
+}: // expectedAst,
+{
   filename: string;
   str: string;
   result: FailResult;
   expectedAst?: Stmt | undefined;
 }): string => {
-  // console.log(
-  //   result,
-  //   toLineAndColumn(str, result.expected[0].pos),
-  //   toLineAndColumn(str, result.pos)
-  // );
-
   let expected = result.expected
     .filter(
       (v) =>
@@ -132,9 +126,11 @@ export const getFriendlyErrorMessage = ({
   const message =
     expected.length < 3
       ? `Expected ${expected.join(" or ")}`
-      : `Expected one of the following:\n - ${expected.join("\n - ")}`;
+      : `Expected one of the following:${NEWLINE} - ${expected.join(
+          `${NEWLINE} - `
+        )}`;
 
-  const lines = str.split("\n");
+  const lines = str.split(NEWLINE);
   const nextToken = findNextToken(str, pos);
   const start = toLineAndColumn(str, nextToken.start);
   const end = toLineAndColumn(str, nextToken.end);
@@ -144,14 +140,14 @@ export const getFriendlyErrorMessage = ({
   let error = "";
   error += `Parse error${filename ? ` in ${filename}` : ""}(${start.line + 1},${
     start.column + 1
-  }): ${message}\n`;
-  error += "\n";
+  }): ${message}${NEWLINE}`;
+  error += NEWLINE;
   error +=
     indent({
       lines: lines.slice(start.line - NUM_CONTEXT_LINES_BEFORE, start.line),
       prefixNumeralLength,
       startLine: start.line - NUM_CONTEXT_LINES_BEFORE,
-    }) + "\n";
+    }) + NEWLINE;
   error +=
     indent({
       lines: [lines[start.line]], // < -- highlight one line at most.
@@ -161,17 +157,21 @@ export const getFriendlyErrorMessage = ({
         start: start.column,
         end: end.line === start.line ? end.column : 999999, // <-- go to end of line if token spans multiple lines.
       },
-    }) + "\n";
+    }) + NEWLINE;
   error +=
     indent({
       lines: lines.slice(start.line + 1, start.line + NUM_CONTEXT_LINES_AFTER),
       prefixNumeralLength,
       startLine: start.line + 1,
-    }) + "\n";
-  if (expectedAst) {
-    error += `\n\n${JSON.stringify(expectedAst.RawStmt.stmt, null, 2)}`;
-  }
-  error += "\n";
+    }) + NEWLINE;
+  // if (expectedAst) {
+  //   error += `${NEWLINE}${NEWLINE}${JSON.stringify(
+  //     expectedAst.RawStmt.stmt,
+  //     null,
+  //     2
+  //   )}`;
+  // }
+  error += NEWLINE;
 
   return error;
 };

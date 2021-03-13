@@ -4,3 +4,4 @@
 
 # Lets not include the native Parser
 ./dist/nativeParse
+./dist/tests

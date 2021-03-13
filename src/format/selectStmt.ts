@@ -1,14 +1,15 @@
 import { SelectStmt } from "../types/selectStmt";
 import comment from "./comment";
 import rawExpr from "./rawExpr";
+import { NEWLINE, TAB } from "./whitespace";
 
 const indent = (numTabs: number, sql: string) => {
-  const introTabs = [...new Array(numTabs)].map(() => "\t").join("");
-  return `${introTabs}${sql.split("\n").join(`\n${introTabs}`)}`;
+  const introTabs = [...new Array(numTabs)].map(() => TAB).join("");
+  return `${introTabs}${sql.split(NEWLINE).join(`${NEWLINE}${introTabs}`)}`;
 };
 
 export function innerSelect(c: SelectStmt, opts: { numTabs: number }): string {
-  const select = `${comment(c.codeComment)}SELECT\n${indent(
+  const select = `${comment(c.codeComment)}SELECT${NEWLINE}${indent(
     1,
     c.targetList
       .map((v) =>
@@ -20,7 +21,7 @@ export function innerSelect(c: SelectStmt, opts: { numTabs: number }): string {
   )}`;
 
   const from = c.fromClause
-    ? `\nFROM\n${indent(
+    ? `${NEWLINE}FROM${NEWLINE}${indent(
         1,
         c.fromClause
           .map((v) => `${comment(v.codeComment)}${v.RangeVar.relname}`)
@@ -29,7 +30,7 @@ export function innerSelect(c: SelectStmt, opts: { numTabs: number }): string {
     : "";
 
   const where = c.whereClause
-    ? `\nWHERE\n${indent(
+    ? `${NEWLINE}WHERE${NEWLINE}${indent(
         1,
         `${comment(c.whereClauseCodeComment)}${rawExpr(c.whereClause)}`
       )}`
@@ -42,5 +43,5 @@ export function innerSelect(c: SelectStmt, opts: { numTabs: number }): string {
 }
 
 export default function (c: SelectStmt): string {
-  return `${innerSelect(c, { numTabs: 0 })};\n`;
+  return `${innerSelect(c, { numTabs: 0 })};${NEWLINE}`;
 }

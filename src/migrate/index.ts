@@ -2,6 +2,7 @@ import { CreateStmt } from "../types";
 import dump from "../dump";
 import parse from "../parse";
 import createStmt from "./createStmt";
+import { NEWLINE } from "../format/whitespace";
 
 export default function migrate(
   from: string,
@@ -33,5 +34,5 @@ export default function migrate(
 
   migration.push(createStmt(fromCreateStmt, toCreateStmt));
 
-  return migration.filter(Boolean).join("\n");
+  return migration.filter(Boolean).join(NEWLINE);
 }

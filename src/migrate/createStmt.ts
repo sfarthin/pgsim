@@ -1,6 +1,7 @@
 import { ColumnDef, ConType, CreateStmt, DefaultConstraint } from "../types";
 import formatCreateStmt, { toType } from "../format/createStmt";
 import formatRawExpr from "../format/rawExpr";
+import { NEWLINE } from "../format/whitespace";
 
 function alterCmds(fromTable: CreateStmt, toTable: CreateStmt): string[] {
   const cmds: string[] = [];
@@ -101,5 +102,5 @@ export default function createStmt(
     }
   }
 
-  return migration.filter(Boolean).join("\n");
+  return migration.filter(Boolean).join(NEWLINE);
 }

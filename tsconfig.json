@@ -1,4 +1,16 @@
 {
-  "extends": "./tsconfig.build.json",
+  "compilerOptions": {
+    // Tells TypeScript to read JS files, as
+    // normally they are ignored as source files
+    "allowJs": true,
+    "module": "commonjs",
+    "target": "es5",
+    "esModuleInterop": true,
+    "strict": true,
+    "declaration": true,
+    "baseUrl": ".",
+    "noEmit": true
+  },
+
   "include": ["src/**/*"]
 }

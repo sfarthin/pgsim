@@ -1,11 +1,7 @@
 import { CreateStmt, ColumnDef, Constraint } from "../types";
 import comment from "./comment";
 import toConstraints, { toTableConstraint } from "./constraint";
-
-// export function toTypeMod(columnDef: ColumnDef):string {
-//   if(columnDef.typeName)
-
-// }
+import { NEWLINE, TAB } from "./whitespace";
 
 export function toType(columnDef: ColumnDef): string {
   const names = columnDef.typeName.TypeName.names
@@ -173,7 +169,7 @@ export function toColumn(columnDef: ColumnDef): string {
 
   const constraints = columnDef.constraints?.map((c) => c.Constraint) ?? [];
 
-  return `${comment(columnDef.codeComment, 1)}\t${colname} ${toType(
+  return `${comment(columnDef.codeComment, 1)}${TAB}${colname} ${toType(
     columnDef
   ).toUpperCase()}${toConstraints(constraints)}`;
 }
@@ -197,7 +193,7 @@ export default function (createStmt: CreateStmt): string {
     schemaname ? `${schemaname}.` : ""
   }${tableName} (
 ${[...columnDefs.map(toColumn), ...constraints.map(toTableConstraint)].join(
-  ",\n"
+  `,${NEWLINE}`
 )}
-);\n`;
+);${NEWLINE}`;
 }

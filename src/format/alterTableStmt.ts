@@ -3,6 +3,7 @@ import comment from "./comment";
 import rawExpr from "./rawExpr";
 import { toType } from "./createStmt";
 import toConstraints from "./constraint";
+import { NEWLINE, TAB } from "./whitespace";
 
 function alterTableCmd(c: AlterTableCmd): string {
   switch (c.subtype) {
@@ -32,12 +33,12 @@ export default function alterSeqStmt(c: AlterTableStmt): string {
   const name = c.relation.RangeVar.relname;
   return `${comment(c.codeComment)}ALTER TABLE${
     c.missing_ok ? " IF EXISTS" : ""
-  }${!c.relation.RangeVar.inh ? " ONLY" : ""} ${name} \n${c.cmds
+  }${!c.relation.RangeVar.inh ? " ONLY" : ""} ${name} ${NEWLINE}${c.cmds
     ?.map(
       (e) =>
-        `${comment(e.AlterTableCmd.codeComment, 1)}\t${alterTableCmd(
+        `${comment(e.AlterTableCmd.codeComment, 1)}${TAB}${alterTableCmd(
           e.AlterTableCmd
         )}`
     )
-    .join(",\n")};\n`;
+    .join(`,${NEWLINE}`)};${NEWLINE}`;
 }

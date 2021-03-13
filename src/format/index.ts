@@ -14,6 +14,8 @@ import { Stmt, StatementType } from "../types";
 import { toLineAndColumn } from "../parse/error";
 import indexStmt from "./indexStmt";
 import parse from "../parse";
+import c from "ansi-colors";
+import { NEWLINE } from "./whitespace";
 
 type Opts = {
   ignore?: StatementType[];
@@ -98,7 +100,11 @@ export default function format(_stmts: Stmt[] | string, opts?: Opts): string {
           }`;
         }
 
-        e.message = `${e.message}\n\n${JSON.stringify(stmt, null, 2)}`;
+        e.message = `${e.message}${NEWLINE}${NEWLINE}${JSON.stringify(
+          stmt,
+          null,
+          2
+        )}`;
 
         // Lets show the statement from the original SQL.
         // Useful in debugging.
@@ -106,13 +112,15 @@ export default function format(_stmts: Stmt[] | string, opts?: Opts): string {
           const start = stmt.RawStmt.stmt_location ?? 0;
           const end = stmt.RawStmt.stmt_len ?? 99999;
           const rawSql = opts?.sql.substring(start, start + end);
-          e.message = `${e.message}\n\n\u001b[44;1m${rawSql
-            .split("\n")
-            .map((s) => `\u001b[44;1m${s}\u001b[0m`)
-            .join("\n")}`;
+          e.message = `${e.message}${NEWLINE}${NEWLINE}${c.cyan(
+            rawSql
+              .split(NEWLINE)
+              .map((s) => s)
+              .join(NEWLINE)
+          )}`;
         }
         throw e;
       }
     })
-    .join("\n");
+    .join(NEWLINE);
 }

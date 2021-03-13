@@ -1,5 +1,6 @@
 import { BoolExpr, BoolOp } from "../types";
 import rawExpr from "./rawExpr";
+import { NEWLINE } from "./whitespace";
 
 export default function (c: BoolExpr, includeParens?: boolean): string {
   if (c.boolop === BoolOp.NOT) {
@@ -14,7 +15,7 @@ export default function (c: BoolExpr, includeParens?: boolean): string {
 
   const result = c.args
     .map((a) => rawExpr(a, shouldIncludeParensInNestedCondition))
-    .join(` ${OP}\n`);
+    .join(` ${OP}${NEWLINE}`);
 
   if (includeParens) {
     return `(${result})`;

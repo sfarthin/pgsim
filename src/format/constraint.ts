@@ -1,5 +1,6 @@
 import { Constraint, ConType } from "../types";
 import rawExpr from "./rawExpr";
+import { TAB } from "./whitespace";
 
 function referentialActionOption(v: "r" | "c" | "n" | "a" | "d") {
   switch (v) {
@@ -87,7 +88,7 @@ export default function (
 export function toTableConstraint(constraint: Constraint): string {
   switch (constraint.contype) {
     case ConType.FOREIGN_KEY:
-      return `\tFOREIGN KEY (${constraint.fk_attrs
+      return `${TAB}FOREIGN KEY (${constraint.fk_attrs
         ?.map((v) => v.String.str)
         .join(", ")}) REFERENCES ${
         constraint.pktable.RangeVar.relname

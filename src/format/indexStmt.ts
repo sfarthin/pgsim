@@ -1,5 +1,6 @@
 import { IndexStmt } from "../types";
 import comment from "./comment";
+import { NEWLINE } from "./whitespace";
 
 export default function (c: IndexStmt): string {
   return `${comment(c.codeComment)}CREATE${c.unique ? " UNIQUE" : ""} INDEX${
@@ -8,5 +9,5 @@ export default function (c: IndexStmt): string {
     c.accessMethod && c.accessMethod !== "btree"
       ? ` USING ${c.accessMethod}`
       : ""
-  } (${c.indexParams.map((v) => v.IndexElem.name).join(", ")});\n`;
+  } (${c.indexParams.map((v) => v.IndexElem.name).join(", ")});${NEWLINE}`;
 }

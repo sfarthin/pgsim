@@ -1,8 +1,9 @@
 import { optional, array, string, guard, exact, unknown } from "decoders";
 import { stmtDecoder, Stmt } from "../types";
-// @ts-expect-error - No declaration
+// @ts-expect-error
 import { parse as pgParse } from "pg-query-native-latest";
 import { toLineAndColumn } from "../parse/error";
+import { NEWLINE } from "../format/whitespace";
 
 export const parserResultDecoder = exact({
   // This is unknown because Error messages are hard to read if we do this here, we validate each query seperately
@@ -19,7 +20,9 @@ export default function parse(sql: string, filename: string): Stmt[] {
 
   if (stderr || error) {
     if (error) {
-      throw new Error(`${sql}\n\n${filename}: ${String(error)}`);
+      throw new Error(
+        `${sql}${NEWLINE}${NEWLINE}${filename}: ${String(error)}`
+      );
     } else {
       throw new Error(stderr || "");
     }
@@ -35,7 +38,11 @@ export default function parse(sql: string, filename: string): Stmt[] {
       const { line, column } = toLineAndColumn(sql, startAst);
       e.message = `Error decoding AST in ${filename}(${line + 1}, ${
         column + 1
-      }) -- ${e.message}\n\n${JSON.stringify(s, null, 2)}\n\n${originalSql}`;
+      }) -- ${e.message}${NEWLINE}${NEWLINE}${JSON.stringify(
+        s,
+        null,
+        2
+      )}${NEWLINE}${NEWLINE}${originalSql}`;
       throw e;
     }
   });

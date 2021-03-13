@@ -1,6 +1,7 @@
 import { VariableSetStmt } from "../types";
 import aConst from "./aConst";
 import comment from "./comment";
+import { NEWLINE } from "./whitespace";
 
 export default function variableSetStmt(
   variableSetStmt: VariableSetStmt
@@ -13,5 +14,5 @@ export default function variableSetStmt(
 
   return `${comment(variableSetStmt.codeComment)}SET ${
     variableSetStmt.name
-  } = ${aConst(c)};\n`;
+  } = ${aConst(c)};${NEWLINE}`;
 }
