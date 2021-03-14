@@ -11,8 +11,6 @@ import {
   __,
   combineComments,
   maybeInParens,
-  LPAREN,
-  RPAREN,
 } from "./util";
 import { aConst } from "./aConst";
 import { typeCast } from "./typeCast";
@@ -21,10 +19,35 @@ import { RawExpr, BoolOp, BoolExpr } from "../types";
 import { columnRef } from "./columnRef";
 import { notBoolExpr } from "./boolExpr";
 
-// Move logic here.
-// Lets make sure we condense AND
-// SELECT TRUE AND TRUE AND FALSE OR TRUE;
-function condenseNestedBoolExpressions(boolExpr: BoolExpr): BoolExpr {
+// Pur parser will nest each bool argument in a BoolExpr, but we want to keep them all flat in args.
+// SELECT FALSE AND FALSE AND FALSE;
+function condenseBoolArguments(
+  exisitingArgs: RawExpr[],
+  boolop: BoolOp,
+  hasParens: boolean
+) {
+  if (hasParens) {
+    return exisitingArgs;
+  }
+
+  let args: RawExpr[] = [];
+  for (const arg of exisitingArgs) {
+    if ("BoolExpr" in arg && boolop === arg.BoolExpr.boolop) {
+      // If the operation is the same, lets flatten this structure.
+      args = args.concat(arg.BoolExpr.args);
+    } else {
+      args.push(arg);
+    }
+  }
+
+  return args;
+}
+
+// We need to make some rearranging to make sure our AST matches postgres.
+function condenseNestedBoolExpressions(
+  boolExpr: BoolExpr,
+  { hasParens }: { hasParens: boolean }
+): BoolExpr {
   // Since "AND" takes precedence, if the child is an "OR", lets move it to the top
   // SELECT TRUE AND FALSE OR TRUE
   //        ^^^^^^^^^^^^^^
@@ -34,7 +57,8 @@ function condenseNestedBoolExpressions(boolExpr: BoolExpr): BoolExpr {
   if (
     "BoolExpr" in boolExpr.args[1] &&
     boolExpr.boolop === BoolOp.AND && // If Parent is AND
-    boolExpr.args[1].BoolExpr.boolop === BoolOp.OR // Child is OR
+    boolExpr.args[1].BoolExpr.boolop === BoolOp.OR && // Child is OR
+    !hasParens
   ) {
     return {
       boolop: BoolOp.OR,
@@ -48,26 +72,26 @@ function condenseNestedBoolExpressions(boolExpr: BoolExpr): BoolExpr {
             //     v[3].value.BoolExpr.args[0].BoolExpr.boolop === BoolOp.AND
             //       ? v[3].value.BoolExpr.args[0].BoolExpr.args
             //       : [v[3].value.BoolExpr.args[0]];
-            args: [boolExpr.args[0], boolExpr.args[1].BoolExpr.args[0]],
+            args: condenseBoolArguments(
+              [boolExpr.args[0], boolExpr.args[1].BoolExpr.args[0]],
+              BoolOp.AND
+            ),
           },
         },
-        ...boolExpr.args[1].BoolExpr.args.slice(1),
+        ...condenseBoolArguments(
+          boolExpr.args[1].BoolExpr.args.slice(1),
+          BoolOp.OR
+        ),
       ],
       location: boolExpr.args[1].BoolExpr.location,
     };
   }
 
-  let args: RawExpr[] = [];
-  for (const arg of boolExpr.args) {
-    if ("BoolExpr" in arg && boolExpr.boolop === arg.BoolExpr.boolop) {
-      // If the operation is the same, lets flatten this structure.
-      args = args.concat(arg.BoolExpr.args);
-    } else {
-      args.push(arg);
-    }
-  }
-
-  boolExpr.args = args;
+  boolExpr.args = condenseBoolArguments(
+    boolExpr.args,
+    boolExpr.boolop,
+    hasParens
+  );
   return boolExpr;
 }
 
@@ -103,11 +127,13 @@ const _rawExpr: Rule<{
 }> = transform(
   sequence([
     or([
+      // We do rawExprBasic here to prevent circular call stacks.
       rawExprBasic,
-      transform(
-        sequence([LPAREN, __, (blob) => _rawExpr(blob), __, RPAREN]),
-        (v) => ({ ...v[2], hasParens: true })
-      ),
+      // We can use _rawExpr since we are matching parens here.
+      // transform(
+      //   sequence([LPAREN, __, (blob) => _rawExpr(blob), __, RPAREN]),
+      //   (v) => ({ ...v[2], hasParens: true })
+      // ),
     ]),
     optional(
       or([
@@ -239,14 +265,17 @@ const _rawExpr: Rule<{
 
         return {
           value: {
-            BoolExpr: condenseNestedBoolExpressions({
-              boolop,
-              args: [
-                firstRawExpr.value, // <-- Will be set below
-                v[3].value,
-              ],
-              location: v[1].start,
-            }),
+            BoolExpr: condenseNestedBoolExpressions(
+              {
+                boolop,
+                args: [
+                  firstRawExpr.value, // <-- Will be set below
+                  v[3].value,
+                ],
+                location: v[1].start,
+              },
+              { hasParens: !!v[3].hasParens }
+            ),
           },
           codeComment: combineComments(
             firstRawExpr.codeComment,
@@ -298,5 +327,5 @@ export const rawExpr: Rule<{
     v.value.codeComment,
     v.bottomCodeComment
   ),
-  hasParens: true,
+  hasParens: v.hasParens,
 }));

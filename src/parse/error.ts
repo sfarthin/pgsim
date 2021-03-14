@@ -138,9 +138,11 @@ export const getFriendlyErrorMessage = ({
   const prefixNumeralLength = end.line.toString().length;
 
   let error = "";
-  error += `Parse error${filename ? ` in ${filename}` : ""}(${start.line + 1},${
-    start.column + 1
-  }): ${message}${NEWLINE}`;
+  error += `Parse error${
+    filename ? ` in ${c.magenta(filename)}` : ""
+  }(${c.magenta(String(start.line + 1))},${c.magenta(
+    String(start.column + 1)
+  )}): ${message}${NEWLINE}`;
   error += NEWLINE;
   error +=
     indent({
