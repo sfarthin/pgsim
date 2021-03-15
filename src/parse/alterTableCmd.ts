@@ -6,7 +6,7 @@ import {
   AlterTableDropColumn,
   AlterTableAddConstraint,
 } from "../types";
-import { rawExpr } from "./rawExpr";
+import { rawValue } from "./rawExpr";
 import {
   sequence,
   transform,
@@ -159,7 +159,7 @@ const alterTableSetDefault: Rule<AlterTableSetDefault> = transform(
     __,
     DEFAULT,
     __, // 10
-    rawExpr,
+    (ctx) => rawValue(ctx),
     __,
   ]),
   (v) => {

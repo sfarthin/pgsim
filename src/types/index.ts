@@ -44,6 +44,7 @@ export * from "./typeCast";
 export * from "./typeName";
 export * from "./variableSetStmt";
 export * from "./viewStmt";
+export * from "./rowExpr";
 
 export type Stmt = {
   RawStmt: {

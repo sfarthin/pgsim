@@ -139,10 +139,10 @@ export default function parseAndFormat(
         `${basename(filename)}:${line + 1}`
       )} (Statement ${Number(key) + 1} of ${
         astNoComments.length
-      })${NEWLINE}${NEWLINE}Correct:${NEWLINE}${c.blue(
-        originalSql.split(NEWLINE).join(NEWLINE)
+      })${NEWLINE}${NEWLINE}Correct:${NEWLINE}${c.yellow(
+        originalSql.trim()
       )}${NEWLINE}${NEWLINE}Formatter:${NEWLINE}${c.yellow(
-        formattedSqlStmt.split(NEWLINE).join(NEWLINE)
+        formattedSqlStmt.trim()
       )}`
     );
   }

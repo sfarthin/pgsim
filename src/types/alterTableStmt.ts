@@ -17,7 +17,7 @@ import {
   columnDefDecoder,
 } from "./createStmt";
 import { Constraint, constraintDecoder } from "./constraint";
-import { RawExpr, rawExprDecoder } from "./rawExpr";
+import { rawValueDecoder, RawValue } from "./rawExpr";
 import { PGString } from "./constant";
 
 export enum AlterTableCmdSubType {
@@ -365,7 +365,7 @@ export const alterTableAttachPartitionDecoder: Decoder<AlterTableAttachPartition
 export type AlterTableSetDefault = {
   subtype: AlterTableCmdSubType.SET_DEFAULT;
   name: string;
-  def?: RawExpr;
+  def?: RawValue;
   behavior: number;
   codeComment?: string;
 };
@@ -376,7 +376,7 @@ export const alterTableSetDefaultDecoder: Decoder<AlterTableSetDefault> = exact(
       AlterTableCmdSubType.SET_DEFAULT
     ) as Decoder<AlterTableCmdSubType.SET_DEFAULT>,
     name: string,
-    def: (blob) => rawExprDecoder(blob),
+    def: (blob) => rawValueDecoder(blob),
     behavior: number,
     codeComment: optional(string),
   }

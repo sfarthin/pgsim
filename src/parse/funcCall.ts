@@ -12,12 +12,9 @@ import {
   combineComments,
   or,
   constant,
-  Context,
 } from "./util";
 import { FuncCall } from "../types";
-import { rawExpr } from "./rawExpr";
-
-const modifiedExpr = (ctx: Context) => rawExpr(ctx);
+import { rawValue } from "./rawExpr";
 
 // THis should include equestions and type casts.
 export const funcCall: Rule<{
@@ -32,8 +29,8 @@ export const funcCall: Rule<{
     __,
     LPAREN,
     __,
-    optional(modifiedExpr), // 4
-    zeroToMany(sequence([__, COMMA, __, modifiedExpr])), //5
+    optional((ctx) => rawValue(ctx)), // 4
+    zeroToMany(sequence([__, COMMA, __, (ctx) => rawValue(ctx)])), //5
     __,
     RPAREN,
   ]),

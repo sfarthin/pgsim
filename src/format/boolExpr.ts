@@ -9,9 +9,9 @@ export default function (c: BoolExpr, includeParens?: boolean): string {
 
   const OP = c.boolop === BoolOp.AND ? "AND" : "OR";
 
-  const lastArg = c.args[c.args.length - 1];
-  const shouldIncludeParensInNestedCondition =
-    "BoolExpr" in lastArg && lastArg.BoolExpr.boolop === BoolOp.OR;
+  const shouldIncludeParensInNestedCondition = c.args.some(
+    (arg) => "BoolExpr" in arg && arg.BoolExpr.boolop === BoolOp.OR
+  );
 
   const result = c.args
     .map((a) => rawExpr(a, shouldIncludeParensInNestedCondition))

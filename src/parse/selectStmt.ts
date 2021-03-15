@@ -12,7 +12,7 @@ import {
   identifier,
   WHERE,
 } from "./util";
-import { rawExpr } from "./rawExpr";
+import { rawCondition } from "./rawExpr";
 import { SelectStmt } from "../types";
 
 export const selectStmt: Rule<SelectStmt> = transform(
@@ -20,11 +20,14 @@ export const selectStmt: Rule<SelectStmt> = transform(
     _,
     SELECT,
     __,
-    transform(rawExpr, ({ value, codeComment }, ctx) => ({
-      value,
-      pos: ctx.pos,
-      codeComment,
-    })),
+    transform(
+      (ctx) => rawCondition(ctx),
+      ({ value, codeComment }, ctx) => ({
+        value,
+        pos: ctx.pos,
+        codeComment,
+      })
+    ),
     optional(
       // 4
       sequence([
@@ -38,11 +41,14 @@ export const selectStmt: Rule<SelectStmt> = transform(
             __,
             WHERE,
             __,
-            transform(rawExpr, ({ value, codeComment }, ctx) => ({
-              value,
-              pos: ctx.pos,
-              codeComment,
-            })),
+            transform(
+              (ctx) => rawCondition(ctx),
+              ({ value, codeComment }, ctx) => ({
+                value,
+                pos: ctx.pos,
+                codeComment,
+              })
+            ),
           ])
         ),
       ])

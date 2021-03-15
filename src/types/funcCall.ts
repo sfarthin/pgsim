@@ -10,13 +10,12 @@ import {
 } from "decoders";
 import { PGString, stringDecoder } from "./constant";
 import { Location, locationDecoder } from "./location";
-import { RawExpr } from "./rawExpr";
-import { rawExprDecoder } from "./rawExpr";
+import { RawValue, rawValueDecoder } from "./rawExpr";
 
 export type FuncCall = {
   funcname: PGString[];
   agg_star?: boolean;
-  args?: RawExpr[];
+  args?: RawValue[];
   func_variadic?: boolean; // select concat(variadic array [1,2,3])
   agg_distinct?: boolean;
   over?: unknown;
@@ -26,7 +25,7 @@ export type FuncCall = {
 export const funcCallDecoder: Decoder<FuncCall> = either3(
   exact({
     funcname: array(stringDecoder),
-    args: optional(array((blob) => rawExprDecoder(blob))),
+    args: optional(array((blob) => rawValueDecoder(blob))),
     func_variadic: optional(boolean),
     agg_distinct: optional(boolean),
     over: optional(mixed),

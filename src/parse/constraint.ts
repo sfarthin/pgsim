@@ -29,7 +29,7 @@ import {
   DELETE,
   UPDATE,
 } from "./util";
-import { rawExpr } from "./rawExpr";
+import { rawValue } from "./rawExpr";
 import {
   DefaultConstraint,
   // ReferenceConstraint,
@@ -44,16 +44,19 @@ import {
 const defaultConstraint: Rule<{
   codeComment: string;
   value: DefaultConstraint;
-}> = transform(sequence([DEFAULT, __, rawExpr]), (value, ctx) => {
-  return {
-    codeComment: combineComments(value[1], value[2].codeComment),
-    value: {
-      contype: ConType.DEFAULT,
-      location: ctx.pos,
-      raw_expr: value[2].value,
-    },
-  };
-});
+}> = transform(
+  sequence([DEFAULT, __, (ctx) => rawValue(ctx)]),
+  (value, ctx) => {
+    return {
+      codeComment: combineComments(value[1], value[2].codeComment),
+      value: {
+        contype: ConType.DEFAULT,
+        location: ctx.pos,
+        raw_expr: value[2].value,
+      },
+    };
+  }
+);
 
 const referentialActionOption: Rule<{
   codeComment: string;

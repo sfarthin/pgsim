@@ -1,4 +1,4 @@
-import { Decoder, unknown } from "decoders";
+import * as d from "decoders";
 import dispatch from "./dispatch";
 
 import { A_Const, aConstDecoder } from "./constant";
@@ -7,40 +7,59 @@ import { FuncCall, funcCallDecoder } from "./funcCall";
 import { ColumnRef, columnRefDecoder } from "./columnRef";
 import { BoolExpr, boolExprDecoder } from "./boolExpr";
 import { AExpr, aExprDecoder } from "./aExpr";
-import { BooleanTest, booleanTestDecoder } from "./booleanTest";
-import { NullTest, nullTestDecoder } from "./nullTest";
+// import { BooleanTest, booleanTestDecoder } from "./booleanTest";
+// import { NullTest, nullTestDecoder } from "./nullTest";
+import { RowExpr, rowExprDecoder } from "./rowExpr";
 
-export type RawExpr =
-  | { ColumnRef: ColumnRef }
-  | { FuncCall: FuncCall }
-  | { A_Const: A_Const }
-  | { TypeCast: TypeCast }
-  | { BoolExpr: BoolExpr }
-  | { A_Expr: AExpr }
-  | { BooleanTest: BooleanTest }
-  | { NullTest: NullTest }
-  | { CaseExpr?: unknown }
-  | { SubLink?: unknown }
-  | { SQLValueFunction?: unknown }
-  | { CoalesceExpr?: unknown }
-  | { MinMaxExpr?: unknown }
-  | { A_Indirection?: unknown }
-  | { A_ArrayExpr?: unknown };
+export type RawValue =
+  | { ColumnRef: ColumnRef } // myTable.myColumn
+  | { FuncCall: FuncCall } // foo()
+  | { A_Const: A_Const } // 'foo' ... 1 ... 0.9
+  | { TypeCast: TypeCast } // 'adasd':text
+  | { RowExpr: RowExpr }; // (1,2,3,4)
 
-export const rawExprDecoder: Decoder<RawExpr> = dispatch({
+export const rawValueDecoder: d.Decoder<RawValue> = dispatch({
+  ColumnRef: (blob) => columnRefDecoder(blob),
+  FuncCall: (blob) => funcCallDecoder(blob),
   A_Const: (blob) => aConstDecoder(blob),
   TypeCast: (blob) => typeCastDecoder(blob),
+  RowExpr: (blob) => rowExprDecoder(blob),
+});
+
+// | { NullTest: NullTest }; // something is NULL;
+// | { BooleanTest: BooleanTest }
+// | { CaseExpr?: unknown }
+// | { SubLink?: unknown }
+// | { SQLValueFunction?: unknown }
+// | { CoalesceExpr?: unknown }
+// | { MinMaxExpr?: unknown }
+// | { A_Indirection?: unknown }
+// | { A_ArrayExpr?: unknown };
+
+export type RawCondition =
+  | RawValue
+  | { BoolExpr: BoolExpr } // something AND something
+  | { A_Expr: AExpr }; // foo in (1,2,3) ... or 1 = 1
+
+export const rawConditionDecoder: d.Decoder<RawCondition> = dispatch({
+  // RawValue
+  ColumnRef: (blob) => columnRefDecoder(blob),
   FuncCall: (blob) => funcCallDecoder(blob),
+  A_Const: (blob) => aConstDecoder(blob),
+  TypeCast: (blob) => typeCastDecoder(blob),
+  RowExpr: (blob) => rowExprDecoder(blob),
+
+  // RawCondition
   BoolExpr: (blob) => boolExprDecoder(blob),
   A_Expr: (blob) => aExprDecoder(blob),
-  BooleanTest: (blob) => booleanTestDecoder(blob), // someting IS true
-  NullTest: (blob) => nullTestDecoder(blob), // something is NULL
-  ColumnRef: (blob) => columnRefDecoder(blob),
-  CaseExpr: unknown,
-  SubLink: unknown,
-  SQLValueFunction: unknown,
-  CoalesceExpr: unknown,
-  MinMaxExpr: unknown,
-  A_Indirection: unknown,
-  A_ArrayExpr: unknown,
+
+  // NullTest: (blob) => nullTestDecoder(blob),
+  // BooleanTest: (blob) => booleanTestDecoder(blob), // someting IS true
+  // CaseExpr: unknown,
+  // SubLink: unknown,
+  // SQLValueFunction: unknown,
+  // CoalesceExpr: unknown,
+  // MinMaxExpr: unknown,
+  // A_Indirection: unknown,
+  // A_ArrayExpr: unknown,
 });

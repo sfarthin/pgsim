@@ -1,21 +1,11 @@
 import { BoolExpr, BoolOp } from "../types";
-import { rawExpr as _rawExpr } from "./rawExpr";
-import {
-  sequence,
-  transform,
-  Rule,
-  __,
-  combineComments,
-  NOT,
-  Context,
-} from "./util";
-
-const rawExpr = (ctx: Context) => _rawExpr(ctx);
+import { rawValue } from "./rawExpr";
+import { sequence, transform, Rule, __, combineComments, NOT } from "./util";
 
 export const notBoolExpr: Rule<{
   value: BoolExpr;
   codeComment: string;
-}> = transform(sequence([NOT, __, rawExpr]), (v, ctx) => {
+}> = transform(sequence([NOT, __, (ctx) => rawValue(ctx)]), (v, ctx) => {
   return {
     value: {
       boolop: BoolOp.NOT,

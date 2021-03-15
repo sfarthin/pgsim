@@ -11,7 +11,12 @@ import {
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { PGString, stringDecoder } from "./constant";
 import { tuple1 } from "./tuple1";
-import { RawExpr, rawExprDecoder } from "./rawExpr";
+import {
+  RawCondition,
+  RawValue,
+  rawValueDecoder,
+  rawConditionDecoder,
+} from "./rawExpr";
 import { Location, locationDecoder } from "./location";
 import { dispatchByField } from "./dispatch";
 
@@ -78,13 +83,13 @@ export const notNullConstraintDecoder: Decoder<NotNullConstraint> = exact({
 export type DefaultConstraint = {
   contype: ConType.DEFAULT;
   location: Location;
-  raw_expr: RawExpr;
+  raw_expr: RawValue;
 };
 
 export const defaultConstraintDecoder: Decoder<DefaultConstraint> = exact({
   contype: constant(ConType.DEFAULT) as Decoder<ConType.DEFAULT>,
   location: locationDecoder,
-  raw_expr: (blob) => rawExprDecoder(blob),
+  raw_expr: (blob) => rawValueDecoder(blob),
 });
 
 /**
@@ -191,7 +196,7 @@ export type CheckConstraint = {
   contype: ConType.CHECK;
   conname: string;
   location: Location;
-  raw_expr: RawExpr;
+  raw_expr: RawCondition;
   skip_validation?: boolean;
   initially_valid?: boolean;
 };
@@ -200,7 +205,7 @@ export const CheckConstraintDecoder: Decoder<CheckConstraint> = exact({
   contype: constant(ConType.CHECK) as Decoder<ConType.CHECK>,
   conname: string,
   location: locationDecoder,
-  raw_expr: rawExprDecoder,
+  raw_expr: rawConditionDecoder,
   skip_validation: optional(boolean),
   initially_valid: optional(boolean),
 });

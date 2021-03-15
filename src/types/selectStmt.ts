@@ -1,17 +1,17 @@
 import * as d from "decoders";
 import { Location, locationDecoder } from "./location";
-import { rawExprDecoder, RawExpr } from "./rawExpr";
+import { rawConditionDecoder, RawCondition } from "./rawExpr";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 
 export type ResTarget = {
   name?: string;
-  val: RawExpr;
+  val: RawCondition;
   location: Location;
 };
 
 export const resTargetDecoder: d.Decoder<ResTarget> = d.exact({
   name: d.optional(d.string),
-  val: rawExprDecoder,
+  val: rawConditionDecoder,
   location: locationDecoder,
 });
 
@@ -22,7 +22,7 @@ export type SelectStmt = {
     codeComment?: string;
   }[];
   fromClause?: { RangeVar: RangeVar; codeComment?: string }[];
-  whereClause?: RawExpr;
+  whereClause?: RawCondition;
   whereClauseCodeComment?: string;
   groupClause?: unknown;
   withClause?: unknown;
@@ -67,7 +67,7 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
       d.exact({ RangeVar: rangeVarDecoder, codeComment: d.optional(d.string) })
     )
   ),
-  whereClause: d.optional(rawExprDecoder),
+  whereClause: d.optional(rawConditionDecoder),
   groupClause: d.unknown,
   intoClause: d.unknown,
   withClause: d.unknown,
