@@ -2,6 +2,7 @@ import * as d from "decoders";
 import { stringDecoder, PGString } from "./constant";
 import { Location, locationDecoder } from "./location";
 import { RawValue, rawValueDecoder } from "./rawExpr";
+import { dispatchByField } from "./dispatch";
 
 // https://doxygen.postgresql.org/parsenodes_8h.html#a41cee9367d9d92ec6b4ee0bbc0df09fd
 // AEXPR_OP,                   /* normal operator */
@@ -23,18 +24,35 @@ export enum AExprKind {
   AEXPR_IN = 7, // IN - name must be "=" or "<>"
 }
 
-export type AExpr = {
-  kind: AExprKind;
-  name: PGString[];
-  lexpr: RawValue;
-  rexpr: RawValue;
-  location: Location;
-};
+export type AExpr =
+  | {
+      kind: AExprKind.AEXPR_OP;
+      name: PGString[];
+      lexpr: RawValue;
+      rexpr: RawValue;
+      location: Location;
+    }
+  | {
+      kind: AExprKind.AEXPR_IN;
+      name: PGString[];
+      lexpr: RawValue;
+      rexpr: RawValue[];
+      location: Location;
+    };
 
-export const aExprDecoder: d.Decoder<AExpr> = d.exact({
-  kind: d.oneOf(Object.values(AExprKind)) as d.Decoder<AExprKind>,
-  name: d.array(stringDecoder),
-  lexpr: (blob) => rawValueDecoder(blob),
-  rexpr: (blob) => rawValueDecoder(blob),
-  location: locationDecoder,
+export const aExprDecoder: d.Decoder<AExpr> = dispatchByField("kind", {
+  [AExprKind.AEXPR_OP]: d.exact({
+    kind: d.oneOf(Object.values(AExprKind)) as d.Decoder<AExprKind.AEXPR_OP>,
+    name: d.array(stringDecoder),
+    lexpr: (blob) => rawValueDecoder(blob),
+    rexpr: (blob) => rawValueDecoder(blob),
+    location: locationDecoder,
+  }),
+  [AExprKind.AEXPR_IN]: d.exact({
+    kind: d.oneOf(Object.values(AExprKind)) as d.Decoder<AExprKind.AEXPR_IN>,
+    name: d.array(stringDecoder),
+    lexpr: (blob) => rawValueDecoder(blob),
+    rexpr: d.array((blob) => rawValueDecoder(blob)),
+    location: locationDecoder,
+  }),
 });

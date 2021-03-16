@@ -50,6 +50,11 @@ export type Rule<R> = ((c: Context) => RuleResult<R>) & {
 };
 
 const expectedReducer = (acc: Expected[], e: Expected): Expected[] => {
+  // Lets ignore these comment and whitespace characters.
+  if (['"/*"', '"--"', "/[ \\t\\r\\n]/", "/[ \\t\\r]/"].includes(e.value)) {
+    return acc;
+  }
+
   // If this is the first one use it.
   // If the error is furthor along, then use that one.
   if (!acc[0] || acc[0].pos < e.pos) {
@@ -1041,7 +1046,7 @@ export function or<T>(rules: Rule<any>[]): Rule<any> {
     return {
       type: ResultType.Fail,
       expected,
-      pos: expected[0].pos,
+      pos: expected?.[0]?.pos,
     };
   };
 }
@@ -1660,7 +1665,7 @@ export const endOfStatement = transform(
   or([
     endOfInput,
     // Lets also eagerly goble up semicolons
-    zeroToMany(
+    oneToMany(
       sequence([
         SEMICOLON,
         // Lets include all the comments on the same line as the semicolumn

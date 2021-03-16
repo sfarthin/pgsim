@@ -113,12 +113,7 @@ export const getFriendlyErrorMessage = ({
   result: FailResult;
   expectedAst?: Stmt | undefined;
 }): string => {
-  let expected = result.expected
-    .filter(
-      (v) =>
-        !['"/*"', '"--"', "/[ \\t\\r\\n]/", "/[ \\t\\r]/"].includes(v.value)
-    )
-    .map((v) => v.value);
+  let expected = result.expected.map((v) => v.value);
   expected = expected.filter((v, i) => expected.indexOf(v) === i).sort();
 
   const pos = result.expected.length ? result.expected[0].pos : result.pos;

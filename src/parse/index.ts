@@ -167,7 +167,7 @@ export default function parse(
     return result.value.reduce(reduceComments, []);
   }
 
-  throw new Error(
+  const error = new Error(
     getFriendlyErrorMessage({
       filename,
       str: context.str,
@@ -175,4 +175,8 @@ export default function parse(
       expectedAst: expectedAst[context.endOfStatement.length],
     })
   );
+
+  error.result = result;
+
+  throw error;
 }

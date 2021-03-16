@@ -15,9 +15,9 @@ import {
 import { rawCondition } from "./rawExpr";
 import { SelectStmt } from "../types";
 
-export const selectStmt: Rule<SelectStmt> = transform(
+// We need to make endOfStatement optional, for use with viewStmt.
+export const select: Rule<SelectStmt> = transform(
   sequence([
-    _,
     SELECT,
     __,
     transform(
@@ -52,47 +52,53 @@ export const selectStmt: Rule<SelectStmt> = transform(
           ])
         ),
       ])
-    ), // 4
-
-    endOfStatement,
+    ),
   ]),
   (v) => {
     return {
-      codeComment: combineComments(v[0], v[5]),
+      codeComment: "",
       targetList: [
         {
           ResTarget: {
-            val: v[3].value,
-            location: v[3].pos,
+            val: v[2].value,
+            location: v[2].pos,
           },
-          codeComment: combineComments(v[2], v[3].codeComment, v[4]?.[0]),
+          codeComment: combineComments(v[1], v[2].codeComment, v[3]?.[0]),
         },
       ],
-      ...(v[4]?.[3]
+      ...(v[3]?.[3]
         ? {
             fromClause: [
               {
                 RangeVar: {
-                  relname: v[4]?.[3].value,
+                  relname: v[3]?.[3].value,
                   inh: true,
                   relpersistence: "p",
-                  location: v[4]?.[3].pos,
+                  location: v[3]?.[3].pos,
                 },
-                codeComment: combineComments(v[4]?.[2], v[4]?.[4]?.[0]),
+                codeComment: combineComments(v[3]?.[2], v[3]?.[4]?.[0]),
               },
             ],
           }
         : {}),
-      ...(v[4]?.[4]?.[3]
+      ...(v[3]?.[4]?.[3]
         ? {
-            whereClause: v[4]?.[4]?.[3].value,
+            whereClause: v[3]?.[4]?.[3].value,
             whereClauseCodeComment: combineComments(
-              v[4]?.[4]?.[2],
-              v[4]?.[4]?.[3].codeComment
+              v[3]?.[4]?.[2],
+              v[3]?.[4]?.[3].codeComment
             ),
           }
         : {}),
       op: 0,
     };
   }
+);
+
+export const selectStmt: Rule<SelectStmt> = transform(
+  sequence([_, select, endOfStatement]),
+  (v) => ({
+    ...v[1],
+    codeComment: combineComments(v[0], v[1].codeComment, v[2]),
+  })
 );

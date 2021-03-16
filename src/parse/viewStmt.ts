@@ -13,7 +13,7 @@ import {
   _,
 } from "./util";
 import { ViewStmt } from "../types";
-import { selectStmt } from "./selectStmt";
+import { select } from "./selectStmt";
 
 export const viewStmt: Rule<ViewStmt> = transform(
   sequence([
@@ -26,7 +26,8 @@ export const viewStmt: Rule<ViewStmt> = transform(
     __, // 6
     AS,
     __,
-    maybeInParens(selectStmt),
+    maybeInParens(select),
+    __,
     endOfStatement,
   ]),
   (v) => ({
@@ -46,7 +47,8 @@ export const viewStmt: Rule<ViewStmt> = transform(
           v[9].topCodeComment,
           v[9].value.codeComment,
           v[9].bottomCodeComment,
-          v[10]
+          v[10],
+          v[11]
         ),
       },
     },
