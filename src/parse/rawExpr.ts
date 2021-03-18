@@ -17,7 +17,7 @@ import {
 import { aConst } from "./aConst";
 import { typeCast } from "./typeCast";
 import { funcCall } from "./funcCall";
-import { RawValue, RawCondition, BoolOp, BoolExpr } from "../types";
+import { RawValue, RawCondition, BoolOp, BoolExpr, AExprKind } from "../types";
 import { columnRef } from "./columnRef";
 import { notBoolExpr } from "./boolExpr";
 import { rowExpr } from "./rowExpr";
@@ -221,6 +221,10 @@ export const rawCondition: Rule<{
             return { A_Expr: { value, ctx } };
           }
         ),
+
+        transform(sequence([__, constant("in"), __, rowExpr]), (value, ctx) => {
+          return { A_Expr: { value, ctx, in: true } };
+        }),
       ])
     ),
   ]),
@@ -254,30 +258,57 @@ export const rawCondition: Rule<{
           ),
         };
       } else if ("A_Expr" in s[1]) {
-        const { value: v } = s[1].A_Expr;
-        return {
-          codeComment: combineComments(
-            firstRawExpr.codeComment,
-            v[0],
-            v[2],
-            v[3].codeComment
-          ),
-          value: {
-            A_Expr: {
-              kind: 0,
-              name: [
-                {
-                  String: {
-                    str: v[1].value,
+        if ("in" in s[1].A_Expr) {
+          const { value: v } = s[1].A_Expr;
+          return {
+            codeComment: combineComments(
+              firstRawExpr.codeComment,
+              v[0],
+              v[2],
+              v[3].codeComment
+            ),
+            value: {
+              A_Expr: {
+                kind: AExprKind.AEXPR_IN,
+                name: [
+                  {
+                    String: {
+                      str: "=",
+                    },
                   },
-                },
-              ],
-              lexpr: firstRawExpr.value as RawValue, // TODO ... this currently allows "(1 AND 1) = 'foo'". Fix in the future.
-              rexpr: v[3].value,
-              location: v[1].start,
+                ],
+                lexpr: firstRawExpr.value as RawValue, // TODO ... this currently allows "(1 AND 1) = 'foo'". Fix in the future.
+                rexpr: v[3].value.args,
+                location: v[1].start,
+              },
             },
-          },
-        };
+          };
+        } else {
+          const { value: v } = s[1].A_Expr;
+          return {
+            codeComment: combineComments(
+              firstRawExpr.codeComment,
+              v[0],
+              v[2],
+              v[3].codeComment
+            ),
+            value: {
+              A_Expr: {
+                kind: AExprKind.AEXPR_OP,
+                name: [
+                  {
+                    String: {
+                      str: "=",
+                    },
+                  },
+                ],
+                lexpr: firstRawExpr.value as RawValue, // TODO ... this currently allows "(1 AND 1) = 'foo'". Fix in the future.
+                rexpr: v[3].value,
+                location: v[1].start,
+              },
+            },
+          };
+        }
       }
     }
 

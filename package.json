@@ -10,10 +10,10 @@
     "generate": "echo 'todo'",
     "build": "rm -rf ./dist && swc src -d dist",
     "lint": "tsc && eslint --ext .ts .",
-    "test": "yarn build && node ./dist/tests/parseAndFormat.js && node ./dist/tests/migrateAndDump.js",
+    "test": "yarn build && node ./dist/tests/parseAndFormat.js && node ./dist/tests/migrateAndDump.js && node ./dist/tests/errorAndAutocomplete.js",
     "testParseAndFormat": "yarn build && node ./dist/tests/parseAndFormat.js",
-    "testMigrateAndDump": "yarn build && node ./dist/tests/migrateAndDump.js"
-
+    "testMigrateAndDump": "yarn build && node ./dist/tests/migrateAndDump.js",
+    "testErrorAndAutocomplete": "yarn build && node ./dist/tests/errorAndAutocomplete.js"
   },
   "devDependencies": {
     "@swc/cli": "^0.1.35",

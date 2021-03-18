@@ -10,6 +10,7 @@ import { AExpr, aExprDecoder } from "./aExpr";
 // import { BooleanTest, booleanTestDecoder } from "./booleanTest";
 // import { NullTest, nullTestDecoder } from "./nullTest";
 import { RowExpr, rowExprDecoder } from "./rowExpr";
+import { SubLink, subLinkDecoder } from "./subLink";
 
 export type RawValue =
   | { ColumnRef: ColumnRef } // myTable.myColumn
@@ -39,7 +40,8 @@ export const rawValueDecoder: d.Decoder<RawValue> = dispatch({
 export type RawCondition =
   | RawValue
   | { BoolExpr: BoolExpr } // something AND something
-  | { A_Expr: AExpr }; // foo in (1,2,3) ... or 1 = 1
+  | { A_Expr: AExpr } // foo in (1,2,3) ... or 1 = 1
+  | { SubLink: SubLink };
 
 export const rawConditionDecoder: d.Decoder<RawCondition> = dispatch({
   // RawValue
@@ -52,6 +54,7 @@ export const rawConditionDecoder: d.Decoder<RawCondition> = dispatch({
   // RawCondition
   BoolExpr: (blob) => boolExprDecoder(blob),
   A_Expr: (blob) => aExprDecoder(blob),
+  SubLink: (blob) => subLinkDecoder(blob),
 
   // NullTest: (blob) => nullTestDecoder(blob),
   // BooleanTest: (blob) => booleanTestDecoder(blob), // someting IS true

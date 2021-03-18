@@ -12,7 +12,7 @@ export default function errorAndAutocomplete(
   sql: string,
   filename: string
 ): void {
-  const matches = sql.split(/-- @statement (.*)/);
+  const matches = sql.split(/-- @@error-statement (.*)/);
 
   let lines = (matches[0].match(/\n/gi)?.length ?? 0) + 1;
 

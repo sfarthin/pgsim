@@ -11,7 +11,7 @@ export type ResTarget = {
 
 export const resTargetDecoder: d.Decoder<ResTarget> = d.exact({
   name: d.optional(d.string),
-  val: rawConditionDecoder,
+  val: (blob) => rawConditionDecoder(blob),
   location: locationDecoder,
 });
 
@@ -67,7 +67,7 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
       d.exact({ RangeVar: rangeVarDecoder, codeComment: d.optional(d.string) })
     )
   ),
-  whereClause: d.optional(rawConditionDecoder),
+  whereClause: d.optional((blob) => rawConditionDecoder(blob)),
   groupClause: d.unknown,
   intoClause: d.unknown,
   withClause: d.unknown,
