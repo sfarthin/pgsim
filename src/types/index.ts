@@ -39,6 +39,7 @@ export * from "./nullTest";
 export * from "./rangeVar";
 export * from "./rawExpr";
 export * from "./selectStmt";
+export * from "./subLink";
 export * from "./tuple1";
 export * from "./typeCast";
 export * from "./typeName";

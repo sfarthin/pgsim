@@ -176,7 +176,5 @@ export default function parse(
     })
   );
 
-  error.result = result;
-
   throw error;
 }
