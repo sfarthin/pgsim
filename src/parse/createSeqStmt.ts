@@ -12,7 +12,6 @@ import {
   combineComments,
   sequence,
   commentsOnSameLine,
-  finalizeComment,
 } from "./util";
 import { CreateSeqStmt, RangeVar } from "../types";
 import { defElem } from "./defElem";
@@ -47,29 +46,25 @@ export const createSeqStmt: Rule<CreateSeqStmt> = transform(
             options: v[2].value.map((b, i) => ({
               DefElem: {
                 ...b.value,
-                codeComment: finalizeComment(
-                  combineComments(
-                    b.codeComment,
-                    b.value.codeComment,
+                codeComment: combineComments(
+                  b.codeComment,
+                  b.value.codeComment,
 
-                    // If this is the last item add the inline comment after semicolon.
-                    v[2] && i === v[2].value.length - 1
-                      ? inlineCommentAfterSemiColon
-                      : ""
-                  )
+                  // If this is the last item add the inline comment after semicolon.
+                  v[2] && i === v[2].value.length - 1
+                    ? inlineCommentAfterSemiColon
+                    : ""
                 ),
               },
             })),
           }
         : {}),
       ...(v[0].value[2] !== null ? { if_not_exists: true } : {}),
-      codeComment: finalizeComment(
-        combineComments(
-          v[0].codeComment,
-          v[1],
-          v[2]?.codeComment,
-          !hasList ? inlineCommentAfterSemiColon : "" // <-- include comment after semicolon only if there is no list.
-        )
+      codeComment: combineComments(
+        v[0].codeComment,
+        v[1],
+        v[2]?.codeComment,
+        !hasList ? inlineCommentAfterSemiColon : "" // <-- include comment after semicolon only if there is no list.
       ),
     };
   }

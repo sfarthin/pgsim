@@ -1,4 +1,4 @@
-import parse from "../parse";
+import parse, { parseComments } from "../parse";
 import { toLineAndColumn, findNextToken } from "../parse/error";
 import nParse from "../nativeParse";
 import format from "../format";
@@ -52,6 +52,35 @@ function omitDeep(input: object, excludes: Array<number | string>): object {
   }, {});
 }
 
+/**
+ * Concat the comments together from the AST.
+ */
+function concatAllCodeComments(input: any): string[] {
+  if (!input) {
+    return [""];
+  }
+  if (typeof input?.Comment === "string") {
+    return input?.Comment.split(/\s/);
+  }
+
+  return Object.entries(input).reduce((acc, [key, value]) => {
+    if (Array.isArray(value)) {
+      return acc.concat([
+        ...(value.reduce(
+          (acc, a) => [...acc, ...concatAllCodeComments(a)],
+          []
+        ) as string[]),
+      ]);
+    } else if (typeof value === "object") {
+      return acc.concat(concatAllCodeComments(value));
+    } else if (key === "codeComment" || key === "whereClauseCodeComment") {
+      return acc.concat((value as any).split(/\s/) as string[]);
+    }
+
+    return acc;
+  }, [] as string[]);
+}
+
 function removeComments(stmts: Stmt[]): Stmt[] {
   return (
     (stmts.map((stmt) =>
@@ -90,6 +119,8 @@ export default function parseAndFormat(
   // 3. Then we make sure our parser matches the output of the native parser
   const ast = parse(sql, basename(filename), realAst);
 
+  const comments = parseComments(sql);
+
   const astNoComments = removeComments(ast);
   const actualAstNoComments = removeComments(realAst);
   for (const key in astNoComments) {
@@ -110,6 +141,15 @@ export default function parseAndFormat(
       })${NEWLINE}${NEWLINE} ${c.bgRed(rawSql.trim())}`
     );
   }
+
+  // It is easy to forget a comment in our parser, this ensures no comment fall through cracks.
+  assertNoDiff(
+    comments.split(/\s/).slice(0).sort().filter(Boolean), // <-- direct comment parser
+    concatAllCodeComments(ast).slice(0).sort().filter(Boolean), // <--- pull comments from AST.
+    `Parser is not retaining comments in ${c.cyan(
+      `${basename(filename)}`
+    )}\n${JSON.stringify(ast, null, 2)}`
+  );
 
   // 4. Then we verify our formatter by confirmating it produces the same parsed AST
   const astNoStyle = removeStyle(ast);
@@ -136,6 +176,21 @@ export default function parseAndFormat(
       astNoStyle[key],
       formattedAstNoStyle[key],
       `Formatter does not produce the same AST, ${c.cyan(
+        `${basename(filename)}:${line + 1}`
+      )} (Statement ${Number(key) + 1} of ${
+        astNoComments.length
+      })${NEWLINE}${NEWLINE}Correct:${NEWLINE}${c.yellow(
+        originalSql.trim()
+      )}${NEWLINE}${NEWLINE}Formatter:${NEWLINE}${c.yellow(
+        formattedSqlStmt.trim()
+      )}`
+    );
+
+    // Lets make sure the formatter prints all comments
+    assertNoDiff(
+      concatAllCodeComments(ast[key]).slice().sort(),
+      concatAllCodeComments(formattedAst[key]).slice().sort(),
+      `Formatter does not retain the same comments, ${c.cyan(
         `${basename(filename)}:${line + 1}`
       )} (Statement ${Number(key) + 1} of ${
         astNoComments.length
@@ -202,7 +257,7 @@ if (process.argv[2]) {
         "../../fixtures/parseAndFormat/__snapshots__",
         file.replace(/\.sql/, "-snapshot.sql")
       ),
-      formattedSql
+      `${formattedSql}`
     );
 
     // 3. Make sure the filename should match the statement type.

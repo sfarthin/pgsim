@@ -9,19 +9,19 @@
 -- 6
 -- 7
 -- 8
--- 9
--- 10
--- 11
 CREATE TYPE foo AS ENUM (
+	-- 9
 	-- comment on a
 	'a',
-	-- comment on b
 	'b',
+	-- comment on b
+	-- 10
 	-- comment on c
 	'c',
 	-- comment on d
 	'd',
 	-- comment on e
+	-- 11
 	'e'
 );
 

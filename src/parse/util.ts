@@ -224,7 +224,7 @@ export function zeroToTen<T, R>(rule: Rule<T>) {
 export const whitespace = transform(regexChar(/[ \t\r\n]/), () => null);
 export const whitespaceWithoutNewline = regexChar(/[ \t\r]/);
 
-function notConstant(keyword: string): Rule<string> {
+export function notConstant(keyword: string): Rule<string> {
   const rule: Rule<string> = (ctx: Context) => {
     const potentialKeyword = ctx.str.substring(
       ctx.pos,
@@ -1051,33 +1051,11 @@ export function or<T>(rules: Rule<any>[]): Rule<any> {
   };
 }
 
-export function finalizeComment(str: string) {
-  const lines = str.split(NEWLINE);
-
-  const stripAmount = lines.reduce((n, l) => {
-    // console.log("--->", l.match(/[^\s]/i)?.index);
-    return Math.min(n, l.match(/[^\s\t ]/i)?.index ?? 999999999);
-  }, 999999999);
-  // console.log(stripAmount);
-
-  if (stripAmount > 0) {
-    return lines
-      .map((l) => l.substring(stripAmount))
-      .join(NEWLINE)
-      .trim()
-      .replace(/\n\s*\n/, NEWLINE);
-  }
-  return str.trim().replace(/\n\s*\n/, NEWLINE);
-}
-
 export function combineComments(...c: (string | null | undefined)[]) {
   return c
     .filter(Boolean)
     .map((s) => s ?? "")
     .join(NEWLINE);
-  // .replace(/\n\s*\n\s*\n/gi, "\n\n");
-  // .replace(/^[\s\n\t ]*\n/, "")
-  // .replace(/\n[\s\n\t ]*$/, "");
 }
 
 const newline = constant(NEWLINE);
@@ -1354,47 +1332,6 @@ export function listWithCommentsPerItem<T>(
 
     return result;
   };
-}
-
-export function list<T>(
-  rule: Rule<T>,
-  separator?: Rule<unknown>
-): Rule<{ value: T[]; codeComment: string }> {
-  // Since we are using recursion, we need to nest this definition.
-  const newRule: Rule<{
-    value: T[];
-    codeComment: string;
-  }> = (ctx: Context) => {
-    return or([
-      // Recursion on rule
-      transform(
-        sequence([
-          __,
-          rule,
-          __,
-          separator ?? placeholder,
-          __,
-          list(rule, separator),
-        ]),
-        (v) => {
-          return {
-            value: [v[1]].concat(v[5].value),
-            // If there are comments visually seperated lets not associate those comments
-            // with a list item.
-            codeComment: combineComments(v[0], v[2], v[4], v[5].codeComment),
-          };
-        }
-      ),
-
-      // Single rule
-      transform(sequence([__, rule, __]), (v) => ({
-        value: [v[1]],
-        codeComment: combineComments(v[0], v[2]),
-      })),
-    ])(ctx);
-  };
-
-  return newRule;
 }
 
 /**

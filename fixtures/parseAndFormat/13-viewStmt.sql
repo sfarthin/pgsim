@@ -1,4 +1,4 @@
-/* 1 */CREATE /* 2 */VIEW /* 3 */foo /* 4 */as /* 5 */select /* 6 */1; -- 7
+/* 1a */CREATE /* 2a */VIEW /* 3a */foo /* 4a */as /* 5a */select /* 6a */1; -- 7a
 
 
 CREATE VIEW myView AS SELECT myTable.myColumn FROM myTable;

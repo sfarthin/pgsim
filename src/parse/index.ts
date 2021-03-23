@@ -13,7 +13,6 @@ import {
   Rule,
   Context,
   combineComments,
-  finalizeComment,
 } from "./util";
 import { getFriendlyErrorMessage } from "./error";
 import { variableSetStmt } from "./variableSetStmt";
@@ -28,6 +27,7 @@ import { indexStmt } from "./indexStmt";
 import { alterTableStmt } from "./alterTableStmt";
 import { selectStmt } from "./selectStmt";
 import { viewStmt } from "./viewStmt";
+import { codeComments } from "./codeComments";
 
 const CommentStatement = transform(
   sequence([
@@ -113,11 +113,9 @@ function reduceComments(acc: Stmt[], stmt: Stmt): Stmt[] {
       {
         RawStmt: {
           stmt: {
-            Comment: finalizeComment(
-              combineComments(
-                previousStmt.RawStmt.stmt.Comment,
-                stmt.RawStmt.stmt.Comment
-              )
+            Comment: combineComments(
+              previousStmt.RawStmt.stmt.Comment,
+              stmt.RawStmt.stmt.Comment
             ),
           },
         },
@@ -130,7 +128,7 @@ function reduceComments(acc: Stmt[], stmt: Stmt): Stmt[] {
       {
         RawStmt: {
           stmt: {
-            Comment: finalizeComment(stmt.RawStmt.stmt.Comment),
+            Comment: stmt.RawStmt.stmt.Comment,
           },
         },
       },
@@ -138,6 +136,24 @@ function reduceComments(acc: Stmt[], stmt: Stmt): Stmt[] {
   } else {
     return acc.concat(stmt);
   }
+}
+
+/**
+ * Used mostly of validation of parse method
+ */
+export function parseComments(inputSql: string) {
+  const result = codeComments({
+    endOfStatement: [],
+    startOfNextStatement: [],
+    str: inputSql,
+    pos: 0,
+  });
+
+  if (result.type == ResultType.Success) {
+    return result.value;
+  }
+
+  throw new Error("sql brokenz");
 }
 
 /**

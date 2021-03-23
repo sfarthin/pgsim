@@ -4,22 +4,32 @@ import {
   EQUALS,
   SET,
   Rule,
-  phrase,
+  sequence,
   endOfStatement,
   combineComments,
-  finalizeComment,
+  _,
+  __,
 } from "./util";
 import { aConst } from "./aConst";
 import { VariableSetStmt } from "../types";
 
 export const variableSetStmt: Rule<VariableSetStmt> = transform(
-  phrase([SET, identifier, EQUALS, aConst, endOfStatement]),
-  ({ codeComment, value }) => ({
+  sequence([
+    _,
+    SET,
+    __,
+    identifier,
+    __,
+    EQUALS,
+    __,
+    aConst,
+    __,
+    endOfStatement,
+  ]),
+  (v) => ({
     kind: 0,
-    name: value[1],
-    args: [{ A_Const: value[3] }],
-    codeComment: finalizeComment(combineComments(codeComment, value[4])),
+    name: v[3],
+    args: [{ A_Const: v[7] }],
+    codeComment: combineComments(v[0], v[2], v[4], v[6], v[8], v[9]),
   })
 );
-
-variableSetStmt.identifier = "variableSetStmt";

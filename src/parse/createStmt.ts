@@ -11,7 +11,6 @@ import {
   LPAREN,
   RPAREN,
   COMMA,
-  finalizeComment,
   sequence,
   __,
   _,
@@ -126,7 +125,7 @@ export const createStmt: Rule<CreateStmt> = transform(
       tableElts,
       oncommit: 0,
       ...(ifNotExists ? { if_not_exists: true } : {}),
-      codeComment: finalizeComment(comment),
+      codeComment: comment,
     };
   }
 );

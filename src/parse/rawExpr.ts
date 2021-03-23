@@ -29,10 +29,7 @@ export const rawValue: Rule<{
 }> = transform(
   sequence([
     or([
-      transform(typeCast, (TypeCast) => ({
-        value: { TypeCast },
-        codeComment: "",
-      })), // intentially before aConst
+      typeCast,
       transform(aConst, (A_Const) => ({ value: { A_Const }, codeComment: "" })),
       transform(funcCall, ({ value, codeComment }) => ({
         value: { FuncCall: value },
@@ -103,14 +100,10 @@ export const rawCondition: Rule<{
 }> = transform(
   sequence([
     or([
-      rawValue,
+      rawValue, // See above ^^
+      notBoolExpr, // NOT XXX
 
-      // NOT XXX
-      transform(notBoolExpr, ({ value, codeComment }) => ({
-        value: { BoolExpr: value },
-        codeComment,
-      })),
-
+      // a rawCondition in parens
       transform(
         sequence([LPAREN, __, (ctx) => rawCondition(ctx), __, RPAREN]),
         (v) => ({ ...v[2], hasParens: true })
@@ -126,6 +119,9 @@ export const rawCondition: Rule<{
   }
 );
 
+/**
+ * This helper allows us to organize code appropiately
+ */
 export function connectRawCondition<B>(
   ruleB: Rule<B>,
   extensionFn: (
