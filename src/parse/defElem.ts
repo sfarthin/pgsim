@@ -1,7 +1,9 @@
 import {
   transform,
   Rule,
-  phrase,
+  zeroToMany,
+  sequence,
+  __,
   optional,
   tableIdentifier,
   OWNED,
@@ -17,98 +19,99 @@ import {
   WITH,
   START,
   INCREMENT,
+  combineComments,
 } from "./util";
 import { DefElem } from "../types";
 
 export const defElem: Rule<DefElem> = or([
-  transform(phrase([OWNED, BY, NONE]), (v, ctx) => ({
+  transform(sequence([OWNED, __, BY, __, NONE]), (v, ctx) => ({
     defname: "owned_by",
     arg: [{ String: { str: "none" } }],
     defaction: 0,
     location: ctx.pos,
-    codeComment: v.codeComment,
+    codeComment: combineComments(v[1], v[3]),
   })),
-  transform(
-    phrase([OWNED, BY, tableIdentifier]),
-    ({ codeComment, value }, ctx) => ({
-      defname: "owned_by",
-      defaction: 0,
-      arg: value[2].map((str) => ({ String: { str } })),
-      location: ctx.pos,
-      codeComment,
-    })
-  ),
-  transform(phrase([NO, CYCLE]), (v, ctx) => ({
+  transform(sequence([OWNED, __, BY, __, tableIdentifier]), (v, ctx) => ({
+    defname: "owned_by",
+    defaction: 0,
+    arg: v[4].map((str) => ({ String: { str } })),
+    location: ctx.pos,
+    codeComment: combineComments(v[1], v[3]),
+  })),
+  transform(sequence([NO, __, CYCLE]), (v, ctx) => ({
     defname: "cycle",
     defaction: 0,
     arg: { Integer: { ival: 0 } },
     location: ctx.pos,
-    codeComment: v.codeComment,
+    codeComment: combineComments(v[1]),
   })),
-  transform(phrase([NO, MAXVALUE]), ({ codeComment }, ctx) => ({
+  transform(sequence([NO, __, MAXVALUE]), (v, ctx) => ({
     defname: "maxvalue",
     defaction: 0,
     location: ctx.pos,
-    codeComment,
+    codeComment: v[1],
   })),
-  transform(phrase([NO, MINVALUE]), ({ codeComment }, ctx) => ({
+  transform(sequence([NO, __, MINVALUE]), (v, ctx) => ({
     defname: "minvalue",
     defaction: 0,
     location: ctx.pos,
-    codeComment,
+    codeComment: v[1],
   })),
-  transform(phrase([NO, CACHE]), ({ codeComment }, ctx) => ({
+  transform(sequence([NO, __, CACHE]), (v, ctx) => ({
     defname: "cache",
     defaction: 0,
     location: ctx.pos,
-    codeComment,
+    codeComment: v[1],
   })),
-  transform(phrase([CYCLE]), ({ codeComment }, ctx) => ({
+  transform(CYCLE, (v, ctx) => ({
     defname: "cycle",
     defaction: 0,
     arg: { Integer: { ival: 1 } },
     location: ctx.pos,
-    codeComment,
+    codeComment: "",
   })),
-  transform(phrase([MAXVALUE, integer]), ({ value, codeComment }, ctx) => ({
+  transform(sequence([MAXVALUE, __, integer]), (v, ctx) => ({
     defname: "maxvalue",
     defaction: 0,
-    arg: { Integer: { ival: value[1] } },
+    arg: { Integer: { ival: v[2] } },
     location: ctx.pos,
-    codeComment,
+    codeComment: v[1],
   })),
-  transform(phrase([MINVALUE, integer]), ({ codeComment, value }, ctx) => ({
+  transform(sequence([MINVALUE, __, integer]), (v, ctx) => ({
     defname: "minvalue",
     defaction: 0,
-    arg: { Integer: { ival: value[1] } },
+    arg: { Integer: { ival: v[2] } },
     location: ctx.pos,
-    codeComment,
+    codeComment: v[1],
   })),
-  transform(phrase([CACHE, integer]), ({ codeComment, value }, ctx) => ({
+  transform(sequence([CACHE, __, integer]), (v, ctx) => ({
     defname: "cache",
     defaction: 0,
-    arg: { Integer: { ival: value[1] } },
+    arg: { Integer: { ival: v[2] } },
     location: ctx.pos,
-    codeComment,
+    codeComment: v[1],
   })),
-  transform(
-    phrase([START, optional(WITH), integer]),
-    ({ codeComment, value }, ctx) => ({
-      defname: "start",
-      defaction: 0,
-      arg: { Integer: { ival: value[2] } },
-      location: ctx.pos,
-      codeComment,
-    })
-  ),
-  transform(
-    phrase([INCREMENT, optional(BY), integer]),
-    ({ codeComment, value }, ctx) => ({
-      defname: "increment",
-      defaction: 0,
-      arg: { Integer: { ival: value[2] } },
-      location: ctx.pos,
-      codeComment,
-    })
-  ),
+  transform(sequence([START, __, optional(WITH), __, integer]), (v, ctx) => ({
+    defname: "start",
+    defaction: 0,
+    arg: { Integer: { ival: v[4] } },
+    location: ctx.pos,
+    codeComment: combineComments(v[1], v[3]),
+  })),
+  transform(sequence([INCREMENT, __, optional(BY), __, integer]), (v, ctx) => ({
+    defname: "increment",
+    defaction: 0,
+    arg: { Integer: { ival: v[4] } },
+    location: ctx.pos,
+    codeComment: combineComments(v[1], v[3]),
+  })),
 ]);
+
+export const defElemList = transform(zeroToMany(sequence([__, defElem])), (v) =>
+  v.map((r) => ({
+    DefElem: {
+      ...r[1],
+      codeComment: r[0],
+    },
+  }))
+);

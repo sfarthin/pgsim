@@ -11,6 +11,7 @@ import {
   AND,
   OR,
   or,
+  Context,
 } from "./util";
 
 // Pur parser will nest each bool argument in a BoolExpr, but we want to keep them all flat in args.
@@ -107,26 +108,27 @@ export const notBoolExpr: Rule<{
   };
 });
 
-export const boolConnection = connectRawCondition(
-  sequence([__, or([AND, OR]), __, (ctx) => rawCondition(ctx)]),
-  (c1, v) => {
-    return {
-      value: {
-        BoolExpr: condenseNestedBoolExpressions(
-          {
-            boolop: v[1].value === "AND" ? BoolOp.AND : BoolOp.OR,
-            args: [c1.value, v[3].value],
-            location: v[1].start,
-          },
-          { hasParens: "hasParens" in v[3] && !!v[3].hasParens }
+export const boolConnection = (ctx: Context) =>
+  connectRawCondition(
+    sequence([__, or([AND, OR]), __, (ctx) => rawCondition(ctx)]),
+    (c1, v) => {
+      return {
+        value: {
+          BoolExpr: condenseNestedBoolExpressions(
+            {
+              boolop: v[1].value === "AND" ? BoolOp.AND : BoolOp.OR,
+              args: [c1.value, v[3].value],
+              location: v[1].start,
+            },
+            { hasParens: "hasParens" in v[3] && !!v[3].hasParens }
+          ),
+        },
+        codeComment: combineComments(
+          c1.codeComment,
+          v[0],
+          v[2],
+          v[3].codeComment
         ),
-      },
-      codeComment: combineComments(
-        c1.codeComment,
-        v[0],
-        v[2],
-        v[3].codeComment
-      ),
-    };
-  }
-);
+      };
+    }
+  )(ctx);

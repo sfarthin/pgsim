@@ -3,18 +3,20 @@ import c from "ansi-colors";
 import parse from "../parse";
 import nParse from "../nativeParse";
 import { join, basename } from "path";
-import { lstatSync, readdirSync, readFileSync } from "fs";
+import { lstatSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import { NEWLINE } from "../format/whitespace";
 import { FailResult } from "../parse/util";
-import { toLineAndColumn } from "../parse/error";
+import { getFriendlyErrorMessage, findNextToken } from "../parse/error";
+
+import getRemoveAnsiRegx from "ansi-regex";
 
 export default function errorAndAutocomplete(
   sql: string,
   filename: string
 ): void {
-  const matches = sql.split(/-- @@error-statement (.*)/);
+  const matches = sql.split(/-- @error-statement (.*)/);
 
-  let lines = (matches[0].match(/\n/gi)?.length ?? 0) + 1;
+  let previousCharLength = matches[0].length + 1;
 
   const brokenStatements = matches
     .slice(1)
@@ -22,6 +24,10 @@ export default function errorAndAutocomplete(
       (acc, str, index) => (index % 2 ? [...acc, str] : acc),
       [] as string[]
     );
+
+  if (brokenStatements.length === 0) {
+    throw new Error("No Assertions... add @error-statement lines");
+  }
 
   const assertions = matches.reduce((acc, str, index) => {
     if (index % 2) {
@@ -36,6 +42,8 @@ export default function errorAndAutocomplete(
 
     return acc;
   }, [] as any[]);
+
+  let snapshotTxt = "";
 
   for (const index in brokenStatements) {
     const brokenStatementSql = brokenStatements[index];
@@ -75,9 +83,10 @@ export default function errorAndAutocomplete(
       );
     }
 
-    const { line, column } = toLineAndColumn(
-      brokenStatementSql,
-      error.result.pos
+    const tokenPosition = findNextToken(brokenStatementSql, error.result.pos);
+    const token = brokenStatementSql.substring(
+      tokenPosition.start,
+      tokenPosition.end
     );
 
     /**
@@ -86,20 +95,52 @@ export default function errorAndAutocomplete(
     const expected = error.result.expected
       .map((e) => (e.type === "keyword" ? JSON.parse(e.value) : e.value))
       .sort();
+
+    // Lets generate an appropiate friendly error message with the right line numbers.
+    const offset = sql.indexOf(brokenStatementSql);
+    const errorMessage = getFriendlyErrorMessage({
+      filename,
+      str: sql,
+      result: {
+        ...error.result,
+        expected: [
+          // Replace the first expected field with one with the correct position.
+          { ...error.result.expected[0], pos: offset + error.result.pos },
+          ...error.result.expected.slice(1),
+        ],
+        // Replace it here too.
+        pos: offset + error.result.pos,
+      },
+    });
+
     assertNoDiff(
       assertion,
       {
-        column: column + 1,
-        line: lines + line,
         expected,
+        token,
       },
-      `Expected different error${NEWLINE}${NEWLINE}${c.cyan(
-        brokenStatementSql.trim()
-      )}${NEWLINE}${NEWLINE}${c.blue(JSON.stringify(expected))}`
+      `${c.red(
+        "Expected different error"
+      )}${NEWLINE}${NEWLINE}${errorMessage}${NEWLINE}${NEWLINE}Expected: ${c.blue(
+        JSON.stringify(expected)
+      )}`
     );
 
-    lines += brokenStatementSql.match(/\n/gi)?.length ?? 0;
+    previousCharLength += brokenStatementSql.length;
+
+    snapshotTxt += `${errorMessage}${NEWLINE}`;
   }
+
+  writeFileSync(
+    join(
+      __dirname,
+      "../../fixtures/errorAndAutocomplete/__snapshots__",
+      filename.replace(/\.sql/, "-snapshot.sql")
+    ),
+    snapshotTxt
+      .replace(getRemoveAnsiRegx(), "")
+      .replace(/-- @error-statement (.*)/g, "")
+  );
 }
 
 if (process.argv[2]) {

@@ -5,7 +5,7 @@ import {
   whitespace,
   sqlStyleComment,
   cStyleComment,
-  identifier,
+  regexChar,
 } from "./util";
 import { Stmt } from "../types";
 import c from "ansi-colors";
@@ -86,17 +86,42 @@ export const findNextToken = (str: string, _pos: number) => {
     or([cStyleComment, sqlStyleComment, whitespace])
   )(ctx);
 
-  const afterToken = or([
-    identifier, // include whole identifier
-  ])({ ...ctx, pos: leadingWhitespace.pos });
+  const afterToken = zeroToMany(regexChar(/[a-zA-Z0-9_]/))({
+    ...ctx,
+    pos: leadingWhitespace.pos ?? _pos,
+  });
 
   return {
-    start: leadingWhitespace.pos,
+    start: leadingWhitespace.pos ?? _pos,
     end:
       afterToken.pos === leadingWhitespace.pos
         ? afterToken.pos + 1
         : afterToken.pos,
   };
+};
+
+export const getSnippetWithLineNumbers = ({
+  str,
+  start,
+  end,
+}: {
+  str: string;
+  start: number;
+  end: number;
+}): string => {
+  const { line } = toLineAndColumn(str, start);
+  const { line: endLine } = toLineAndColumn(str, end);
+
+  // i.e. 10 => 2 ... 8 => 1 ... number of spaces needed to print the number
+  // remember length is one more than the last number
+  const prefixNumeralLength = line.toString().length + 1;
+  const lines = str.split(NEWLINE);
+
+  return indent({
+    lines: lines.slice(line, endLine + 1),
+    prefixNumeralLength,
+    startLine: line,
+  });
 };
 
 /**
@@ -118,17 +143,19 @@ export const getFriendlyErrorMessage = ({
 
   const pos = result.expected.length ? result.expected[0].pos : result.pos;
 
-  const message =
-    expected.length < 3
-      ? `Expected ${expected.join(" or ")}`
-      : `Expected one of the following:${NEWLINE} - ${expected.join(
-          `${NEWLINE} - `
-        )}`;
-
   const lines = str.split(NEWLINE);
   const nextToken = findNextToken(str, pos);
   const start = toLineAndColumn(str, nextToken.start);
   const end = toLineAndColumn(str, nextToken.end);
+
+  const tokenStr = str.substring(nextToken.start, nextToken.end);
+
+  const message =
+    expected.length < 3
+      ? `Expected ${expected.join(" or ")}, but found ${tokenStr}`
+      : `Expected one of the following, but found "${tokenStr}":${NEWLINE} - ${expected.join(
+          `${NEWLINE} - `
+        )}`;
 
   const prefixNumeralLength = end.line.toString().length;
 
@@ -137,11 +164,16 @@ export const getFriendlyErrorMessage = ({
     String(start.line + 1)
   )},${c.cyan(String(start.column + 1))}): ${message}${NEWLINE}`;
   error += NEWLINE;
+
+  const lineToStartPrinting =
+    start.line - NUM_CONTEXT_LINES_BEFORE < 0
+      ? 0
+      : start.line - NUM_CONTEXT_LINES_BEFORE;
   error +=
     indent({
-      lines: lines.slice(start.line - NUM_CONTEXT_LINES_BEFORE, start.line),
+      lines: lines.slice(lineToStartPrinting, start.line),
       prefixNumeralLength,
-      startLine: start.line - NUM_CONTEXT_LINES_BEFORE,
+      startLine: lineToStartPrinting,
     }) + NEWLINE;
   error +=
     indent({

@@ -1,12 +1,12 @@
--- @error-statement { "line": 3, "column": 1, "expected": ["::", "=", "AND", "FROM", "OR"] }
+-- @error-statement { "token": "SELECT", "expected": ["::",";","=","AND","End of Input","FROM","OR","in"] }
 SELECT 1
 SELECT 2
 
--- @error-statement { "line": 7, "column": 1, "expected": ["ALTER", "CREATE", "DROP", "SELECT", "SET"] } 
+-- @error-statement { "token": "hello", "expected": ["ALTER", "CREATE", "DROP", "SELECT", "SET"] } 
 
 hello
 
--- @error-statement { "line": 12, "column": 1, "expected": ["'","(","/[0-9]/","NOT","content","false","heap","identifier","null","off","on","pg_catalog.set_config","true","warning"] } 
+-- @error-statement { "token": "select", "expected":  ["'","(","/[0-9]/","EXISTS","NOT","content","false","heap","identifier","null","off","on","pg_catalog.set_config","true","warning"] } 
 
 select /* yoyoyoy */
 select

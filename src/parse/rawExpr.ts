@@ -20,6 +20,7 @@ import { columnRef } from "./columnRef";
 import { notBoolExpr, boolConnection } from "./boolExpr";
 import { aExprConnection } from "./aExpr";
 import { rowExpr } from "./rowExpr";
+import { subLinkExists } from "./subLink";
 
 // This should include equestions and type casts.
 export const rawValue: Rule<{
@@ -102,6 +103,7 @@ export const rawCondition: Rule<{
     or([
       rawValue, // See above ^^
       notBoolExpr, // NOT XXX
+      (ctx) => subLinkExists(ctx), // exists in (SELECT ...)
 
       // a rawCondition in parens
       transform(

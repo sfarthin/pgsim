@@ -44,10 +44,7 @@ export type Context = {
   pos: number;
 };
 
-export type Rule<R> = ((c: Context) => RuleResult<R>) & {
-  identifier?: string; // <-- sometimes the constant is better identified by a name (\n -> newline)
-  isIdentifier?: true; // <-- Is this a constant or some kind of dynamic identifier
-};
+export type Rule<R> = (c: Context) => RuleResult<R>;
 
 const expectedReducer = (acc: Expected[], e: Expected): Expected[] => {
   // Lets ignore these comment and whitespace characters.
@@ -92,7 +89,7 @@ export const endOfInput: Rule<null> = (ctx) => {
 
   return {
     type: ResultType.Fail,
-    expected: [{ type: "endOfInput", value: "end of input", pos: ctx.pos }],
+    expected: [{ type: "endOfInput", value: "End of Input", pos: ctx.pos }],
     pos: ctx.pos,
   };
 };
@@ -121,7 +118,7 @@ export function constant(
       expected: [
         {
           type: "keyword",
-          value: rule.identifier ?? `"${keyword}"`,
+          value: `"${keyword}"`,
           pos: ctx.pos,
         },
       ],
@@ -132,7 +129,7 @@ export function constant(
   return rule;
 }
 
-function regexChar(r: RegExp): Rule<string> {
+export function regexChar(r: RegExp): Rule<string> {
   if (r.global) {
     throw new Error(
       "Cannot use global match. See https://stackoverflow.com/questions/209732/why-am-i-seeing-inconsistent-javascript-logic-behavior-looping-with-an-alert-v"
@@ -151,9 +148,7 @@ function regexChar(r: RegExp): Rule<string> {
     }
     return {
       type: ResultType.Fail,
-      expected: [
-        { type: "regex", value: rule.identifier ?? r.toString(), pos },
-      ],
+      expected: [{ type: "regex", value: r.toString(), pos }],
       pos,
     };
   };
@@ -246,7 +241,7 @@ export function notConstant(keyword: string): Rule<string> {
       expected: [
         {
           type: "notKeyword",
-          value: rule.identifier ?? `not "${keyword}"`,
+          value: `not "${keyword}"`,
           pos: ctx.pos,
         },
       ],
@@ -916,8 +911,6 @@ export function transform<T, R>(
     return result;
   };
 
-  newRule.identifier = rule.identifier;
-
   return newRule;
 }
 
@@ -1046,7 +1039,7 @@ export function or<T>(rules: Rule<any>[]): Rule<any> {
     return {
       type: ResultType.Fail,
       expected,
-      pos: expected?.[0]?.pos,
+      pos: expected?.[0]?.pos ?? results[0]?.pos,
     };
   };
 }
@@ -1059,10 +1052,8 @@ export function combineComments(...c: (string | null | undefined)[]) {
 }
 
 const newline = constant(NEWLINE);
-newline.identifier = "newline";
 
 const notNewline = notConstant(NEWLINE);
-notNewline.identifier = "!newline";
 
 export const cStyleComment = transform(
   sequence([
@@ -1172,97 +1163,6 @@ const lookForWhiteSpaceOrComment = // we want to ensure the next character is a 
   );
 
 /**
- * Unlike a sequence, a phrase handles whitespace and comments
- * detection between each rule
- */
-export function phrase<A>(
-  rules: [Rule<A>]
-): Rule<{ value: [A]; codeComment: string }>;
-export function phrase<A, B>(
-  rules: [Rule<A>, Rule<B>]
-): Rule<{ value: [A, B]; codeComment: string }>;
-export function phrase<A, B, C>(
-  rules: [Rule<A>, Rule<B>, Rule<C>]
-): Rule<{ value: [A, B, C]; codeComment: string }>;
-export function phrase<A, B, C, D>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>]
-): Rule<{ value: [A, B, C, D]; codeComment: string }>;
-export function phrase<A, B, C, D, E>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>]
-): Rule<{ value: [A, B, C, D, E]; codeComment: string }>;
-export function phrase<A, B, C, D, E, F>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>]
-): Rule<{ value: [A, B, C, D, E, F]; codeComment: string }>;
-export function phrase<A, B, C, D, E, F, G>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>, Rule<G>]
-): Rule<{ value: [A, B, C, D, E, F, G]; codeComment: string }>;
-export function phrase<A, B, C, D, E, F, G, H>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>
-  ]
-): Rule<{ value: [A, B, C, D, E, F, G, H]; codeComment: string }>;
-export function phrase<A, B, C, D, E, F, G, H, I>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>
-  ]
-): Rule<{ value: [A, B, C, D, E, F, G, H, I]; codeComment: string }>;
-export function phrase<A, B, C, D, E, F, G, H, I, J>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>
-  ]
-): Rule<{ value: [A, B, C, D, E, F, G, H, I, J]; codeComment: string }>;
-export function phrase(rules: Rule<any>[]): Rule<any> {
-  const newRules: Rule<any>[] = [_]; // <-- Capture direct comments above
-
-  // Lets add __ between each rule.
-  for (let index = 0; index < rules.length; index += 1) {
-    newRules.push(rules[index]);
-
-    if (index < rules.length - 1) {
-      newRules.push(__);
-    }
-  }
-
-  // @ts-expect-error
-  return transform(sequence(newRules), (result) => {
-    // Even number idicies are our whitespace/comments
-    const comments = result.filter((v, i) => i % 2 === 0);
-
-    // Odd number idicies are our rules.
-    const values = result.filter((v, i) => i % 2 === 1);
-
-    return {
-      codeComment: combineComments(...comments),
-      value: values,
-    };
-  });
-}
-
-/**
  * Kinda like oneToMany, but smartly capturing comments in between tokens.
  */
 
@@ -1282,57 +1182,6 @@ export const commentsOnSameLine = transform(
         .join(" ")
     ).replace(/\n/gi, "")
 );
-
-export function listWithCommentsPerItem<T>(
-  rule: Rule<T>,
-  separator?: Rule<unknown>
-): Rule<{ value: { value: T; codeComment: string }[]; codeComment: string }> {
-  // Since we are using recursion, we need to nest this definition.
-  return (ctx: Context) => {
-    const result = or([
-      // Recursion on rule
-      transform(
-        sequence([
-          transform(zeroToTen(_), (v) => v.filter(Boolean)), // We only
-          rule,
-          separator ? __ : placeholder, // if there is not seperator lets ignore the extra space
-          separator ?? placeholder,
-          commentsOnSameLine,
-          listWithCommentsPerItem(rule, separator),
-        ]),
-        (v) => {
-          const commentForListItem = v[0][v[0].length - 1] ?? "";
-          return {
-            value: [
-              {
-                value: v[1],
-                codeComment: combineComments(commentForListItem, v[2], v[4]),
-              },
-            ].concat(v[5].value),
-            // If there are comments visually seperated lets not associate those comments
-            // with a list item.
-            codeComment: combineComments(
-              ...v[0].slice(0, -1).concat(v[5].codeComment)
-            ),
-          };
-        }
-      ),
-
-      // Single rule
-      transform(sequence([_, rule, commentsOnSameLine, __]), (v) => ({
-        value: [
-          {
-            codeComment: combineComments(v[0], v[2]),
-            value: v[1],
-          },
-        ],
-        codeComment: v[3],
-      })),
-    ])(ctx);
-
-    return result;
-  };
-}
 
 /**
  * Keywords / constants
@@ -1582,7 +1431,6 @@ export const tableIdentifier = transform(
 );
 
 export const integer = transform(oneToMany(NUMERAL), (s) => Number(s.join("")));
-integer.identifier = "integer";
 
 /**
  * Common
@@ -1592,7 +1440,6 @@ export const quotedString = transform(
   sequence([QUOTE, zeroToMany(NOT_QUOTE), QUOTE]),
   (v) => v[1].join("")
 );
-quotedString.identifier = "quoted string";
 
 /**
  * Statement utility
@@ -1627,8 +1474,5 @@ export const endOfStatement = transform(
 
 export function optional<T>(rule: Rule<T>): Rule<T | null> {
   const newRule: Rule<T | null> = or([rule, placeholder]);
-
-  newRule.identifier = `${rule.identifier}?`;
-
   return newRule;
 }

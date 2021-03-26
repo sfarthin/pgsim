@@ -27,5 +27,5 @@ export default function rawExpr(
     return rowExpr(c.RowExpr);
   }
 
-  throw new Error(`Not handled: ${Object.keys(c)[0]}`);
+  throw new Error(`RawExpr not handled: ${Object.keys(c)[0]}`);
 }

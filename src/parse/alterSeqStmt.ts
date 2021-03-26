@@ -13,16 +13,7 @@ import {
   commentsOnSameLine,
 } from "./util";
 import { AlterSeqStmt, RangeVar } from "../types";
-import { defElem } from "./defElem";
-
-const defElemList = transform(zeroToMany(sequence([__, defElem])), (v) =>
-  v.map((r) => ({
-    DefElem: {
-      ...r[1],
-      codeComment: r[0],
-    },
-  }))
-);
+import { defElemList } from "./defElem";
 
 export const alterSeqStmt: Rule<AlterSeqStmt> = transform(
   sequence([

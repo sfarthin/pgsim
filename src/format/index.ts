@@ -11,7 +11,11 @@ import viewStmt from "./viewStmt";
 import selectStmt from "./selectStmt";
 import comment from "./comment";
 import { Stmt, StatementType } from "../types";
-import { toLineAndColumn } from "../parse/error";
+import {
+  toLineAndColumn,
+  getSnippetWithLineNumbers,
+  findNextToken,
+} from "../parse/error";
 import indexStmt from "./indexStmt";
 import parse from "../parse";
 import c from "ansi-colors";
@@ -90,33 +94,34 @@ export default function format(_stmts: Stmt[] | string, opts?: Opts): string {
       try {
         return toString(stmt, opts);
       } catch (e) {
+        const errorType = e.name === "Error" ? "" : `(${e.name})`;
         if (opts?.filename && opts?.sql) {
-          const { line, column } = toLineAndColumn(
-            opts?.sql,
+          // Lets skip over any comments
+          const { start: pos } = findNextToken(
+            opts.sql,
             stmt.RawStmt.stmt_location ?? 0
           );
-          e.message = `${opts?.filename}(${line + 1},${column + 1}): ${
+
+          const { line, column } = toLineAndColumn(opts.sql, pos);
+
+          e.name = `Problem formatting${errorType} ${c.cyan(
+            opts.filename
+          )}(${c.cyan(String(line + 1))},${c.cyan(String(column + 1))})`;
+
+          e.message = `${
             e.message
-          }`;
-        }
-
-        e.message = `${e.message}${NEWLINE}${NEWLINE}${JSON.stringify(
-          stmt,
-          null,
-          2
-        )}`;
-
-        // Lets show the statement from the original SQL.
-        // Useful in debugging.
-        if (opts?.sql) {
-          const start = stmt.RawStmt.stmt_location ?? 0;
-          const end = stmt.RawStmt.stmt_len ?? 99999;
-          const rawSql = opts?.sql.substring(start, start + end);
-          e.message = `${e.message}${NEWLINE}${NEWLINE}${c.cyan(
-            rawSql
-              .split(NEWLINE)
-              .map((s) => s)
-              .join(NEWLINE)
+          }${NEWLINE}${NEWLINE}${getSnippetWithLineNumbers({
+            str: opts.sql,
+            start: pos,
+            end:
+              (stmt.RawStmt.stmt_location ?? 0) + (stmt.RawStmt.stmt_len ?? 20),
+          })}${NEWLINE}`;
+        } else {
+          e.name = `Problem formatting${errorType}`;
+          e.message = `${e.message}${NEWLINE}${NEWLINE}${JSON.stringify(
+            stmt,
+            null,
+            2
           )}`;
         }
         throw e;

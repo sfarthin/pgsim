@@ -114,7 +114,15 @@ export default function parseAndFormat(
 ): { formattedSql: string; ast: Stmt[] } {
   // 1. First we validate the syntax is correct with real parser
   // 2. Then we ensure our type matches the native ast with the decoder
-  const realAst = nParse(sql, basename(filename));
+  let realAst;
+  try {
+    realAst = nParse(sql, basename(filename));
+  } catch (e) {
+    console.error(e);
+    // Lets see the parse error too.
+    parse(sql, basename(filename), realAst);
+    throw e;
+  }
 
   // 3. Then we make sure our parser matches the output of the native parser
   const ast = parse(sql, basename(filename), realAst);

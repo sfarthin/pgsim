@@ -192,5 +192,8 @@ export default function parse(
     })
   );
 
+  // @ts-expect-error -- Used for tests
+  error.result = result;
+
   throw error;
 }
