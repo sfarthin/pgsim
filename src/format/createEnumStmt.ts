@@ -1,14 +1,41 @@
 import { CreateEnumStmt } from "../types";
 import comment from "./comment";
-import { NEWLINE, TAB } from "./whitespace";
+import { Formatter } from "./util";
 
-export default function variableSetStmt(
-  createEnumStmt: CreateEnumStmt
-): string {
-  // console.log(JSON.stringify(createEnumStmt, null, 2));
-  return `${comment(createEnumStmt.codeComment)}CREATE TYPE ${
-    createEnumStmt.typeName[0].String.str
-  } AS ENUM (${NEWLINE}${createEnumStmt.vals
-    .map((s) => `${comment(s.codeComment, 1)}${TAB}'${s.String.str}'`)
-    .join(`,${NEWLINE}`)}${NEWLINE});${NEWLINE}`;
+export default function variableSetStmt<T>(
+  createEnumStmt: CreateEnumStmt,
+  f: Formatter<T>
+): T[][] {
+  const { keyword, _, identifier, symbol, indent, literal } = f;
+  return [
+    ...comment(createEnumStmt.codeComment, f),
+    [
+      keyword("CREATE"),
+      _,
+      keyword("TYPE"),
+      _,
+      identifier(createEnumStmt.typeName[0].String.str),
+      _,
+      keyword("AS"),
+      _,
+      keyword("ENUM"),
+      _,
+      symbol("("),
+    ],
+    ...indent(
+      createEnumStmt.vals.reduce(
+        (acc, s, i) => [
+          ...acc,
+          ...comment(s.codeComment, f),
+          [
+            literal(`'${s.String.str}'`),
+            // All rows have commas except the last row.
+            ...(createEnumStmt.vals.length - 1 === i ? [] : [symbol(",")]),
+          ],
+        ],
+        [] as T[][]
+      )
+    ),
+    [symbol(")"), symbol(";")],
+  ];
 }

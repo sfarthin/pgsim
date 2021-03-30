@@ -4,7 +4,7 @@ import parse from "../parse";
 import nParse from "../nativeParse";
 import { join, basename } from "path";
 import { lstatSync, readdirSync, readFileSync, writeFileSync } from "fs";
-import { NEWLINE } from "../format/whitespace";
+import { NEWLINE } from "../format/util";
 import { FailResult } from "../parse/util";
 import { getFriendlyErrorMessage, findNextToken } from "../parse/error";
 
@@ -15,8 +15,6 @@ export default function errorAndAutocomplete(
   filename: string
 ): void {
   const matches = sql.split(/-- @error-statement (.*)/);
-
-  let previousCharLength = matches[0].length + 1;
 
   const brokenStatements = matches
     .slice(1)
@@ -125,8 +123,6 @@ export default function errorAndAutocomplete(
         JSON.stringify(expected)
       )}`
     );
-
-    previousCharLength += brokenStatementSql.length;
 
     snapshotTxt += `${errorMessage}${NEWLINE}`;
   }

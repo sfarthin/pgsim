@@ -1,7 +1,9 @@
 import { TypeCast } from "../types/TypeCast";
-import rawExpr from "./rawExpr";
+import { rawValue } from "./rawExpr";
+import { Formatter } from "./util";
 
-export default function (c: TypeCast): string {
+export default function <T>(c: TypeCast, f: Formatter<T>): T[] {
+  const { literal, symbol, identifier } = f;
   const toBoolean = c.typeName.TypeName.names?.[1]?.String.str === "bool";
   const strKeyword =
     c.arg &&
@@ -13,16 +15,20 @@ export default function (c: TypeCast): string {
 
   if (toBoolean) {
     if (strKeyword === "t") {
-      return "TRUE";
+      return [literal("TRUE")];
     }
 
     if (strKeyword === "f") {
-      return "FALSE";
+      return [literal("FALSE")];
     }
   }
 
   if (c.arg) {
-    return `${rawExpr(c.arg)}::${c.typeName.TypeName.names[0].String.str}`;
+    return [
+      ...rawValue(c.arg, f),
+      symbol("::"),
+      identifier(c.typeName.TypeName.names[0].String.str),
+    ];
   }
 
   throw new Error("Not handled");

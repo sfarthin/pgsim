@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { NEWLINE } from "../format/whitespace";
+import { NEWLINE } from "../format/util";
 /**
  * Types
  */

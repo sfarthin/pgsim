@@ -98,7 +98,7 @@ CREATE TABLE reference_examples (
 	-- 6
 	-- 7
 	-- 8
-	bss INTEGER REFERENCES products(some_id),
+	bss INTEGER REFERENCES products (some_id),
 	c INTEGER,
 	FOREIGN KEY (c) REFERENCES other_table (c1)
 );

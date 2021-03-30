@@ -1,12 +1,33 @@
 import { AExpr, AExprKind } from "../types";
-import rawExpr from "./rawExpr";
+import { rawCondition, rawValue } from "./rawExpr";
+import { Formatter } from "./util";
 
-export default function aExpr(c: AExpr) {
+export default function aExpr<T>(c: AExpr, f: Formatter<T>): T[][] {
+  const { _, identifier, keyword, symbol } = f;
   if (c.kind === AExprKind.AEXPR_OP) {
-    return `${rawExpr(c.lexpr)} ${c.name[0].String.str} ${rawExpr(c.rexpr)}`;
+    return [
+      ...rawCondition(c.lexpr, f),
+      [_, identifier(c.name[0].String.str), _],
+      ...rawCondition(c.rexpr, f),
+    ];
   } else {
-    return `${rawExpr(c.lexpr)} in (${c.rexpr
-      .map((e) => rawExpr(e))
-      .join(", ")})`;
+    return [
+      ...rawCondition(c.lexpr, f),
+      [
+        _,
+        keyword("IN"),
+        _,
+        symbol("("),
+        ...c.rexpr.reduce(
+          (acc, e, i) => [
+            ...acc,
+            ...rawValue(e, f),
+            ...(c.rexpr.length - 1 === i ? [symbol(","), _] : []),
+          ],
+          [] as T[]
+        ),
+        symbol(")"),
+      ],
+    ];
   }
 }

@@ -5,7 +5,7 @@ import formatCreateStmt from "../format/createStmt";
 
 import alterTableStmt from "./alterTableStmt";
 import createStmt from "./createStmt";
-import { NEWLINE } from "../format/whitespace";
+import { NEWLINE, textFormatter } from "../format/util";
 
 export default function dump(input: string | Stmt[]): string {
   // Since we mutate the ast, make sure we clone a fresh version coming in.
@@ -38,7 +38,7 @@ export default function dump(input: string | Stmt[]): string {
           a.relation.RangeVar.relname > b.relation.RangeVar.relname ? 1 : -1
         )
         // Print create statement
-        .map(formatCreateStmt),
+        .map((s) => textFormatter.concat(formatCreateStmt(s, textFormatter))),
     ].join(NEWLINE)
   );
 }

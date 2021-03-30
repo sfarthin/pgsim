@@ -1,6 +1,6 @@
 import { Constraint, ConType } from "../types";
-import rawExpr from "./rawExpr";
-import { TAB } from "./whitespace";
+import { rawValue } from "./rawExpr";
+import { Formatter, join } from "./util";
 
 function referentialActionOption(v: "r" | "c" | "n" | "a" | "d") {
   switch (v) {
@@ -17,82 +17,168 @@ function referentialActionOption(v: "r" | "c" | "n" | "a" | "d") {
   }
 }
 
-export function toConstraint(
+export function toConstraint<T>(
   constraint: Constraint,
+  f: Formatter<T>,
   fromAlterStmt?: boolean
-): string {
+): T[] {
+  const { keyword, _, identifier, symbol } = f;
   const con =
-    "conname" in constraint ? `CONSTRAINT ${constraint.conname} ` : "";
+    "conname" in constraint && constraint.conname
+      ? [keyword("CONSTRAINT"), _, identifier(constraint.conname), _]
+      : [];
 
   const keys =
     "keys" in constraint && constraint.keys
-      ? ` (${constraint.keys.map((j) => j.String.str)})`
-      : "";
+      ? [
+          _,
+          symbol("("),
+          ...join(
+            constraint.keys.map((j) => [identifier(j.String.str)]),
+            [symbol(","), _]
+          ),
+          symbol(")"),
+        ]
+      : [];
 
   switch (constraint.contype) {
     case ConType.FOREIGN_KEY:
-      const table = constraint.pktable.RangeVar.relname.toLowerCase();
+      const table = identifier(
+        constraint.pktable.RangeVar.relname.toLowerCase()
+      );
       const columns = constraint.pk_attrs
-        ? `(${constraint.pk_attrs?.map((v) => v.String.str).join(", ")})`
-        : "";
-      const fkColumns = constraint.fk_attrs
-        ? `(${constraint.fk_attrs?.map((v) => v.String.str).join(", ")})`
-        : "";
+        ? join(
+            constraint.pk_attrs?.map((v) => [identifier(v.String.str)]),
+            [symbol(","), _]
+          )
+        : [];
 
-      let actions = "";
+      const fkColumns = constraint.fk_attrs
+        ? join(
+            constraint.fk_attrs.map((v) => [identifier(v.String.str)]),
+            [symbol(","), _]
+          )
+        : [];
+
+      let actions: T[] = [];
       if (constraint.fk_upd_action) {
-        actions += ` ON UPDATE ${referentialActionOption(
-          constraint.fk_upd_action
-        )}`;
+        actions = [
+          ...actions,
+          _,
+          keyword("ON"),
+          _,
+          keyword("UPDATE"),
+          _,
+          keyword(referentialActionOption(constraint.fk_upd_action)),
+        ];
       }
 
       if (constraint.fk_del_action) {
-        actions += ` ON DELETE ${referentialActionOption(
-          constraint.fk_del_action
-        )}`;
+        actions = [
+          ...actions,
+          _,
+          keyword("ON"),
+          _,
+          keyword("DELETE"),
+          _,
+          keyword(referentialActionOption(constraint.fk_del_action)),
+        ];
       }
 
       if (fromAlterStmt) {
-        return `${con}FOREIGN KEY${fkColumns} REFERENCES ${table}${columns}${actions}`;
+        return [
+          ...con,
+          keyword("FOREIGN"),
+          _,
+          keyword("KEY"),
+          _,
+          ...(fkColumns.length ? [symbol("("), ...fkColumns, symbol(")")] : []),
+          _,
+          keyword("REFERENCES"),
+          _,
+          table,
+          ...(columns.length ? [_, symbol("("), ...columns, symbol(")")] : []),
+          ...actions,
+        ];
       } else {
-        return `${con}REFERENCES ${table}${columns}`;
+        return [
+          ...con,
+          keyword("REFERENCES"),
+          _,
+          table,
+          ...(columns.length ? [_, symbol("("), ...columns, symbol(")")] : []),
+        ];
       }
 
     case ConType.PRIMARY_KEY:
-      return `${con}PRIMARY KEY${keys}`;
+      return [...con, keyword("PRIMARY"), _, keyword("KEY"), ...keys];
     case ConType.DEFAULT:
-      return `${con}DEFAULT ${rawExpr(constraint.raw_expr)}`;
+      return [
+        ...con,
+        keyword("DEFAULT"),
+        _,
+        ...rawValue(constraint.raw_expr, f),
+      ];
     case ConType.NOT_NULL:
-      return `${con}NOT NULL`;
+      return [...con, keyword("NOT"), _, keyword("NULL")];
     case ConType.NULL:
-      return `${con}NULL`;
+      return [...con, keyword("NULL")];
     case ConType.UNIQUE:
-      return `${con}UNIQUE${keys}`;
+      return [...con, keyword("UNIQUE"), ...keys];
     default:
       throw new Error(`Unhandled constraint type: ${constraint.contype}`);
   }
 }
 
-export default function (
+export default function <T>(
   constraints: Constraint[],
+  f: Formatter<T>,
   fromAlterStmt?: boolean
-): string {
+): T[] {
+  const { _ } = f;
   if (constraints.length) {
-    return ` ${constraints
-      .map((c) => toConstraint(c, fromAlterStmt))
-      .join(" ")}`;
+    return constraints.reduce(
+      (acc, c) => [...acc, _, ...toConstraint(c, f, fromAlterStmt)],
+      [] as T[]
+    );
   }
-  return "";
+  return [];
 }
 
-export function toTableConstraint(constraint: Constraint): string {
+export function toTableConstraint<T>(
+  constraint: Constraint,
+  f: Formatter<T>
+): T[] {
+  const { keyword, _, symbol, identifier } = f;
   switch (constraint.contype) {
     case ConType.FOREIGN_KEY:
-      return `${TAB}FOREIGN KEY (${constraint.fk_attrs
-        ?.map((v) => v.String.str)
-        .join(", ")}) REFERENCES ${
-        constraint.pktable.RangeVar.relname
-      } (${constraint.pk_attrs?.map((v) => v.String.str).join(", ")})`;
+      return [
+        keyword("FOREIGN"),
+        _,
+        keyword("KEY"),
+        _,
+        symbol("("),
+        ...(constraint.fk_attrs
+          ? join(
+              constraint.fk_attrs.map((v) => [identifier(v.String.str)]),
+              [symbol(","), _]
+            )
+          : []),
+        symbol(")"),
+        _,
+        keyword("REFERENCES"),
+        _,
+        identifier(constraint.pktable.RangeVar.relname),
+        _,
+        symbol("("),
+        ...(constraint.pk_attrs
+          ? join(
+              constraint.pk_attrs?.map((v) => [identifier(v.String.str)]),
+              [symbol(","), _]
+            )
+          : []),
+        symbol(")"),
+      ];
     default:
       throw new Error(`Unhandled constraint type: ${constraint.contype}`);
   }

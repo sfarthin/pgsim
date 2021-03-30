@@ -19,7 +19,7 @@ import {
 import indexStmt from "./indexStmt";
 import parse from "../parse";
 import c from "ansi-colors";
-import { NEWLINE } from "./whitespace";
+import { NEWLINE, textFormatter, Formatter } from "./util";
 
 type Opts = {
   ignore?: StatementType[];
@@ -39,44 +39,44 @@ type Opts = {
 //   "CommentStmt",
 // ];
 
-function toString(stmt: Stmt, opts?: Opts): string {
+function formatStmt<T>(stmt: Stmt, f: Formatter<T>, opts?: Opts): T[][] {
   const s = stmt.RawStmt.stmt;
   const statementType = Object.keys(s)[0] as StatementType;
 
   if (opts?.ignore && opts.ignore.includes(statementType)) {
-    return `-- Ignoring ${statementType} statements`;
+    return comment(`-- Ignoring ${statementType} statements`, f);
   }
 
   if (opts?.ignoreAllExcept && !opts.ignoreAllExcept.includes(statementType)) {
-    return `-- Ignoring ${statementType} statements`;
+    return comment(`-- Ignoring ${statementType} statements`, f);
   }
 
   if ("CreateStmt" in s) {
-    return createStmt(s.CreateStmt);
+    return createStmt(s.CreateStmt, f);
   } else if ("DropStmt" in s) {
-    return dropStmt(s.DropStmt);
+    return dropStmt(s.DropStmt, f);
   } else if ("VariableSetStmt" in s) {
-    return variableSetStmt(s.VariableSetStmt);
+    return variableSetStmt(s.VariableSetStmt, f);
   } else if ("CreateEnumStmt" in s) {
-    return createEnumStmt(s.CreateEnumStmt);
+    return createEnumStmt(s.CreateEnumStmt, f);
   } else if ("CreateSeqStmt" in s) {
-    return createSeqStmt(s.CreateSeqStmt);
+    return createSeqStmt(s.CreateSeqStmt, f);
   } else if ("AlterSeqStmt" in s) {
-    return alterSeqStmt(s.AlterSeqStmt);
+    return alterSeqStmt(s.AlterSeqStmt, f);
   } else if ("AlterEnumStmt" in s) {
-    return alterEnumStmt(s.AlterEnumStmt);
+    return alterEnumStmt(s.AlterEnumStmt, f);
   } else if ("AlterOwnerStmt" in s) {
-    return alterOwnerStmt(s.AlterOwnerStmt);
+    return alterOwnerStmt(s.AlterOwnerStmt, f);
   } else if ("IndexStmt" in s) {
-    return indexStmt(s.IndexStmt);
+    return indexStmt(s.IndexStmt, f);
   } else if ("AlterTableStmt" in s) {
-    return alterTableStmt(s.AlterTableStmt);
+    return alterTableStmt(s.AlterTableStmt, f);
   } else if ("Comment" in s) {
-    return comment(s.Comment);
+    return comment(s.Comment, f);
   } else if ("SelectStmt" in s) {
-    return selectStmt(s.SelectStmt);
+    return selectStmt(s.SelectStmt, f);
   } else if ("ViewStmt" in s) {
-    return viewStmt(s.ViewStmt);
+    return viewStmt(s.ViewStmt, f);
   }
 
   throw new Error(`Cannot format ${Object.keys(s)}`);
@@ -84,6 +84,7 @@ function toString(stmt: Stmt, opts?: Opts): string {
 
 export default function format(_stmts: Stmt[] | string, opts?: Opts): string {
   const stmts = typeof _stmts === "string" ? parse(_stmts) : _stmts;
+  const f = textFormatter;
 
   if (stmts.length === 0) {
     return "";
@@ -92,7 +93,7 @@ export default function format(_stmts: Stmt[] | string, opts?: Opts): string {
   return stmts
     .map((stmt) => {
       try {
-        return toString(stmt, opts);
+        return f.concat(formatStmt(stmt, f, opts));
       } catch (e) {
         const errorType = e.name === "Error" ? "" : `(${e.name})`;
         if (opts?.filename && opts?.sql) {
@@ -127,5 +128,5 @@ export default function format(_stmts: Stmt[] | string, opts?: Opts): string {
         throw e;
       }
     })
-    .join(NEWLINE);
+    .join(`${NEWLINE}${NEWLINE}`);
 }

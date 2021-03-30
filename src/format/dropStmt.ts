@@ -1,30 +1,44 @@
 import { DropStmt, RemoveType } from "../types";
 import comment from "./comment";
-import { NEWLINE } from "./whitespace";
+import { Formatter } from "./util";
 
-export default function (c: DropStmt): string {
+export default function <T>(c: DropStmt, f: Formatter<T>): T[][] {
+  const { _, symbol, identifier, keyword } = f;
   if (c.removeType === RemoveType.TYPE) {
-    return `${comment(c.codeComment)}DROP TYPE ${
-      c.missing_ok ? "IF EXISTS " : ""
-    }${c.objects[0].TypeName.names[0].String.str}${
-      c.behavior === 1 ? " CASCADE" : ""
-    };${NEWLINE}`;
+    return [
+      ...comment(c.codeComment, f),
+      [
+        keyword("DROP"),
+        _,
+        keyword("TYPE"),
+        _,
+        ...(c.missing_ok ? [keyword("IF"), _, keyword("EXISTS"), _] : []),
+        identifier(c.objects[0].TypeName.names[0].String.str),
+        ...(c.behavior === 1 ? [_, keyword("CASCADE")] : []),
+        symbol(";"),
+      ],
+    ];
   }
 
-  if (c.removeType === RemoveType.TABLE) {
-    return `${comment(c.codeComment)}DROP TABLE ${
-      c.missing_ok ? "IF EXISTS " : ""
-    }${c.objects[0][0].String.str}${
-      c.behavior === 1 ? " CASCADE" : ""
-    };${NEWLINE}`;
-  }
-
-  if (c.removeType === RemoveType.SEQUENCE) {
-    return `${comment(c.codeComment)}DROP SEQUENCE ${
-      c.missing_ok ? "IF EXISTS " : ""
-    }${c.objects[0][0].String.str}${
-      c.behavior === 1 ? " CASCADE" : ""
-    };${NEWLINE}`;
+  if (
+    c.removeType === RemoveType.TABLE ||
+    c.removeType === RemoveType.SEQUENCE
+  ) {
+    return [
+      ...comment(c.codeComment, f),
+      [
+        keyword("DROP"),
+        _,
+        c.removeType === RemoveType.TABLE
+          ? keyword("TABLE")
+          : keyword("SEQUENCE"),
+        _,
+        ...(c.missing_ok ? [keyword("IF"), _, keyword("EXISTS"), _] : []),
+        identifier(c.objects[0][0].String.str),
+        ...(c.behavior === 1 ? [_, keyword("CASCADE")] : []),
+        symbol(";"),
+      ],
+    ];
   }
 
   throw new Error();

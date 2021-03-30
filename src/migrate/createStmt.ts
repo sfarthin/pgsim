@@ -1,7 +1,7 @@
 import { ColumnDef, ConType, CreateStmt, DefaultConstraint } from "../types";
 import formatCreateStmt, { toType } from "../format/createStmt";
-import formatRawExpr from "../format/rawExpr";
-import { NEWLINE } from "../format/whitespace";
+import { rawValue as formatRawValue } from "../format/rawExpr";
+import { NEWLINE, textFormatter } from "../format/util";
 
 function alterCmds(fromTable: CreateStmt, toTable: CreateStmt): string[] {
   const cmds: string[] = [];
@@ -52,13 +52,26 @@ function alterCmds(fromTable: CreateStmt, toTable: CreateStmt): string[] {
       newDefaultConstraint?.Constraint.raw_expr &&
       (!originalDefault?.Constraint.raw_expr ||
         (originalDefault?.Constraint.raw_expr &&
-          formatRawExpr(newDefaultConstraint?.Constraint.raw_expr) !==
-            formatRawExpr(originalDefault?.Constraint.raw_expr)))
+          textFormatter.concat([
+            formatRawValue(
+              newDefaultConstraint?.Constraint.raw_expr,
+              textFormatter
+            ),
+          ]) !==
+            textFormatter.concat([
+              formatRawValue(
+                originalDefault?.Constraint.raw_expr,
+                textFormatter
+              ),
+            ])))
     ) {
       cmds.push(
-        `ALTER ${fromColumn?.colname} SET DEFAULT ${formatRawExpr(
-          newDefaultConstraint?.Constraint.raw_expr
-        )}`
+        `ALTER ${fromColumn?.colname} SET DEFAULT ${textFormatter.concat([
+          formatRawValue(
+            newDefaultConstraint?.Constraint.raw_expr,
+            textFormatter
+          ),
+        ])}`
       );
     }
   }
@@ -84,7 +97,7 @@ export default function createStmt(
 
   // 1 Create the tables not created yet.
   for (const t of tablesNotCreatedYet) {
-    migration.push(formatCreateStmt(t));
+    migration.push(textFormatter.concat(formatCreateStmt(t, textFormatter)));
   }
 
   // 2. Alter tables that have changes

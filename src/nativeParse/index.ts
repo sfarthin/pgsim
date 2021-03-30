@@ -3,7 +3,7 @@ import { stmtDecoder, Stmt } from "../types";
 // @ts-expect-error
 import { parse as pgParse } from "pg-query-native-latest";
 import { toLineAndColumn } from "../parse/error";
-import { NEWLINE } from "../format/whitespace";
+import { NEWLINE } from "../format/util";
 
 export const parserResultDecoder = exact({
   // This is unknown because Error messages are hard to read if we do this here, we validate each query seperately

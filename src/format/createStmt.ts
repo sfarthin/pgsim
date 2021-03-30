@@ -1,7 +1,7 @@
 import { CreateStmt, ColumnDef, Constraint } from "../types";
 import comment from "./comment";
 import toConstraints, { toTableConstraint } from "./constraint";
-import { NEWLINE, TAB } from "./whitespace";
+import { Formatter, addToLastLine } from "./util";
 
 export function toType(columnDef: ColumnDef): string {
   const names = columnDef.typeName.TypeName.names
@@ -162,19 +162,27 @@ export function toType(columnDef: ColumnDef): string {
   }
 }
 
-export function toColumn(columnDef: ColumnDef): string {
+export function toColumn<T>(columnDef: ColumnDef, f: Formatter<T>): T[][] {
+  const { identifier, keyword, _ } = f;
   const colname = columnDef.colname.match(/^[a-zA-Z][a-zA-Z0-9]*$/)
     ? columnDef.colname
     : JSON.stringify(columnDef.colname);
 
   const constraints = columnDef.constraints?.map((c) => c.Constraint) ?? [];
 
-  return `${comment(columnDef.codeComment, 1)}${TAB}${colname} ${toType(
-    columnDef
-  ).toUpperCase()}${toConstraints(constraints)}`;
+  return [
+    ...comment(columnDef.codeComment, f),
+    [
+      identifier(colname),
+      _,
+      keyword(toType(columnDef)),
+      ...toConstraints(constraints, f),
+    ],
+  ];
 }
 
-export default function (createStmt: CreateStmt): string {
+export default function <T>(createStmt: CreateStmt, f: Formatter<T>): T[][] {
+  const { keyword, symbol, _, identifier, indent } = f;
   const tableName = createStmt.relation.RangeVar.relname;
   const schemaname = createStmt.relation.RangeVar.schemaname;
 
@@ -189,11 +197,34 @@ export default function (createStmt: CreateStmt): string {
     ) ?? []
   ).filter((c) => !!c) as Constraint[];
 
-  return `${comment(createStmt.codeComment)}CREATE TABLE ${
-    schemaname ? `${schemaname}.` : ""
-  }${tableName} (
-${[...columnDefs.map(toColumn), ...constraints.map(toTableConstraint)].join(
-  `,${NEWLINE}`
-)}
-);${NEWLINE}`;
+  return [
+    ...comment(createStmt.codeComment, f),
+    [
+      keyword("CREATE"),
+      _,
+      keyword("TABLE"),
+      _,
+      ...(schemaname ? [identifier(schemaname), symbol(".")] : []),
+      identifier(tableName),
+      _,
+      symbol("("),
+    ],
+    ...indent([
+      ...columnDefs.reduce(
+        (acc, d, i) => [
+          ...acc,
+          ...(i === columnDefs.length - 1 && !constraints.length
+            ? toColumn(d, f)
+            : addToLastLine(toColumn(d, f), [symbol(",")])),
+        ],
+        [] as T[][]
+      ),
+
+      ...constraints.reduce(
+        (acc, d) => [...acc, toTableConstraint(d, f)],
+        [] as T[][]
+      ),
+    ]),
+    [symbol(")"), symbol(";")],
+  ];
 }

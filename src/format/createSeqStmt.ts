@@ -1,20 +1,49 @@
 import { CreateSeqStmt } from "../types";
 import comment from "./comment";
 import defElem from "./defElem";
-import { NEWLINE, TAB } from "./whitespace";
+import { Formatter } from "./util";
 
-export default function createSeqStmt(c: CreateSeqStmt): string {
+export default function createSeqStmt<T>(
+  c: CreateSeqStmt,
+  f: Formatter<T>
+): T[][] {
+  const { keyword, _, identifier, symbol, indent } = f;
   const name = c.sequence.RangeVar.relname;
 
-  if (!c.options?.length) {
-    return `${comment(c.codeComment)}CREATE SEQUENCE ${name};${NEWLINE}`;
-  }
+  return [
+    ...comment(c.codeComment, f),
+    [
+      keyword("CREATE"),
+      _,
+      keyword("SEQUENCE"),
+      _,
+      ...(c.if_not_exists
+        ? [keyword("IF"), _, keyword("NOT"), _, keyword("EXISTS"), _]
+        : []),
+      identifier(name),
 
-  return `${comment(c.codeComment)}CREATE SEQUENCE${
-    c.if_not_exists ? " IF NOT EXISTS" : ""
-  } ${name} ${NEWLINE}${c.options
-    ?.map(
-      (e) => `${comment(e.DefElem.codeComment, 1)}${TAB}${defElem(e.DefElem)}`
-    )
-    .join(NEWLINE)};${NEWLINE}`;
+      // Add the semicolon here if there is no options
+      ...(!c.options?.length ? [symbol(";")] : []),
+    ],
+
+    // If there are deElems, we have each on its own line.
+    ...(c.options && c.options.length > 0
+      ? indent(
+          c.options.reduce(
+            (acc, e, i) => [
+              ...acc,
+              ...comment(e.DefElem.codeComment, f),
+              [
+                ...defElem(e.DefElem, f),
+                // If this is the last defElem, use semicolon
+                ...(c.options && c.options.length - 1 === i
+                  ? [symbol(";")]
+                  : []),
+              ],
+            ],
+            [] as T[][]
+          )
+        )
+      : []),
+  ];
 }

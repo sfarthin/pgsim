@@ -7,7 +7,7 @@ import { join, basename } from "path";
 import { lstatSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import { json as assertNoDiff } from "assert-no-diff";
 import c from "ansi-colors";
-import { NEWLINE } from "../format/whitespace";
+import { NEWLINE } from "../format/util";
 
 /**
  * By ensuring the native parser is verified by the decoder
@@ -162,7 +162,7 @@ export default function parseAndFormat(
   // 4. Then we verify our formatter by confirmating it produces the same parsed AST
   const astNoStyle = removeStyle(ast);
   const formattedSql = format(ast, { sql, filename: basename(filename) });
-  const formattedAst = parse(formattedSql);
+  const formattedAst = parse(formattedSql, basename(filename));
   const formattedAstNoStyle = removeStyle(formattedAst);
 
   for (const key in astNoStyle) {

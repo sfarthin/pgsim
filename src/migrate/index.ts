@@ -2,7 +2,7 @@ import { CreateStmt } from "../types";
 import dump from "../dump";
 import parse from "../parse";
 import createStmt from "./createStmt";
-import { NEWLINE } from "../format/whitespace";
+import { NEWLINE } from "../format/util";
 
 export default function migrate(
   from: string,

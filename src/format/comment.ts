@@ -1,15 +1,18 @@
-import { NEWLINE, TAB } from "./whitespace";
+import { Formatter, NEWLINE } from "./util";
 
 // We always use sql style comments so we don't have to handle "*/" within comments
 // and so we can easilly comment/uncomment.
-export default function comment(s: string | undefined, numTabs = 0): string {
-  const tabs = [...new Array(numTabs)].map(() => TAB);
+export default function comment<T>(
+  s: string | undefined,
+  f: Formatter<T>
+): T[][] {
+  const { codeComment } = f;
   if (!s) {
-    return "";
+    return [];
   }
 
-  return `${tabs}-- ${s
+  return s
     .split(NEWLINE)
     .filter(Boolean)
-    .join(`${NEWLINE}${tabs}-- `)}${NEWLINE}`;
+    .map((line) => [codeComment(`-- ${line}`)]);
 }

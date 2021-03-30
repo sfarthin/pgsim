@@ -1,10 +1,15 @@
 import { BoolExpr, BoolOp } from "../types";
-import rawExpr from "./rawExpr";
-import { NEWLINE } from "./whitespace";
+import { rawCondition } from "./rawExpr";
+import { Formatter } from "./util";
 
-export default function (c: BoolExpr, includeParens?: boolean): string {
+export default function <T>(
+  c: BoolExpr,
+  f: Formatter<T>,
+  includeParens?: boolean
+): T[][] {
+  const { symbol, _, keyword } = f;
   if (c.boolop === BoolOp.NOT) {
-    return `NOT ${rawExpr(c.args[0])}`;
+    return [[keyword("NOT"), _], ...rawCondition(c.args[0], f)];
   }
 
   const OP = c.boolop === BoolOp.AND ? "AND" : "OR";
@@ -13,12 +18,15 @@ export default function (c: BoolExpr, includeParens?: boolean): string {
     (arg) => "BoolExpr" in arg && arg.BoolExpr.boolop === BoolOp.OR
   );
 
-  const result = c.args
-    .map((a) => rawExpr(a, shouldIncludeParensInNestedCondition))
-    .join(` ${OP}${NEWLINE}`);
-
-  if (includeParens) {
-    return `(${result})`;
-  }
-  return `${result}`;
+  return [
+    ...c.args.reduce(
+      (acc, a, i) => [
+        ...acc,
+        [...(includeParens && i === 0 ? [symbol("(")] : [])],
+        ...rawCondition(a, f, shouldIncludeParensInNestedCondition),
+        [...(c.args.length - 1 === i ? [symbol(")")] : [keyword(OP)])],
+      ],
+      [] as T[][]
+    ),
+  ];
 }
