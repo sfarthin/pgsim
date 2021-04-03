@@ -29,7 +29,14 @@ export const textFormatter: Formatter<string> = {
   identifier: (s) => s,
   number: (s) => `${s}`,
 
-  concat: (t) => t.map((r) => r.join("")).join(NEWLINE),
+  concat: (t) => {
+    try {
+      return t.map((r) => r.join("")).join(NEWLINE);
+    } catch (e) {
+      console.error(t);
+      throw e;
+    }
+  },
   stmt: (s) => s,
 
   _: " ",
@@ -38,7 +45,11 @@ export const textFormatter: Formatter<string> = {
     if (Array.isArray(t[0])) {
       return (t as string[][]).map((r) => [TAB, ...r]);
     }
-    return [TAB, ...(t as string[])];
+    if (t.length) {
+      return [TAB, ...(t as string[])];
+    }
+
+    return t;
   },
   empty: "",
 };

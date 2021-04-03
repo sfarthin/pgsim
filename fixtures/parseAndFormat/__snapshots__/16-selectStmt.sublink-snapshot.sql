@@ -5,9 +5,13 @@
 --     foo
 -- WHERE
 --     0 > (SELECT 1)
--- SELECT
---     *
--- FROM
---     foo
--- WHERE
---     exists (SELECT foo);
+
+SELECT
+	foo1
+FROM
+	foo
+WHERE
+	EXISTS (
+		SELECT
+			foo
+	);

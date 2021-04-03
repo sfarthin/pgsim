@@ -7,6 +7,12 @@ SELECT
 	TRUE;
 
 SELECT
+	-- foo
+	FALSE,
+	-- bar
+	TRUE;
+
+SELECT
 	pg_catalog.set_config('search_path', '', FALSE);
 
 SELECT

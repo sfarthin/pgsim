@@ -6,6 +6,7 @@ import aExpr from "./aExpr";
 import columnRef from "./columnRef";
 import boolExpr from "./boolExpr";
 import rowExpr from "./rowExpr";
+import sublink from "./sublink";
 import { Formatter } from "./util";
 
 /**
@@ -38,7 +39,7 @@ export function rawCondition<T>(
   } else if ("BoolExpr" in c) {
     return boolExpr(c.BoolExpr, f, includeParens);
   } else if ("SubLink" in c) {
-    throw new Error(`RawCondition not handled: ${Object.keys(c)[0]}`);
+    return sublink(c.SubLink, f);
   } else {
     return [rawValue(c, f)];
   }
