@@ -1,27 +1,33 @@
 import { SelectStmt } from "../types/selectStmt";
 import comment from "./comment";
 import { rawCondition } from "./rawExpr";
-import { Formatter } from "./util";
+import { Formatter, addToLastLine } from "./util";
+
+function toTargetList<T>(c: SelectStmt, f: Formatter<T>): T[][] {
+  const { keyword, indent, symbol } = f;
+
+  const targetList = c.targetList.flatMap((v, i) =>
+    v.ResTarget?.val
+      ? [
+          ...comment(v.codeComment, f),
+          ...(i !== c.targetList.length - 1
+            ? addToLastLine(rawCondition(v.ResTarget?.val, f), [symbol(",")])
+            : rawCondition(v.ResTarget?.val, f)),
+        ]
+      : [[]]
+  );
+
+  return [
+    ...comment(c.codeComment, f),
+    [keyword("SELECT")],
+    ...indent(targetList),
+  ];
+}
 
 export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
   const { keyword, indent, identifier } = f;
-  const select = [
-    ...comment(c.codeComment, f),
-    [keyword("SELECT")],
-    ...indent(
-      c.targetList.reduce(
-        (acc, v) =>
-          v.ResTarget?.val
-            ? [
-                ...acc,
-                ...comment(v.codeComment, f),
-                ...rawCondition(v.ResTarget?.val, f),
-              ]
-            : acc,
-        [] as T[][]
-      )
-    ),
-  ];
+
+  const select = toTargetList(c, f);
 
   const from = c.fromClause
     ? [
@@ -55,5 +61,5 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
 
 export default function <T>(c: SelectStmt, f: Formatter<T>): T[][] {
   const { symbol } = f;
-  return innerSelect(c, f).concat([symbol(";")]);
+  return addToLastLine(innerSelect(c, f), [symbol(";")]);
 }

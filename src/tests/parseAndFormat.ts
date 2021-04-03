@@ -162,7 +162,16 @@ export default function parseAndFormat(
   // 4. Then we verify our formatter by confirmating it produces the same parsed AST
   const astNoStyle = removeStyle(ast);
   const formattedSql = format(ast, { sql, filename: basename(filename) });
-  const formattedAst = parse(formattedSql, basename(filename));
+
+  let formattedAst;
+  try {
+    formattedAst = parse(formattedSql, basename(filename));
+  } catch (e) {
+    console.log(formattedSql);
+    e.name = `Format provided invalid SQL`;
+    throw e;
+  }
+
   const formattedAstNoStyle = removeStyle(formattedAst);
 
   for (const key in astNoStyle) {

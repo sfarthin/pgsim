@@ -11,6 +11,8 @@ import {
   optional,
   identifier,
   WHERE,
+  zeroToMany,
+  COMMA,
 } from "./util";
 import { rawCondition } from "./rawExpr";
 import { SelectStmt } from "../types";
@@ -59,35 +61,41 @@ const from = transform(
   })
 );
 
+const target = transform(
+  (ctx) => rawCondition(ctx),
+  ({ value, codeComment }, ctx) => ({
+    ResTarget: {
+      val: value,
+      location: ctx.pos,
+    },
+    codeComment,
+  })
+);
+
 // We need to make endOfStatement optional, for use with viewStmt.
 export const select: Rule<SelectStmt> = transform(
   sequence([
     SELECT,
     __,
-    transform(
-      (ctx) => rawCondition(ctx),
-      ({ value, codeComment }, ctx) => ({
-        value,
-        pos: ctx.pos,
-        codeComment,
-      })
-    ),
+    target,
+    zeroToMany(sequence([__, COMMA, __, target])), // 3
     __,
-    // 4
+
     optional(from),
   ]),
   (v) => {
     return {
       targetList: [
         {
-          ResTarget: {
-            val: v[2].value,
-            location: v[2].pos,
-          },
-          codeComment: combineComments(v[1], v[2].codeComment, v[3]),
+          ...v[2],
+          codeComment: combineComments(v[1], v[2].codeComment, v[4]),
         },
+        ...v[3].map((r) => ({
+          ...r[3],
+          codeComment: combineComments(r[0], r[2], r[3].codeComment),
+        })),
       ],
-      ...v[4],
+      ...v[5],
       op: 0,
     };
   }
