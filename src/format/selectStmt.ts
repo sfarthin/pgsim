@@ -1,21 +1,33 @@
+import sortBy from "./sortBy";
 import { SelectStmt } from "../types/selectStmt";
 import comment from "./comment";
 import { rawCondition } from "./rawExpr";
 import { Formatter, addToLastLine } from "./util";
 
 function toTargetList<T>(c: SelectStmt, f: Formatter<T>): T[][] {
-  const { keyword, indent, symbol } = f;
+  const { keyword, indent, symbol, _, identifier } = f;
 
-  const targetList = c.targetList.flatMap((v, i) =>
-    v.ResTarget?.val
+  const targetList = c.targetList.flatMap((v, i) => {
+    if (!v.ResTarget?.val) {
+      return [];
+    }
+
+    // Lets add AS part if needed
+    const target = addToLastLine(rawCondition(v.ResTarget?.val, f), [
+      ...(v.ResTarget?.name
+        ? [_, keyword("AS"), _, identifier(v.ResTarget.name)]
+        : []),
+    ]);
+
+    return v.ResTarget?.val
       ? [
           ...comment(v.codeComment, f),
           ...(i !== c.targetList.length - 1
-            ? addToLastLine(rawCondition(v.ResTarget?.val, f), [symbol(",")])
-            : rawCondition(v.ResTarget?.val, f)),
+            ? addToLastLine(target, [symbol(",")])
+            : target),
         ]
-      : [[]]
-  );
+      : [[]];
+  });
 
   return [
     ...comment(c.codeComment, f),
@@ -56,7 +68,12 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
     : [];
 
   // Lets add the appropiate amount of tabs.
-  return [...select, ...from, ...where];
+  return [
+    ...select,
+    ...from,
+    ...where,
+    ...(c.sortClause ? sortBy(c.sortClause, f) : []),
+  ];
 }
 
 export default function <T>(c: SelectStmt, f: Formatter<T>): T[][] {

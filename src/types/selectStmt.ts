@@ -2,6 +2,7 @@ import * as d from "decoders";
 import { Location, locationDecoder } from "./location";
 import { rawConditionDecoder, RawCondition } from "./rawExpr";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
+import { SortBy, sortByDecoder } from "./sortBy";
 
 export type ResTarget = {
   name?: string;
@@ -32,7 +33,9 @@ export type SelectStmt = {
   distinctClause?: unknown;
   havingClause?: unknown;
   lockingClause?: unknown; // SELECT ctid,cmin,* FROM combocidtest FOR UPDATE;
-  sortClause?: unknown;
+  sortClause?: {
+    SortBy: SortBy;
+  }[];
   codeComment?: string;
 };
 // | {
@@ -76,7 +79,7 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
   havingClause: d.unknown,
   distinctClause: d.unknown,
   lockingClause: d.unknown,
-  sortClause: d.unknown,
+  sortClause: d.optional(d.array(d.exact({ SortBy: sortByDecoder }))),
   op: d.number,
 });
 //   ,

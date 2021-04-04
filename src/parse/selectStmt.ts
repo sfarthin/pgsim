@@ -13,9 +13,11 @@ import {
   WHERE,
   zeroToMany,
   COMMA,
+  AS,
 } from "./util";
 import { rawCondition } from "./rawExpr";
 import { SelectStmt } from "../types";
+import { sortBy } from "./sortBy";
 
 const where = transform(
   // 4
@@ -62,13 +64,17 @@ const from = transform(
 );
 
 const target = transform(
-  (ctx) => rawCondition(ctx),
-  ({ value, codeComment }, ctx) => ({
+  sequence([
+    (ctx) => rawCondition(ctx),
+    optional(sequence([__, AS, __, identifier])),
+  ]),
+  (v, ctx) => ({
     ResTarget: {
-      val: value,
+      val: v[0].value,
       location: ctx.pos,
+      ...(v[1] ? { name: v[1][3] } : {}),
     },
-    codeComment,
+    codeComment: combineComments(v[0].codeComment, v[1]?.[0], v[1]?.[2]),
   })
 );
 
@@ -80,8 +86,8 @@ export const select: Rule<SelectStmt> = transform(
     target,
     zeroToMany(sequence([__, COMMA, __, target])), // 3
     __,
-
-    optional(from),
+    optional(from), // 5
+    optional(sortBy), // 6
   ]),
   (v) => {
     return {
@@ -96,6 +102,7 @@ export const select: Rule<SelectStmt> = transform(
         })),
       ],
       ...v[5],
+      ...(v[6] ? { sortClause: v[6] } : {}),
       op: 0,
     };
   }

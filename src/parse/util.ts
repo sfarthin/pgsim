@@ -1193,6 +1193,7 @@ const keywordList = [
   "AFTER",
   "ALTER",
   "AS",
+  "ASC",
   "BEFORE",
   "BY",
   "CACHE",
@@ -1204,7 +1205,9 @@ const keywordList = [
   "CYCLE",
   "DEFAULT",
   "DELETE",
+  "DESC",
   "DROP",
+  "ORDER",
   "ENUM",
   "EXISTS",
   "FOREIGN",
@@ -1222,6 +1225,7 @@ const keywordList = [
   "NULL",
   "ON",
   "OR",
+  "ORDER",
   "ONLY",
   "OWNED",
   "OWNER",
@@ -1282,6 +1286,7 @@ export const ADD = keyword("ADD");
 export const AFTER = keyword("AFTER");
 export const ALTER = keyword("ALTER");
 export const AS = keyword("AS");
+export const ASC = keyword("ASC");
 export const BEFORE = keyword("BEFORE");
 export const BY = keyword("BY");
 export const CACHE = keyword("CACHE");
@@ -1292,6 +1297,7 @@ export const COLUMN = keyword("COLUMN");
 export const CREATE = keyword("CREATE");
 export const CYCLE = keyword("CYCLE");
 export const DEFAULT = keyword("DEFAULT");
+export const DESC = keyword("DESC");
 export const DROP = keyword("DROP");
 export const ENUM = keyword("ENUM");
 export const EXISTS = keyword("EXISTS");
@@ -1310,6 +1316,7 @@ export const NOT = keyword("NOT");
 export const NULL = keyword("NULL");
 export const ON = keyword("ON");
 export const OR = keyword("OR");
+export const ORDER = keyword("ORDER");
 export const ONLY = keyword("ONLY");
 export const OWNED = keyword("OWNED");
 export const OWNER = keyword("OWNER");
@@ -1341,6 +1348,7 @@ export const NOT_QUOTE = notConstant("'");
 export const LPAREN = constant("(");
 export const RPAREN = constant(")");
 export const COMMA = constant(",");
+export const STAR = constant("*");
 
 export const ifNotExists: Rule<string> = (ctx: Context) => {
   const rule = transform(sequence([IF, __, NOT, __, EXISTS]), (v) =>

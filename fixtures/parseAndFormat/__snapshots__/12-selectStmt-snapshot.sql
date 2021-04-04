@@ -23,3 +23,40 @@ SELECT
 
 SELECT
 	4;
+
+SELECT
+	*
+FROM
+	foo;
+
+SELECT
+	1 AS foo;
+
+SELECT
+	1
+ORDER BY
+	1;
+
+SELECT
+	1
+ORDER BY
+	1 DESC;
+
+SELECT
+	1
+ORDER BY
+	1 ASC;
+
+SELECT
+	1,
+	2
+ORDER BY
+	1 ASC,
+	2;
+
+SELECT
+	1,
+	2 AS foo
+ORDER BY
+	1 ASC,
+	foo;
