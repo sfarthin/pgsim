@@ -1210,6 +1210,7 @@ const keywordList = [
   "FOREIGN",
   "FROM",
   "IF",
+  "IN",
   "INCREMENT",
   "INDEX",
   "KEY",
@@ -1296,6 +1297,7 @@ export const ENUM = keyword("ENUM");
 export const EXISTS = keyword("EXISTS");
 export const FOREIGN = keyword("FOREIGN");
 export const FROM = keyword("FROM");
+export const IN = keyword("IN");
 export const IF = keyword("IF");
 export const INCREMENT = keyword("INCREMENT");
 export const INDEX = keyword("INDEX");

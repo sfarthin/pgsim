@@ -1,5 +1,5 @@
 import { BoolExpr, BoolOp } from "../types";
-import { rawValue, rawCondition, connectRawCondition } from "./rawExpr";
+import { rawCondition, connectRawCondition } from "./rawExpr";
 import { RawCondition } from "../types";
 import {
   sequence,
@@ -95,7 +95,7 @@ function condenseNestedBoolExpressions(
 export const notBoolExpr: Rule<{
   value: { BoolExpr: BoolExpr };
   codeComment: string;
-}> = transform(sequence([NOT, __, (ctx) => rawValue(ctx)]), (v, ctx) => {
+}> = transform(sequence([NOT, __, (ctx) => rawCondition(ctx)]), (v, ctx) => {
   return {
     value: {
       BoolExpr: {

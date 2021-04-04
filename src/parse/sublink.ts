@@ -7,9 +7,12 @@ import {
   EXISTS,
   transform,
   combineComments,
+  Context,
+  IN,
 } from "./util";
 import { select } from "./selectStmt";
 import { SubLink, SubLinkType } from "../types";
+import { connectRawConditionFromValue } from "./rawExpr";
 
 export const subLinkExists: Rule<{
   value: { SubLink: SubLink };
@@ -28,3 +31,28 @@ export const subLinkExists: Rule<{
     codeComment: combineComments(v[1], v[3], v[5]),
   };
 });
+
+export const subLinkConnection = (ctx: Context) =>
+  connectRawConditionFromValue(
+    sequence([__, IN, __, LPAREN, __, select, __, RPAREN]),
+    (c1, v) => {
+      return {
+        value: {
+          SubLink: {
+            subLinkType: SubLinkType.ANY_SUBLINK,
+            testexpr: c1.value,
+            subselect: { SelectStmt: v[5] },
+            location: v[1].start,
+          },
+        },
+        codeComment: combineComments(
+          c1.codeComment,
+          v[0],
+          v[2],
+          v[4],
+          v[5].codeComment,
+          v[6]
+        ),
+      };
+    }
+  )(ctx);

@@ -96,3 +96,12 @@ SELECT
 			FALSE
 		)
 	);
+
+SELECT
+	4 IN (1, 2, 3, 4);
+
+SELECT
+	400 IN (
+		SELECT
+			4
+	);

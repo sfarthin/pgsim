@@ -5,6 +5,7 @@ Parse error in 1-basic.sql(3,1): Expected one of the following, but found "SELEC
  - "="
  - "AND"
  - "FROM"
+ - "IN"
  - "OR"
  - "in"
  - End of Input

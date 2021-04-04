@@ -1,5 +1,16 @@
-import { or, Rule, constant, transform } from "./util";
+import {
+  or,
+  Rule,
+  constant,
+  transform,
+  sequence,
+  __,
+  identifier,
+  combineComments,
+  Context,
+} from "./util";
 import { TypeCast } from "../types";
+import { connectRawValue } from "./rawExpr";
 
 const booleanLiteral: Rule<{
   value: { TypeCast: TypeCast };
@@ -37,3 +48,37 @@ export const typeCast: Rule<{
   value: { TypeCast: TypeCast };
   codeComment: string;
 }> = booleanLiteral;
+
+export const typeCastConnection = (ctx: Context) =>
+  connectRawValue(
+    sequence([
+      __,
+      constant("::"),
+      __,
+      transform(identifier, (value, ctx) => ({ value, pos: ctx.pos })),
+    ]),
+    (c1, v) => {
+      return {
+        codeComment: combineComments(c1.codeComment, v[0], v[2]),
+        value: {
+          TypeCast: {
+            arg: c1.value,
+            typeName: {
+              TypeName: {
+                names: [
+                  {
+                    String: {
+                      str: v[3].value,
+                    },
+                  },
+                ],
+                typemod: -1,
+                location: v[3].pos,
+              },
+            },
+            location: v[1].start,
+          },
+        },
+      };
+    }
+  )(ctx);

@@ -17,3 +17,9 @@ SELECT
 
 SELECT
 	nextval('accounts_id_seq'::regclass);
+
+SELECT
+	4::text;
+
+SELECT
+	4;

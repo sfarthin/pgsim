@@ -4,10 +4,7 @@ import {
   transform,
   sequence,
   optional,
-  constant,
-  identifier,
   __,
-  combineComments,
   LPAREN,
   RPAREN,
   Context,
@@ -20,7 +17,8 @@ import { columnRef } from "./columnRef";
 import { notBoolExpr, boolConnection } from "./boolExpr";
 import { aExprConnection } from "./aExpr";
 import { rowExpr } from "./rowExpr";
-import { subLinkExists } from "./subLink";
+import { subLinkConnection, subLinkExists } from "./subLink";
+import { typeCastConnection } from "./typeCast";
 
 // This should include equestions and type casts.
 export const rawValue: Rule<{
@@ -40,59 +38,50 @@ export const rawValue: Rule<{
         value: { ColumnRef: value },
         codeComment: "",
       })),
+      transform(
+        sequence([LPAREN, __, (ctx) => rawValue(ctx), __, RPAREN]),
+        (v) => ({ ...v[2], hasParens: true })
+      ),
+      // ^^ Intentially before rowExpr because "SELECT (4)" uses parens and not a list of one.
       transform(rowExpr, ({ value, codeComment }) => ({
         value: { RowExpr: value },
         codeComment,
       })),
     ]),
-    optional(
-      transform(
-        sequence([
-          __,
-          transform(constant("::"), (value, ctx) => ({
-            value,
-            pos: ctx.pos,
-          })),
-          __,
-          transform(identifier, (value, ctx) => ({ value, pos: ctx.pos })),
-        ]),
-        (value, ctx) => ({ TypeCast: { value, ctx } })
-      )
-    ),
+    optional(typeCastConnection),
   ]),
-  (s) => {
-    if (s[1]) {
-      const firstRawExpr = s[0];
-      if ("TypeCast" in s[1]) {
-        const { value: v } = s[1].TypeCast;
-        return {
-          codeComment: combineComments(firstRawExpr.codeComment, v[0], v[2]),
-          value: {
-            TypeCast: {
-              arg: firstRawExpr.value,
-              typeName: {
-                TypeName: {
-                  names: [
-                    {
-                      String: {
-                        str: v[3].value,
-                      },
-                    },
-                  ],
-                  typemod: -1,
-                  location: v[3].pos,
-                },
-              },
-              location: v[1].pos,
-            },
-          },
-        };
-      }
+  (v) => {
+    if (v[1]) {
+      return v[1](v[0]);
     }
-
-    return s[0];
+    return v[0];
   }
 );
+
+/**
+ * This helper allows us to organize code appropiately
+ */
+export function connectRawValue<B>(
+  ruleB: Rule<B>,
+  extensionFn: (
+    a: {
+      value: RawValue;
+      codeComment: string;
+      hasParens?: boolean;
+    },
+    b: B,
+    c: Context
+  ) => { value: RawValue; codeComment: string }
+) {
+  return transform(
+    ruleB,
+    (r2, ctx) => (r1: {
+      value: RawValue;
+      codeComment: string;
+      hasParens?: boolean;
+    }) => extensionFn(r1, r2, ctx)
+  );
+}
 
 export const rawCondition: Rule<{
   value: RawCondition;
@@ -101,7 +90,12 @@ export const rawCondition: Rule<{
 }> = transform(
   sequence([
     or([
-      rawValue, // See above ^^
+      transform(sequence([rawValue, optional(subLinkConnection)]), (v) => {
+        if (v[1]) {
+          return v[1](v[0]);
+        }
+        return v[0];
+      }), // See above ^^
       notBoolExpr, // NOT XXX
       (ctx) => subLinkExists(ctx), // exists in (SELECT ...)
 
@@ -140,6 +134,28 @@ export function connectRawCondition<B>(
     ruleB,
     (r2, ctx) => (r1: {
       value: RawCondition;
+      codeComment: string;
+      hasParens?: boolean;
+    }) => extensionFn(r1, r2, ctx)
+  );
+}
+
+export function connectRawConditionFromValue<B>(
+  ruleB: Rule<B>,
+  extensionFn: (
+    a: {
+      value: RawValue;
+      codeComment: string;
+      hasParens?: boolean;
+    },
+    b: B,
+    c: Context
+  ) => { value: RawCondition; codeComment: string }
+) {
+  return transform(
+    ruleB,
+    (r2, ctx) => (r1: {
+      value: RawValue;
       codeComment: string;
       hasParens?: boolean;
     }) => extensionFn(r1, r2, ctx)
