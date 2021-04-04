@@ -15,3 +15,9 @@ WHERE
 		SELECT
 			foo
 	);
+
+SELECT
+	(
+		SELECT
+			1
+	);

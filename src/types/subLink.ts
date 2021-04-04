@@ -30,6 +30,13 @@ export type SubLink =
         SelectStmt: SelectStmt;
       };
       location: Location;
+    }
+  | {
+      subLinkType: SubLinkType.EXPR_SUBLINK;
+      subselect: {
+        SelectStmt: SelectStmt;
+      };
+      location: Location;
     };
 
 export const subLinkDecoder: d.Decoder<SubLink> = (blob) =>
@@ -48,6 +55,15 @@ export const subLinkDecoder: d.Decoder<SubLink> = (blob) =>
         SubLinkType.ANY_SUBLINK
       ) as d.Decoder<SubLinkType.ANY_SUBLINK>,
       testexpr: rawValueDecoder,
+      subselect: d.exact({
+        SelectStmt: (blob) => selectStmtDecoder(blob),
+      }),
+      location: locationDecoder,
+    }),
+    [SubLinkType.EXPR_SUBLINK]: d.exact({
+      subLinkType: d.constant(
+        SubLinkType.EXPR_SUBLINK
+      ) as d.Decoder<SubLinkType.EXPR_SUBLINK>,
       subselect: d.exact({
         SelectStmt: (blob) => selectStmtDecoder(blob),
       }),

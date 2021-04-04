@@ -13,3 +13,5 @@ FROM
     foo
 WHERE
     exists (SELECT foo);
+
+select (select 1);

@@ -19,6 +19,12 @@ export default function <T>(c: SubLink, f: Formatter<T>): T[][] {
         ...indent(innerSelect(c.subselect.SelectStmt, f)),
         [symbol(")")],
       ];
+    case SubLinkType.EXPR_SUBLINK:
+      return [
+        [symbol("(")],
+        ...indent(innerSelect(c.subselect.SelectStmt, f)),
+        [symbol(")")],
+      ];
     default:
       throw new Error(`Cannot handle Sublink`);
   }
