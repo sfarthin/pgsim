@@ -12,6 +12,7 @@ import {
   combineComments,
   or,
   constant,
+  STAR,
 } from "./util";
 import { FuncCall } from "../types";
 import { rawValue } from "./rawExpr";
@@ -29,13 +30,22 @@ export const funcCall: Rule<{
     __,
     LPAREN,
     __,
-    optional((ctx) => rawValue(ctx)), // 4
+    optional(
+      or([
+        transform(STAR, () => ({
+          isStar: true,
+          codeComment: "",
+        })),
+        (ctx) => rawValue(ctx),
+      ])
+    ), // 4
     zeroToMany(sequence([__, COMMA, __, (ctx) => rawValue(ctx)])), //5
     __,
     RPAREN,
   ]),
   (v, ctx) => {
-    const args = (v[4] ? [v[4].value] : []).concat(
+    const agg_star = v[4] && "isStar" in v[4];
+    const args = (v[4] && !("isStar" in v[4]) ? [v[4].value] : []).concat(
       v[5].length > 0 ? v[5].map((o) => o[3].value) : []
     );
     return {
@@ -45,7 +55,7 @@ export const funcCall: Rule<{
             str: k,
           },
         })),
-        ...(args.length > 0 ? { args } : {}),
+        ...(agg_star ? { agg_star: true } : args.length > 0 ? { args } : {}),
         // func_variadic?: boolean; // select concat(variadic array [1,2,3])
         // agg_distinct?: boolean;
         // over?: unknown;

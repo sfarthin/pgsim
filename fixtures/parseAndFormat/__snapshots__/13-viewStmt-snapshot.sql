@@ -23,8 +23,8 @@ CREATE VIEW myview AS (
 		-- 2
 		mycolumn
 	FROM
-		-- 3
 		-- 4
+		-- 3
 		mytable
 	WHERE
 		-- 5

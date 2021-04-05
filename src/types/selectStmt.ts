@@ -3,6 +3,7 @@ import { Location, locationDecoder } from "./location";
 import { rawConditionDecoder, RawCondition } from "./rawExpr";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { SortBy, sortByDecoder } from "./sortBy";
+import { JoinExpr, joinExprDecoder } from "./joinExpr";
 
 export type ResTarget = {
   name?: string;
@@ -22,7 +23,10 @@ export type SelectStmt = {
     ResTarget?: ResTarget;
     codeComment?: string;
   }[];
-  fromClause?: { RangeVar: RangeVar; codeComment?: string }[];
+  fromClause?: (
+    | { RangeVar: RangeVar; codeComment?: string }
+    | { JoinExpr: JoinExpr; codeComment?: string }
+  )[];
   whereClause?: RawCondition;
   whereClauseCodeComment?: string;
   groupClause?: unknown;
@@ -67,7 +71,16 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
   ),
   fromClause: d.optional(
     d.array(
-      d.exact({ RangeVar: rangeVarDecoder, codeComment: d.optional(d.string) })
+      d.either(
+        d.exact({
+          RangeVar: rangeVarDecoder,
+          codeComment: d.optional(d.string),
+        }),
+        d.exact({
+          JoinExpr: joinExprDecoder,
+          codeComment: d.optional(d.string),
+        })
+      )
     )
   ),
   whereClause: d.optional((blob) => rawConditionDecoder(blob)),

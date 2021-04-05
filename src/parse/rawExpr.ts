@@ -8,6 +8,7 @@ import {
   LPAREN,
   RPAREN,
   Context,
+  zeroToMany,
 } from "./util";
 import { aConst } from "./aConst";
 import { typeCast } from "./typeCast";
@@ -105,13 +106,14 @@ export const rawCondition: Rule<{
         (v) => ({ ...v[2], hasParens: true })
       ),
     ]),
-    optional(or([boolConnection, aExprConnection])),
+    zeroToMany(or([aExprConnection, boolConnection])),
   ]),
   (v) => {
-    if (v[1]) {
-      return v[1](v[0]);
+    let condition = v[0];
+    for (const connect of v[1]) {
+      condition = connect(condition);
     }
-    return v[0];
+    return condition;
   }
 );
 

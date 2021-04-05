@@ -11,6 +11,7 @@ Parse error in 1-basic.sql(3,1): Expected one of the following, but found "SELEC
  - "ORDER"
  - "in"
  - End of Input
+ - identifier
 
 1    
 2    SELECT 1

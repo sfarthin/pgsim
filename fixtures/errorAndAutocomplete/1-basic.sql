@@ -1,4 +1,4 @@
--- @error-statement { "token": "SELECT", "expected":  [",","::",";","=","AND","AS","End of Input","FROM","IN","OR","ORDER","in"] }
+-- @error-statement { "token": "SELECT", "expected":  [",","::",";","=","AND","AS","End of Input","FROM","IN","OR","ORDER","identifier","in"] }
 SELECT 1
 SELECT 2
 

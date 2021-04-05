@@ -1216,7 +1216,10 @@ const keywordList = [
   "IN",
   "INCREMENT",
   "INDEX",
+  "INNER",
+  "JOIN",
   "KEY",
+  "LEFT",
   "MAXVALUE",
   "MINVALUE",
   "NO",
@@ -1233,6 +1236,7 @@ const keywordList = [
   "REFERENCES",
   "RENAME",
   "RESTRICT",
+  "RIGHT",
   "SEQUENCE",
   "SET",
   "SELECT",
@@ -1307,7 +1311,10 @@ export const IN = keyword("IN");
 export const IF = keyword("IF");
 export const INCREMENT = keyword("INCREMENT");
 export const INDEX = keyword("INDEX");
+export const INNER = keyword("INNER");
+export const JOIN = keyword("JOIN");
 export const KEY = keyword("KEY");
+export const LEFT = keyword("LEFT");
 export const MAXVALUE = keyword("MAXVALUE");
 export const MINVALUE = keyword("MINVALUE");
 export const NO = keyword("NO");
@@ -1320,6 +1327,7 @@ export const ORDER = keyword("ORDER");
 export const ONLY = keyword("ONLY");
 export const OWNED = keyword("OWNED");
 export const OWNER = keyword("OWNER");
+export const RIGHT = keyword("RIGHT");
 export const PRIMARY = keyword("PRIMARY");
 export const PUBLIC = keyword("PUBLIC" as any); // <-- One exeption where we can use it ad an identifier
 export const REFERENCES = keyword("REFERENCES");

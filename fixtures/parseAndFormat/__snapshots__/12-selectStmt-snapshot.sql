@@ -12,26 +12,49 @@ SELECT
 	-- bar
 	TRUE;
 
+-- one-off
 SELECT
 	pg_catalog.set_config('search_path', '', FALSE);
 
 SELECT
 	nextval('accounts_id_seq'::regclass);
 
+-- Can wrap in typecast or parens
 SELECT
 	4::text;
 
 SELECT
 	4;
 
+-- We can use STAR
 SELECT
 	*
 FROM
 	foo;
 
 SELECT
+	count(*)
+FROM
+	foo;
+
+-- We can give aliases
+SELECT
 	1 AS foo;
 
+SELECT
+	1 AS foo;
+
+SELECT
+	*
+FROM
+	users AS u;
+
+SELECT
+	*
+FROM
+	users AS u;
+
+-- We can do ordering.
 SELECT
 	1
 ORDER BY

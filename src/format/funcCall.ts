@@ -14,6 +14,8 @@ export default function funcCall<T>(c: FuncCall, f: Formatter<T>): T[] {
       : [identifier(c.funcname[0].String.str)]),
     symbol("("),
 
+    ...("agg_star" in c ? [symbol("*")] : []),
+
     // foo, goo, etc
     ...(c.args
       ? join(

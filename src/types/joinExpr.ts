@@ -1,29 +1,35 @@
-import { number, exact, Decoder, unknown } from "decoders";
+import * as d from "decoders";
+import { RangeVar, rangeVarDecoder } from "./rangeVar";
+import { RawCondition, rawConditionDecoder } from "./rawExpr";
 
-// export enum JoinType {
-//   "Full" = 0,
-//   "Left" = 1,
-// }
-
-// const fullTypeDecoder: Decoder<JoinType.Full> = constant(JoinType.Full);
-// const leftTypeDecoder: Decoder<JoinType.Left> = constant(JoinType.Left);
+// https://doxygen.postgresql.org/nodes_8h.html#aef400c43b34e3ecc3f7b342aa821395d
+export enum JoinType {
+  /*
+   * The canonical kinds of joins according to the SQL JOIN syntax. Only
+   * these codes can appear in parser output (e.g., JoinExpr nodes).
+   */
+  JOIN_INNER = 0 /* matching tuple pairs only */,
+  JOIN_LEFT = 1 /* pairs + unmatched LHS tuples */,
+  JOIN_FULL = 2 /* pairs + unmatched LHS + unmatched RHS */,
+  JOIN_RIGHT = 3 /* pairs + unmatched RHS tuples */,
+}
 
 export type JoinExpr = {
-  jointype: number;
-  larg?: unknown; // <-- Should be FromClause, but that is cyclic, so we have to do it at runtime
-  rarg?: unknown; // <-- Should be FromClause, but that is cyclic, so we have to do it at runtime
-  quals?: unknown;
-  isNatural?: unknown;
-  usingClause?: unknown;
-  alias?: unknown;
+  jointype: JoinType;
+  larg: { RangeVar: RangeVar };
+  rarg: { RangeVar: RangeVar };
+  quals: RawCondition;
+  // isNatural?: unknown;
+  // usingClause?: unknown;
+  // alias?: unknown;
 };
 
-export const joinExprDecoder: Decoder<JoinExpr> = exact({
-  jointype: number,
-  larg: unknown,
-  rarg: unknown,
-  quals: unknown,
-  isNatural: unknown,
-  usingClause: unknown,
-  alias: unknown,
+export const joinExprDecoder: d.Decoder<JoinExpr> = d.exact({
+  jointype: d.oneOf(Object.values(JoinType)) as d.Decoder<JoinType>,
+  larg: d.exact({ RangeVar: rangeVarDecoder }),
+  rarg: d.exact({ RangeVar: rangeVarDecoder }),
+  quals: (blob) => rawConditionDecoder(blob),
+  // isNatural: unknown,
+  // usingClause: unknown,
+  // alias: unknown,
 });

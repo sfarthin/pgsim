@@ -3,6 +3,8 @@ import { SelectStmt } from "../types/selectStmt";
 import comment from "./comment";
 import { rawCondition } from "./rawExpr";
 import { Formatter, addToLastLine } from "./util";
+import rangeVar from "./rangeVar";
+import joinExpr from "./joinExpr";
 
 function toTargetList<T>(c: SelectStmt, f: Formatter<T>): T[][] {
   const { keyword, indent, symbol, _, identifier } = f;
@@ -45,14 +47,15 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
     ? [
         [keyword("FROM")],
         ...indent(
-          c.fromClause.reduce(
-            (acc, v) => [
-              ...acc,
-              ...comment(v.codeComment, f),
-              [identifier(v.RangeVar.relname)],
-            ],
-            [] as T[][]
-          )
+          c.fromClause.flatMap((v) => {
+            if ("RangeVar" in v) {
+              return [...comment(v.codeComment, f), rangeVar(v.RangeVar, f)];
+            }
+            if ("JoinExpr" in v) {
+              return [...comment(v.codeComment, f), ...joinExpr(v.JoinExpr, f)];
+            }
+            return [];
+          })
         ),
       ]
     : [];
