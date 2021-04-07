@@ -1,6 +1,8 @@
 -- SELECT from dump.
 SELECT false;
 SELECT false, true;
+select 2;
+select 2.0;
 
 SELECT 
 -- foo

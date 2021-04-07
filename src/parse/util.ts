@@ -1099,7 +1099,7 @@ export const sqlStyleCommentWithoutNewline = transform(
   (v) => combineComments(v[2].join(""))
 );
 
-function lookAhead(rule: Rule<unknown>): Rule<null> {
+export function lookAhead(rule: Rule<unknown>): Rule<null> {
   const newRule: Rule<null> = (ctx: Context) => {
     const curr = rule(ctx);
 
@@ -1142,7 +1142,7 @@ export const _ = transform(
   (v) => combineComments(...v[1]).trim()
 );
 
-const lookForWhiteSpaceOrComment = // we want to ensure the next character is a whitespace
+export const lookForWhiteSpaceOrComment = // we want to ensure the next character is a whitespace
   // or start of a comment, but we do not want to incliude
   // it in the sequence.
   //
@@ -1357,6 +1357,7 @@ export const LPAREN = constant("(");
 export const RPAREN = constant(")");
 export const COMMA = constant(",");
 export const STAR = constant("*");
+export const MINUS = constant("-");
 
 export const ifNotExists: Rule<string> = (ctx: Context) => {
   const rule = transform(sequence([IF, __, NOT, __, EXISTS]), (v) =>

@@ -14,6 +14,7 @@ import { SubLink, subLinkDecoder } from "./subLink";
 
 export type RawValue =
   | { ColumnRef: ColumnRef } // myTable.myColumn
+  | { A_Expr: AExpr }
   | { FuncCall: FuncCall } // foo()
   | { A_Const: A_Const } // 'foo' ... 1 ... 0.9
   | { TypeCast: TypeCast } // 'adasd':text

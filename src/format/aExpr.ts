@@ -3,19 +3,31 @@ import { rawCondition, rawValue } from "./rawExpr";
 import { Formatter, join } from "./util";
 
 export default function aExpr<T>(c: AExpr, f: Formatter<T>): T[][] {
-  const { _, identifier, keyword, symbol } = f;
+  const { _, keyword, symbol } = f;
   if (c.kind === AExprKind.AEXPR_OP) {
-    const firstCondition = rawCondition(c.lexpr, f);
-    const secondCondition = rawCondition(c.rexpr, f);
+    const firstCondition = c.lexpr ? rawCondition(c.lexpr, f) : null;
+    const secondCondition = c.rexpr ? rawCondition(c.rexpr, f) : null;
+    const hasTwoParams = firstCondition && secondCondition;
 
-    if (firstCondition.length === 1 && secondCondition.length === 1) {
+    if (
+      (!firstCondition || firstCondition.length === 1) &&
+      (!secondCondition || secondCondition.length === 1)
+    ) {
       // If both are jsut one line, then lets put it on the same line.
-      return [[...firstCondition[0], _, symbol("="), _, ...secondCondition[0]]];
+      return [
+        [
+          ...(firstCondition ? firstCondition[0] : []),
+          ...(hasTwoParams ? [_] : []),
+          symbol(c.name[0].String.str),
+          ...(secondCondition ? [_] : []),
+          ...(secondCondition ? secondCondition[0] : []),
+        ],
+      ];
     } else {
       return [
-        ...rawCondition(c.lexpr, f),
-        [_, identifier(c.name[0].String.str), _],
-        ...rawCondition(c.rexpr, f),
+        ...(firstCondition ? firstCondition : []),
+        [_, symbol(c.name[0].String.str), _],
+        ...(secondCondition ? secondCondition : []),
       ];
     }
   } else {

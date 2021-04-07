@@ -16,7 +16,12 @@ import { funcCall } from "./funcCall";
 import { RawValue, RawCondition } from "../types";
 import { columnRef } from "./columnRef";
 import { notBoolExpr, boolConnection } from "./boolExpr";
-import { aExprConnection } from "./aExpr";
+import {
+  aExprDoubleParams,
+  aExprSingleParm,
+  aExprFactorial,
+  aExprIn,
+} from "./aExpr";
 import { rowExpr } from "./rowExpr";
 import { subLinkConnection, subLink } from "./subLink";
 import { typeCastConnection } from "./typeCast";
@@ -30,7 +35,9 @@ export const rawValue: Rule<{
   sequence([
     or([
       typeCast,
+      aExprSingleParm,
       transform(aConst, (A_Const) => ({ value: { A_Const }, codeComment: "" })),
+
       transform(funcCall, ({ value, codeComment }) => ({
         value: { FuncCall: value },
         codeComment,
@@ -49,7 +56,7 @@ export const rawValue: Rule<{
         codeComment,
       })),
     ]),
-    optional(typeCastConnection),
+    optional(or([typeCastConnection, aExprFactorial, aExprDoubleParams])),
   ]),
   (v) => {
     if (v[1]) {
@@ -106,7 +113,7 @@ export const rawCondition: Rule<{
         (v) => ({ ...v[2], hasParens: true })
       ),
     ]),
-    zeroToMany(or([aExprConnection, boolConnection])),
+    zeroToMany(or([aExprIn, boolConnection])),
   ]),
   (v) => {
     let condition = v[0];

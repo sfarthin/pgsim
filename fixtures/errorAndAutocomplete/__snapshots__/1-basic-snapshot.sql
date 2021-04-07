@@ -1,15 +1,33 @@
 Parse error in 1-basic.sql(3,1): Expected one of the following, but found "SELECT":
+ - "!"
+ - "!="
+ - "#"
+ - "%"
+ - "&"
+ - "*"
+ - "+"
  - ","
+ - "-"
+ - "/"
  - "::"
  - ";"
+ - "<"
+ - "<<"
+ - "<="
+ - "<>"
  - "="
+ - ">"
+ - ">="
+ - ">>"
  - "AND"
  - "AS"
  - "FROM"
  - "IN"
  - "OR"
  - "ORDER"
+ - "^"
  - "in"
+ - "|"
  - End of Input
  - identifier
 
@@ -37,9 +55,12 @@ Parse error in 1-basic.sql(7,1): Expected one of the following, but found "hello
 
 
 Parse error in 1-basic.sql(12,1): Expected one of the following, but found "select":
+ - "!!"
  - "'"
  - "("
  - "*"
+ - "-"
+ - "@"
  - "EXISTS"
  - "NOT"
  - "content"
@@ -51,6 +72,9 @@ Parse error in 1-basic.sql(12,1): Expected one of the following, but found "sele
  - "pg_catalog.set_config"
  - "true"
  - "warning"
+ - "|/"
+ - "||/"
+ - "~"
  - /[0-9]/
  - identifier
 

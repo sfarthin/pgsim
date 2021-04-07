@@ -28,8 +28,8 @@ export type AExpr =
   | {
       kind: AExprKind.AEXPR_OP;
       name: PGString[];
-      lexpr: RawValue;
-      rexpr: RawValue;
+      lexpr?: RawValue;
+      rexpr?: RawValue;
       location: Location;
     }
   | {
@@ -44,8 +44,8 @@ export const aExprDecoder: d.Decoder<AExpr> = dispatchByField("kind", {
   [AExprKind.AEXPR_OP]: d.exact({
     kind: d.oneOf(Object.values(AExprKind)) as d.Decoder<AExprKind.AEXPR_OP>,
     name: d.array(stringDecoder),
-    lexpr: (blob) => rawValueDecoder(blob),
-    rexpr: (blob) => rawValueDecoder(blob),
+    lexpr: d.optional((blob) => rawValueDecoder(blob)),
+    rexpr: d.optional((blob) => rawValueDecoder(blob)),
     location: locationDecoder,
   }),
   [AExprKind.AEXPR_IN]: d.exact({

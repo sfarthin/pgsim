@@ -8,17 +8,22 @@ import {
   PERIOD,
   quotedString,
   Rule,
+  optional,
+  MINUS,
 } from "./util";
 import { A_Const } from "../types";
 
-export const aConstInteger = transform(oneToMany(NUMERAL), (s) => ({
-  Integer: { ival: Number(s.join("")) },
-}));
+export const aConstInteger = transform(
+  sequence([optional(MINUS), oneToMany(NUMERAL)]),
+  (s) => ({
+    Integer: { ival: Number(s[1].join("")) * (s[0] ? -1 : 1) },
+  })
+);
 
 const aConstFloat = transform(
-  sequence([oneToMany(NUMERAL), PERIOD, oneToMany(NUMERAL)]),
+  sequence([optional(MINUS), oneToMany(NUMERAL), PERIOD, oneToMany(NUMERAL)]),
   (s) => ({
-    Float: { str: `${s[0].join("")}.${s[2].join("")}` },
+    Float: { str: `${s[0] ? "-" : ""}${s[1].join("")}.${s[3].join("")}` },
   })
 );
 
@@ -44,7 +49,14 @@ const aConstString = transform(quotedString, (v) => ({
 }));
 
 export const aConst: Rule<A_Const> = transform(
-  or([aConstString, aConstInteger, aConstFloat, nullKeyword, aConstKeyword]),
+  or([
+    aConstString,
+    aConstFloat,
+    // integer need to be after float
+    aConstInteger,
+    nullKeyword,
+    aConstKeyword,
+  ]),
   (s, ctx) => ({
     val: s,
     location: ctx.pos,

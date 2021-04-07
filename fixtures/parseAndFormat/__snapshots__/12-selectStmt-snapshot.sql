@@ -7,6 +7,12 @@ SELECT
 	TRUE;
 
 SELECT
+	2;
+
+SELECT
+	2.0;
+
+SELECT
 	-- foo
 	FALSE,
 	-- bar
