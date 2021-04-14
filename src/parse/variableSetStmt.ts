@@ -29,7 +29,15 @@ export const variableSetStmt: Rule<VariableSetStmt> = transform(
   (v) => ({
     kind: 0,
     name: v[3],
-    args: [{ A_Const: v[7] }],
-    codeComment: combineComments(v[0], v[2], v[4], v[6], v[8], v[9]),
+    args: [v[7].value],
+    codeComment: combineComments(
+      v[0],
+      v[2],
+      v[4],
+      v[6],
+      v[7].codeComment,
+      v[8],
+      v[9]
+    ),
   })
 );

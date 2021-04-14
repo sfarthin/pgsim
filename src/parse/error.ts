@@ -131,8 +131,8 @@ export const getFriendlyErrorMessage = ({
   filename,
   str,
   result,
-}: // expectedAst,
-{
+  expectedAst,
+}: {
   filename: string;
   str: string;
   result: FailResult;
@@ -191,13 +191,13 @@ export const getFriendlyErrorMessage = ({
       prefixNumeralLength,
       startLine: start.line + 1,
     }) + NEWLINE;
-  // if (expectedAst) {
-  //   error += `${NEWLINE}${NEWLINE}${JSON.stringify(
-  //     expectedAst.RawStmt.stmt,
-  //     null,
-  //     2
-  //   )}`;
-  // }
+  if (expectedAst) {
+    error += `${NEWLINE}${NEWLINE}${JSON.stringify(
+      expectedAst.RawStmt.stmt,
+      null,
+      2
+    )}`;
+  }
   error += NEWLINE;
 
   return error;

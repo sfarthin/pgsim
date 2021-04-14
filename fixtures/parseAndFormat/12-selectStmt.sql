@@ -17,6 +17,8 @@ select nextval('accounts_id_seq' :: regclass);
 -- Can wrap in typecast or parens
 SELECT 4::text;
 SELECT (4);
+SELECT -4;
+SELECT - 4;
 
 -- We can use STAR
 SELECT * FROM foo;

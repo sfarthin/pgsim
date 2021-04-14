@@ -4,9 +4,9 @@ import toConstraints, { toTableConstraint } from "./constraint";
 import { Formatter, addToLastLine } from "./util";
 
 export function toType(columnDef: ColumnDef): string {
-  const names = columnDef.typeName.TypeName.names
-    .map((s) => s.String.str)
-    .filter((s) => s !== "pg_catalog");
+  const names = (columnDef.typeName.TypeName.names as any)
+    .map((s: any) => s.String.str)
+    .filter((s: any) => s !== "pg_catalog");
 
   if (names.length !== 1) {
     throw new Error("Unexpected type count");

@@ -23,17 +23,17 @@ const enumList = transform(
   sequence([
     LPAREN,
     __,
-    quotedString,
+    quotedString, // 2
     oneToMany(sequence([__, COMMA, __, quotedString])),
     __,
     RPAREN,
   ]),
   (v) => {
     const list = [
-      { codeComment: v[1], String: { str: v[2] } },
+      { codeComment: v[1], String: { str: v[2].value } },
       ...v[3].map((r) => ({
         codeComment: combineComments(r[0], r[2]),
-        String: { str: r[3] },
+        String: { str: r[3].value },
       })),
     ];
     return [

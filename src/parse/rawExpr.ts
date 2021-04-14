@@ -24,7 +24,7 @@ import {
 } from "./aExpr";
 import { rowExpr } from "./rowExpr";
 import { subLinkConnection, subLink } from "./subLink";
-import { typeCastConnection } from "./typeCast";
+import { typeCastConnection, typeCastLiteral } from "./typeCast";
 
 // This should include equestions and type casts.
 export const rawValue: Rule<{
@@ -36,7 +36,8 @@ export const rawValue: Rule<{
     or([
       typeCast,
       aExprSingleParm,
-      transform(aConst, (A_Const) => ({ value: { A_Const }, codeComment: "" })),
+      typeCastLiteral,
+      aConst,
 
       transform(funcCall, ({ value, codeComment }) => ({
         value: { FuncCall: value },

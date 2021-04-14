@@ -10,25 +10,42 @@ import {
   Rule,
   optional,
   MINUS,
+  __,
 } from "./util";
 import { A_Const } from "../types";
 
 export const aConstInteger = transform(
-  sequence([optional(MINUS), oneToMany(NUMERAL)]),
-  (s) => ({
-    Integer: { ival: Number(s[1].join("")) * (s[0] ? -1 : 1) },
+  sequence([optional(MINUS), __, oneToMany(NUMERAL)]),
+  (s, ctx) => ({
+    value: {
+      Integer: { ival: Number(s[2].join("")) * (s[0] ? -1 : 1) },
+    },
+    codeComment: s[1],
+    location: ctx.pos,
   })
 );
 
 const aConstFloat = transform(
-  sequence([optional(MINUS), oneToMany(NUMERAL), PERIOD, oneToMany(NUMERAL)]),
+  sequence([
+    optional(MINUS),
+    __,
+    oneToMany(NUMERAL),
+    PERIOD,
+    oneToMany(NUMERAL),
+  ]),
   (s) => ({
-    Float: { str: `${s[0] ? "-" : ""}${s[1].join("")}.${s[3].join("")}` },
+    value: {
+      Float: { str: `${s[0] ? "-" : ""}${s[2].join("")}.${s[4].join("")}` },
+    },
+    codeComment: s[1],
   })
 );
 
 const nullKeyword = transform(constant("null"), () => ({
-  Null: {},
+  value: {
+    Null: {},
+  },
+  codeComment: "",
 }));
 
 const aConstKeyword = transform(
@@ -41,14 +58,20 @@ const aConstKeyword = transform(
     constant("content"),
     constant("heap"),
   ]),
-  (s) => ({ String: { str: s.value } })
+  (s) => ({ value: { String: { str: s.value } }, codeComment: "" })
 );
 
 const aConstString = transform(quotedString, (v) => ({
-  String: { str: v },
+  value: {
+    String: { str: v.value },
+  },
+  codeComment: "",
 }));
 
-export const aConst: Rule<A_Const> = transform(
+export const aConst: Rule<{
+  value: { A_Const: A_Const };
+  codeComment: string;
+}> = transform(
   or([
     aConstString,
     aConstFloat,
@@ -58,7 +81,12 @@ export const aConst: Rule<A_Const> = transform(
     aConstKeyword,
   ]),
   (s, ctx) => ({
-    val: s,
-    location: ctx.pos,
+    value: {
+      A_Const: {
+        val: s.value,
+        location: ctx.pos,
+      },
+    },
+    codeComment: s.codeComment,
   })
 );

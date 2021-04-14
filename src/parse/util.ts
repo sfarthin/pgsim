@@ -1457,7 +1457,7 @@ export const integer = transform(oneToMany(NUMERAL), (s) => Number(s.join("")));
 
 export const quotedString = transform(
   sequence([QUOTE, zeroToMany(NOT_QUOTE), QUOTE]),
-  (v) => v[1].join("")
+  (v, ctx) => ({ value: v[1].join(""), pos: ctx.pos })
 );
 
 /**

@@ -12,7 +12,7 @@ import {
   identifier,
 } from "./util";
 import { aConstInteger } from "./aConst";
-import { A_Const, TypeName } from "../types";
+import { A_Const, TypeName, TypeNameKeyword } from "../types";
 
 const includesReferenceCatalog = [
   "time with time zone",
@@ -154,8 +154,8 @@ const colTypeNoParam = keywordSet(colTypeNoParamKeywords);
 const getNames = (
   col: string
 ):
-  | [{ String: { str: string } }]
-  | [{ String: { str: string } }, { String: { str: string } }] => {
+  | [{ String: { str: "pg_catalog" } }, { String: { str: TypeNameKeyword } }]
+  | [{ String: { str: TypeNameKeyword } }] => {
   const base = includesReferenceCatalog.includes(col.toLowerCase())
     ? [{ String: { str: "pg_catalog" } }]
     : [];
@@ -170,10 +170,6 @@ const getNames = (
   });
 };
 
-const typemod = transform(aConstInteger, (val, ctx) => ({
-  A_Const: { val, location: ctx.pos },
-}));
-
 const typeNameWithTwoParams: Rule<{
   value: TypeName;
   codeComment: string;
@@ -183,11 +179,11 @@ const typeNameWithTwoParams: Rule<{
     __,
     LPAREN,
     __,
-    typemod,
+    aConstInteger,
     __,
     COMMA,
     __,
-    typemod,
+    aConstInteger,
     __,
     RPAREN,
   ]),
@@ -196,14 +192,19 @@ const typeNameWithTwoParams: Rule<{
       value: {
         names: getNames(value[0]),
         typemod: -1,
-        typmods: [value[4], value[8]],
+        typmods: [
+          { A_Const: { val: value[4].value, location: value[4].location } },
+          { A_Const: { val: value[8].value, location: value[8].location } },
+        ],
         location: ctx.pos,
       },
       codeComment: combineComments(
         value[1],
         value[3],
+        value[4].codeComment,
         value[5],
         value[7],
+        value[8].codeComment,
         value[9]
       ),
     };
@@ -214,13 +215,15 @@ const typeNameWithParam: Rule<{
   value: TypeName;
   codeComment: string;
 }> = transform(
-  sequence([colTypeWithParam, __, LPAREN, __, typemod, __, RPAREN]),
+  sequence([colTypeWithParam, __, LPAREN, __, aConstInteger, __, RPAREN]),
   (value, ctx) => {
     return {
       value: {
         names: getNames(value[0]),
         typemod: -1,
-        typmods: [value[4]],
+        typmods: [
+          { A_Const: { val: value[4].value, location: value[4].location } },
+        ],
         location: ctx.pos,
       },
       codeComment: combineComments(value[1], value[3], value[5]),

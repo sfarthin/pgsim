@@ -32,6 +32,12 @@ SELECT
 SELECT
 	4;
 
+SELECT
+	-4;
+
+SELECT
+	-4;
+
 -- We can use STAR
 SELECT
 	*

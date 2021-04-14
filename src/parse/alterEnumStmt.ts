@@ -29,7 +29,7 @@ const afterOrBefore = transform(
   ]),
   (v) => ({
     where: v[0].value,
-    value: v[2],
+    value: v[2].value,
     codeComment: v[1],
   })
 );
@@ -64,7 +64,7 @@ export const alterEnumStmtAdd: Rule<AlterEnumStmt> = transform(
           },
         },
       ],
-      newVal: v[13],
+      newVal: v[13].value,
       codeComment: combineComments(
         v[0],
         v[2],
@@ -128,8 +128,8 @@ export const alterEnumStmtRename: Rule<AlterEnumStmt> = transform(
         v[16],
         v[17]
       ),
-      oldVal: v[11],
-      newVal: v[15],
+      oldVal: v[11].value,
+      newVal: v[15].value,
     };
   }
 );
