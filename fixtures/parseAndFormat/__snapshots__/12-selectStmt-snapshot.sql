@@ -33,10 +33,37 @@ SELECT
 	4;
 
 SELECT
-	-4;
+	'1'::int4;
+
+SELECT
+	||/ '1'::int4;
+
+SELECT
+	||/ -1;
+
+-- Can handle big ints and negatives
+SELECT
+	2147483647;
+
+SELECT
+	2147483648;
 
 SELECT
 	-4;
+
+SELECT
+	-49999999999999999999999999999999999999999999999999999999999999999999999999999999;
+
+SELECT
+	-4;
+
+-- Can handle various expressions with different operations.
+-- SELECT 4 < 4.0 * 3;
+-- SELECT 4 * 4.0 < 3;
+-- SELECT 4 * 4.0 * 3;
+-- SELECT 4 - 4.0 * 3;
+-- SELECT 4 - 4.0 + 3;
+-- SELECT 4 * 4.0 / 3;
 
 -- We can use STAR
 SELECT

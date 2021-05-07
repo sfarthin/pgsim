@@ -26,6 +26,7 @@ export const rawValueDecoder: d.Decoder<RawValue> = dispatch({
   A_Const: (blob) => aConstDecoder(blob),
   TypeCast: (blob) => typeCastDecoder(blob),
   RowExpr: (blob) => rowExprDecoder(blob),
+  A_Expr: (blob) => aExprDecoder(blob),
 });
 
 // | { NullTest: NullTest }; // something is NULL;

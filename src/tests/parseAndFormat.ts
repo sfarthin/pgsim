@@ -71,9 +71,17 @@ function concatAllCodeComments(input: any): string[] {
           []
         ) as string[]),
       ]);
+    } else if (key === "codeComments") {
+      return acc.concat(
+        Object.values(value as any)
+          .flat()
+          .filter(Boolean)
+          .map((c: any) => c.split(/\s/))
+          .flat()
+      );
     } else if (typeof value === "object") {
       return acc.concat(concatAllCodeComments(value));
-    } else if (key === "codeComment" || key === "whereClauseCodeComment") {
+    } else if (key === "codeComment") {
       return acc.concat((value as any).split(/\s/) as string[]);
     }
 
@@ -87,7 +95,7 @@ function removeComments(stmts: Stmt[]): Stmt[] {
       omitDeep(stmt as object, [
         // Only in new parser
         "codeComment",
-        "whereClauseCodeComment",
+        "codeComments",
       ])
     ) as Stmt[])
       // Only in PEGJS parser

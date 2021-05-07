@@ -8,12 +8,12 @@ import {
   optional,
   boolean,
 } from "decoders";
-import { PGString, stringDecoder } from "./constant";
+import { String, stringDecoder } from "./constant";
 import { Location, locationDecoder } from "./location";
 import { RawValue, rawValueDecoder } from "./rawExpr";
 
 export type FuncCall = {
-  funcname: PGString[];
+  funcname: { String: String }[];
   agg_star?: boolean;
   args?: RawValue[];
   func_variadic?: boolean; // select concat(variadic array [1,2,3])

@@ -1,5 +1,5 @@
 import * as d from "decoders";
-import { stringDecoder, PGString } from "./constant";
+import { stringDecoder, String } from "./constant";
 import { Location, locationDecoder } from "./location";
 import { RawValue, rawValueDecoder } from "./rawExpr";
 import { dispatchByField } from "./dispatch";
@@ -27,14 +27,14 @@ export enum AExprKind {
 export type AExpr =
   | {
       kind: AExprKind.AEXPR_OP;
-      name: PGString[];
+      name: { String: String }[];
       lexpr?: RawValue;
       rexpr?: RawValue;
       location: Location;
     }
   | {
       kind: AExprKind.AEXPR_IN;
-      name: PGString[];
+      name: { String: String }[];
       lexpr: RawValue;
       rexpr: RawValue[];
       location: Location;

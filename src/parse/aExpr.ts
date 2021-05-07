@@ -10,7 +10,7 @@ import {
   Rule,
   lookForWhiteSpaceOrComment,
 } from "./util";
-import { RawValue, AExprKind, AExpr } from "../types";
+import { RawValue, AExprKind, AExpr, A_Const } from "../types";
 import { rowExpr } from "./rowExpr";
 
 const operatorsWithTwoParams = or([
@@ -43,30 +43,64 @@ const operatorsWithOneParams = or([
   constant("~"),
   constant("@"),
   constant("!!"),
+  constant("-"),
 ]);
+
+// function condenseNestedAExpr(
+//   aExpr: AExpr,
+//   { hasParens }: { hasParens: boolean }
+// ): AExpr {
+//   if (aExpr.rexpr && "A_Expr" in aExpr.rexpr) {
+//   }
+// }
 
 export const aExprSingleParm: Rule<{
   codeComment: string;
-  value: { A_Expr: AExpr };
+  value: { A_Expr: AExpr } | { A_Const: A_Const };
 }> = transform(
   sequence([operatorsWithOneParams, __, (ctx) => rawValue(ctx)]),
   (v, ctx) => {
+    const operation = v[0].value;
     return {
       codeComment: combineComments(v[1], v[2].codeComment),
-      value: {
-        A_Expr: {
-          kind: AExprKind.AEXPR_OP,
-          name: [
-            {
-              String: {
-                str: v[0].value,
+      value:
+        // If the right expr is a float or integer, we want to condense
+        // it into a single value
+        operation === "-" &&
+        "A_Const" in v[2].value &&
+        ("Float" in v[2].value.A_Const.val ||
+          "Integer" in v[2].value.A_Const.val)
+          ? ({
+              A_Const: {
+                location: ctx.pos,
+                val:
+                  "Float" in v[2].value.A_Const.val
+                    ? {
+                        Float: {
+                          str: `-${v[2].value.A_Const.val.Float.str}`,
+                        },
+                      }
+                    : {
+                        Integer: {
+                          ival: v[2].value.A_Const.val.Integer.ival * -1,
+                        },
+                      },
+              },
+            } as { A_Const: A_Const })
+          : {
+              A_Expr: {
+                kind: AExprKind.AEXPR_OP,
+                name: [
+                  {
+                    String: {
+                      str: operation,
+                    },
+                  },
+                ],
+                rexpr: v[2].value,
+                location: ctx.pos,
               },
             },
-          ],
-          rexpr: v[2].value,
-          location: ctx.pos,
-        },
-      },
     };
   }
 );

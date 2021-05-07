@@ -1,11 +1,9 @@
 import { array, exact, either, Decoder, string, optional } from "decoders";
-import { stringValueDecoder, StringValue } from "./constant";
+import { stringValueDecoder, String } from "./constant";
 import { tuple1, tuple2 } from "./tuple1";
 
 export type CreateEnumStmt = {
-  typeName:
-    | [{ String: StringValue }]
-    | [{ String: StringValue }, { String: StringValue }];
+  typeName: [{ String: String }] | [{ String: String }, { String: String }];
   vals: {
     String: { str: string };
     codeComment?: string;

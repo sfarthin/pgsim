@@ -44,7 +44,7 @@ export const relationDecoder = exact({
 
 export type CreateStmt = {
   relation: Relation;
-  tableElts?: Array<{ ColumnDef?: ColumnDef } | { Constraint?: Constraint }>;
+  tableElts?: Array<{ ColumnDef: ColumnDef } | { Constraint: Constraint }>;
   oncommit: number;
   inhRelations?: unknown; // CREATE TEMP TABLE t2c (primary key (ab)) INHERITS (t2);
   options?: unknown;

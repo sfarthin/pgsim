@@ -23,7 +23,7 @@ function toTargetList<T>(c: SelectStmt, f: Formatter<T>): T[][] {
 
     return v.ResTarget?.val
       ? [
-          ...comment(v.codeComment, f),
+          ...comment(c.codeComments?.targetList?.[i], f),
           ...(i !== c.targetList.length - 1
             ? addToLastLine(target, [symbol(",")])
             : target),
@@ -47,12 +47,18 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
     ? [
         [keyword("FROM")],
         ...indent(
-          c.fromClause.flatMap((v) => {
+          c.fromClause.flatMap((v, i) => {
             if ("RangeVar" in v) {
-              return [...comment(v.codeComment, f), rangeVar(v.RangeVar, f)];
+              return [
+                ...comment(c.codeComments?.fromClause?.[i], f),
+                rangeVar(v.RangeVar, f),
+              ];
             }
             if ("JoinExpr" in v) {
-              return [...comment(v.codeComment, f), ...joinExpr(v.JoinExpr, f)];
+              return [
+                ...comment(c.codeComments?.fromClause?.[i], f),
+                ...joinExpr(v.JoinExpr, f),
+              ];
             }
             return [];
           })
@@ -64,7 +70,7 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
     ? [
         [identifier("WHERE")],
         ...indent([
-          ...comment(c.whereClauseCodeComment, f),
+          ...comment(c.codeComments?.whereClause?.[0], f),
           ...rawCondition(c.whereClause, f),
         ]),
       ]

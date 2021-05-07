@@ -19,7 +19,7 @@ import {
 import { rangeVar } from "./rangeVar";
 
 export const joinExpr: Rule<{
-  JoinExpr: JoinExpr;
+  value: { JoinExpr: JoinExpr };
   codeComment: string;
 }> = transform(
   sequence([
@@ -38,16 +38,18 @@ export const joinExpr: Rule<{
     (ctx) => rawCondition(ctx),
   ]),
   (v) => ({
-    JoinExpr: {
-      jointype:
-        v[2]?.value === "LEFT"
-          ? JoinType.JOIN_LEFT
-          : v[2]?.value === "RIGHT"
-          ? JoinType.JOIN_RIGHT
-          : JoinType.JOIN_INNER,
-      larg: { RangeVar: v[0].RangeVar },
-      rarg: { RangeVar: v[6].RangeVar },
-      quals: v[12].value,
+    value: {
+      JoinExpr: {
+        jointype:
+          v[2]?.value === "LEFT"
+            ? JoinType.JOIN_LEFT
+            : v[2]?.value === "RIGHT"
+            ? JoinType.JOIN_RIGHT
+            : JoinType.JOIN_INNER,
+        larg: { RangeVar: v[0].value.RangeVar },
+        rarg: { RangeVar: v[6].value.RangeVar },
+        quals: v[12].value,
+      },
     },
 
     codeComment: combineComments(

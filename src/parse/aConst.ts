@@ -8,36 +8,30 @@ import {
   PERIOD,
   quotedString,
   Rule,
-  optional,
-  MINUS,
   __,
 } from "./util";
 import { A_Const } from "../types";
 
-export const aConstInteger = transform(
-  sequence([optional(MINUS), __, oneToMany(NUMERAL)]),
-  (s, ctx) => ({
-    value: {
-      Integer: { ival: Number(s[2].join("")) * (s[0] ? -1 : 1) },
-    },
-    codeComment: s[1],
-    location: ctx.pos,
-  })
-);
+export const aConstInteger = transform(oneToMany(NUMERAL), (s, ctx) => ({
+  value:
+    BigInt(s.join("")) > BigInt("2147483647")
+      ? {
+          Float: { str: s.join("") },
+        }
+      : {
+          Integer: { ival: Number(s.join("")) },
+        },
+  codeComment: "",
+  location: ctx.pos,
+}));
 
 const aConstFloat = transform(
-  sequence([
-    optional(MINUS),
-    __,
-    oneToMany(NUMERAL),
-    PERIOD,
-    oneToMany(NUMERAL),
-  ]),
+  sequence([oneToMany(NUMERAL), PERIOD, oneToMany(NUMERAL)]),
   (s) => ({
     value: {
-      Float: { str: `${s[0] ? "-" : ""}${s[2].join("")}.${s[4].join("")}` },
+      Float: { str: `${s[0].join("")}.${s[2].join("")}` },
     },
-    codeComment: s[1],
+    codeComment: "",
   })
 );
 

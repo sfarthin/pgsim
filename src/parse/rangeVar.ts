@@ -12,7 +12,7 @@ import {
 } from "./util";
 
 export const rangeVar: Rule<{
-  RangeVar: RangeVar;
+  value: { RangeVar: RangeVar };
   codeComment: string;
 }> = transform(
   sequence([
@@ -22,19 +22,22 @@ export const rangeVar: Rule<{
     ),
   ]),
   (v, ctx) => ({
-    RangeVar: {
-      relname: v[0],
-      inh: true,
-      relpersistence: "p" as const,
-      location: ctx.pos,
-      ...(v[1]
-        ? {
-            alias: {
-              Alias: { aliasname: v[1].length === 4 ? v[1][3] : v[1][1] },
-            },
-          }
-        : {}),
+    value: {
+      RangeVar: {
+        relname: v[0],
+        inh: true,
+        relpersistence: "p" as const,
+        location: ctx.pos,
+        ...(v[1]
+          ? {
+              alias: {
+                Alias: { aliasname: v[1].length === 4 ? v[1][3] : v[1][1] },
+              },
+            }
+          : {}),
+      },
     },
+
     codeComment: combineComments(
       ...(v[1] && v[1].length === 4
         ? [v[1][0], v[1][2]]

@@ -81,7 +81,7 @@ export const types = [
     description: "double precision floating-point number (8 bytes)",
     name: "float8",
     alias: ["double precision"],
-    hasPGCatalog: false,
+    hasPGCatalog: true,
   },
   {
     description: "IPv4 or IPv6 host address",
@@ -92,7 +92,7 @@ export const types = [
   {
     description: "signed four-byte integer",
     name: "int4",
-    alias: ["integer", "int4"],
+    alias: ["integer", "int4", "int"],
     hasPGCatalog: true,
   },
   {
@@ -252,25 +252,78 @@ export const types = [
     alias: [],
     hasPGCatalog: false,
   },
+
+  // Object Identifier Types
+  // https://www.postgresql.org/docs/8.1/datatype-oid.html
+  {
+    description: "numeric object identifier",
+    name: "oid",
+    alias: [],
+    hasPGCatalog: false,
+  },
+  {
+    description: "function name",
+    name: "regproc",
+    alias: [],
+    hasPGCatalog: false,
+  },
+  {
+    description: "function with argument types",
+    name: "regprocedure",
+    alias: [],
+    hasPGCatalog: false,
+  },
+  {
+    description: "operator name",
+    name: "regoper",
+    alias: [],
+    hasPGCatalog: false,
+  },
+  {
+    description: "operator with argument types",
+    name: "regoperator",
+    alias: [],
+    hasPGCatalog: false,
+  },
+  {
+    description: "relation name",
+    name: "regclass",
+    alias: [],
+    hasPGCatalog: false,
+  },
+  {
+    description: "data type name",
+    name: "regtype",
+    alias: [],
+    hasPGCatalog: false,
+  },
+  {
+    description: "System Catalog",
+    name: "pg_catalog",
+    alias: [],
+    hasPGCatalog: false,
+  },
 ] as const;
 
 type T = typeof types;
 export type TypeNameKeyword = T[number]["name"] | T[number]["alias"][number];
 
-export function stringToType(s: string): T[number] {
-  for (const type of types) {
-    if (s === type.name || (type.alias as readonly string[]).includes(s)) {
-      return type;
-    }
-  }
+export const typeNames: TypeNameKeyword[] = types.flatMap((t) => [
+  t.name,
+  ...t.alias,
+]);
 
-  throw new Error(`Invalid type ${s}`);
-}
+export const getTypeDetails = (t: TypeNameKeyword): T[number] =>
+  // @ts-expect-error -- dunno
+  types.find((n) => n.name === t || n.alias.includes(t));
 
 export type TypeName = {
   names:
-    | [{ String: { str: "pg_catalog" } }, { String: { str: TypeNameKeyword } }]
-    | [{ String: { str: TypeNameKeyword } }];
+    | [
+        { String: { str: "pg_catalog" } },
+        { String: { str: T[number]["name"] } }
+      ]
+    | [{ String: { str: T[number]["name"] } }];
   typemod: number;
   typmods?:
     | [{ A_Const: A_Const }]

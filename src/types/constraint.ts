@@ -9,7 +9,7 @@ import {
   either5,
 } from "decoders";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
-import { PGString, stringDecoder } from "./constant";
+import { String, stringDecoder } from "./constant";
 import { tuple1 } from "./tuple1";
 import {
   RawCondition,
@@ -52,7 +52,7 @@ export type PrimaryKeyConstraint = {
   contype: ConType.PRIMARY_KEY;
   location: Location;
   conname?: string;
-  keys?: PGString[];
+  keys?: { String: String }[];
 };
 
 export const primaryKeyConstraintDecoder: Decoder<PrimaryKeyConstraint> = exact(
@@ -100,7 +100,7 @@ export type UniqueConstraint = {
   contype: ConType.UNIQUE;
   location: Location;
   conname?: string;
-  keys?: PGString[];
+  keys?: { String: String }[];
 };
 
 export const uniqueConstraintDecoder = exact({
@@ -124,9 +124,9 @@ export type ForeignKeyConstraint = {
   pktable: {
     RangeVar: RangeVar;
   };
-  pk_attrs?: PGString[];
+  pk_attrs?: { String: String }[];
   conname?: string;
-  fk_attrs?: PGString[];
+  fk_attrs?: { String: String }[];
   codeComment?: string;
 };
 
@@ -167,9 +167,9 @@ export type ReferenceConstraint = {
   pktable: {
     RangeVar: RangeVar;
   };
-  pk_attrs?: PGString[];
+  pk_attrs?: { String: String }[];
   conname?: string;
-  fk_attrs?: PGString[];
+  fk_attrs?: { String: String }[];
   codeComment?: string;
 };
 

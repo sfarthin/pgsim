@@ -1,20 +1,20 @@
 import * as d from "decoders";
 import { Location, locationDecoder } from "./location";
 
-export type StringValue = { str: string };
-export const stringValueDecoder: d.Decoder<StringValue> = d.exact({
+export type String = { str: string };
+export const stringValueDecoder: d.Decoder<String> = d.exact({
   str: d.string,
 });
-export type FloatValue = { str: string };
-export const floatValueDecoder: d.Decoder<FloatValue> = d.exact({
+export type Float = { str: string };
+export const floatValueDecoder: d.Decoder<Float> = d.exact({
   str: d.string,
 });
-export type IntegerValue = { ival: number };
-export const integerValueDecoder: d.Decoder<IntegerValue> = d.exact({
+export type Integer = { ival: number };
+export const integerValueDecoder: d.Decoder<Integer> = d.exact({
   ival: d.number,
 });
 
-export type Value = StringValue | FloatValue | IntegerValue;
+export type Value = String | Float | Integer;
 export const valueDecoder: d.Decoder<Value> = d.either3(
   stringValueDecoder,
   floatValueDecoder,
@@ -22,18 +22,19 @@ export const valueDecoder: d.Decoder<Value> = d.either3(
 );
 
 export type Constant = {
-  val: StringValue | FloatValue | IntegerValue;
+  val: String | Float | Integer;
 };
 export const constantDecoder: d.Decoder<Constant> = d.exact({
   val: d.either3(stringValueDecoder, floatValueDecoder, integerValueDecoder),
 });
 
+export type Null = {};
 export type A_Const = {
   val:
-    | { Float: FloatValue }
-    | { String: StringValue }
-    | { Integer: IntegerValue }
-    | { Null: {} };
+    | { Float: Float }
+    | { String: String }
+    | { Integer: Integer }
+    | { Null: Null };
   location: Location;
 };
 
@@ -47,12 +48,12 @@ export const aConstDecoder: d.Decoder<A_Const> = d.exact({
   location: locationDecoder,
 });
 
-export type PGString = { String: StringValue };
-
-export const stringDecoder: d.Decoder<PGString> = d.exact({
+export const stringDecoder: d.Decoder<{ String: String }> = d.exact({
   String: stringValueDecoder,
 });
 
-export type Star = { A_Star: {} };
+export type A_Star = {};
 
-export const starDecoder: d.Decoder<Star> = d.exact({ A_Star: d.exact({}) });
+export const starDecoder: d.Decoder<{ A_Star: A_Star }> = d.exact({
+  A_Star: d.exact({}),
+});

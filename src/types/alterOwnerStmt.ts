@@ -1,10 +1,10 @@
 import * as d from "decoders";
 import { tuple1 } from "./tuple1";
-import { PGString, stringDecoder } from "../types/constant";
+import { String, stringDecoder } from "../types/constant";
 
 export type AlterOwnerStmt = {
   objectType: number;
-  object: [PGString];
+  object: [{ String: String }];
   newowner: {
     RoleSpec: {
       roletype: number;

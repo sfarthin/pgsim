@@ -39,7 +39,9 @@ const where = transform(
   ]),
   (v) => ({
     whereClause: v[2].value,
-    whereClauseCodeComment: combineComments(v[1], v[2].codeComment),
+    codeComments: {
+      whereClause: [combineComments(v[1], v[2].codeComment)],
+    },
   })
 );
 
@@ -48,29 +50,21 @@ const fromClause = oneToMany(or([joinExpr, rangeVar]));
 const from = transform(
   sequence([FROM, __, fromClause, __, optional(where)]),
   (v) => {
-    let f = v[2];
+    let f = v[2].map((r) => r.codeComment);
 
     // Extends codeComment in first case.
-    f = [
-      {
-        ...f[0],
-        codeComment: combineComments(v[1], f[0].codeComment),
-      },
-      ...f.slice(1),
-    ];
+    f = [combineComments(v[1], f[0]), ...f.slice(1)];
 
     // Extends codeComment in last case.
-    f = [
-      ...f.slice(0, -1),
-      {
-        ...f[f.length - 1],
-        codeComment: combineComments(v[3], f[f.length - 1].codeComment),
-      },
-    ];
+    f = [...f.slice(0, -1), combineComments(v[3], f[f.length - 1])];
 
     return {
-      fromClause: f,
+      fromClause: v[2].map((r) => r.value),
       ...v[4],
+      codeComments: {
+        whereClause: v[4]?.codeComments.whereClause,
+        fromClause: f,
+      },
     };
   }
 );
@@ -106,18 +100,22 @@ export const select: Rule<SelectStmt> = transform(
   (v) => {
     return {
       targetList: [
-        {
-          ...v[2],
-          codeComment: combineComments(v[1], v[2].codeComment, v[4]),
-        },
+        v[2],
         ...v[3].map((r) => ({
           ...r[3],
-          codeComment: combineComments(r[0], r[2], r[3].codeComment),
         })),
       ],
       ...v[5],
       ...(v[6] ? { sortClause: v[6] } : {}),
       op: 0,
+      codeComments: {
+        fromClause: v[5]?.codeComments?.fromClause,
+        targetList: [
+          combineComments(v[1], v[2].codeComment, v[4]),
+          ...v[3].map((r) => combineComments(r[0], r[2], r[3].codeComment)),
+        ],
+        whereClause: v[5]?.codeComments?.whereClause,
+      },
     };
   }
 );

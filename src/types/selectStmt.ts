@@ -21,14 +21,9 @@ export type SelectStmt = {
   op: number;
   targetList: {
     ResTarget?: ResTarget;
-    codeComment?: string;
   }[];
-  fromClause?: (
-    | { RangeVar: RangeVar; codeComment?: string }
-    | { JoinExpr: JoinExpr; codeComment?: string }
-  )[];
+  fromClause?: ({ RangeVar: RangeVar } | { JoinExpr: JoinExpr })[];
   whereClause?: RawCondition;
-  whereClauseCodeComment?: string;
   groupClause?: unknown;
   withClause?: unknown;
   intoClause?: unknown; // SELECT * INTO TABLE onek2 FROM onek;
@@ -41,6 +36,11 @@ export type SelectStmt = {
     SortBy: SortBy;
   }[];
   codeComment?: string;
+  codeComments?: {
+    targetList?: string[];
+    fromClause?: string[];
+    whereClause?: string[];
+  };
 };
 // | {
 //     op: number;

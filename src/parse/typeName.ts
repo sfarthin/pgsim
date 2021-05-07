@@ -151,11 +151,7 @@ const colTypeWithDoubleParam = keywordSet(colTypeWithDoubleParamKeywords);
 
 const colTypeNoParam = keywordSet(colTypeNoParamKeywords);
 
-const getNames = (
-  col: string
-):
-  | [{ String: { str: "pg_catalog" } }, { String: { str: TypeNameKeyword } }]
-  | [{ String: { str: TypeNameKeyword } }] => {
+const getNames = (col: string): TypeName["names"] => {
   const base = includesReferenceCatalog.includes(col.toLowerCase())
     ? [{ String: { str: "pg_catalog" } }]
     : [];

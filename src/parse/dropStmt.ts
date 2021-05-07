@@ -21,7 +21,7 @@ import {
 import {
   RemoveType,
   DropStmt,
-  PGString,
+  String,
   TypeName,
   DropStmtSequence,
   DropStmtTable,
@@ -94,7 +94,7 @@ export const dropStmt: Rule<DropStmt> = transform(
             },
           },
         ],
-      ] as [[PGString]],
+      ] as [[{ String: String }]],
       removeType: type === "SEQUENCE" ? RemoveType.SEQUENCE : RemoveType.TABLE,
       behavior,
       codeComment,

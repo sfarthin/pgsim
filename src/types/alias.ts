@@ -1,5 +1,5 @@
 import { optional, exact, string, Decoder, array } from "decoders";
-import { PGString, stringDecoder } from "./constant";
+import { String, stringDecoder } from "./constant";
 
 export type Alias = {
   aliasname: string;
@@ -19,7 +19,7 @@ export type Alias = {
   //         (1.5 :: float8),
   //         (2.5 :: float8)
   //     ) t(x)
-  colnames?: PGString[];
+  colnames?: { String: String }[];
 };
 
 export const aliasDecoder: Decoder<Alias> = exact({

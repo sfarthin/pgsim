@@ -27,7 +27,11 @@ export default function <T>(c: TypeCast, f: Formatter<T>): T[] {
     return [
       ...rawValue(c.arg, f),
       symbol("::"),
-      identifier(c.typeName.TypeName.names[0].String.str),
+      identifier(
+        c.typeName.TypeName.names.length === 1
+          ? c.typeName.TypeName.names[0].String.str
+          : c.typeName.TypeName.names[1].String.str
+      ),
     ];
   }
 

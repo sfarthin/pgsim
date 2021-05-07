@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { TypeNameKeyword } from "src/types";
 import { NEWLINE } from "../format/util";
 /**
  * Types
@@ -1159,6 +1160,7 @@ export const lookForWhiteSpaceOrComment = // we want to ensure the next characte
       constant(","),
       constant(";"),
       constant("("), // <-- in column definition
+      constant(")"),
     ])
   );
 
@@ -1253,7 +1255,7 @@ const keywordList = [
 ] as const;
 
 export function keyword(
-  str: typeof keywordList[number]
+  str: typeof keywordList[number] | TypeNameKeyword
 ): Rule<{ start: number; value: string }> {
   return (ctx) => {
     const result = transform(

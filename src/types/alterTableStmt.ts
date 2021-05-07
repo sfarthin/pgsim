@@ -18,7 +18,7 @@ import {
 } from "./createStmt";
 import { Constraint, constraintDecoder } from "./constraint";
 import { rawValueDecoder, RawValue } from "./rawExpr";
-import { PGString } from "./constant";
+import { String } from "./constant";
 
 export enum AlterTableCmdSubType {
   ADD_COLUMN = 0,
@@ -96,7 +96,7 @@ export type AlterTableAddConstraint = {
   def: {
     Constraint: Constraint;
   };
-  keys?: PGString[];
+  keys?: { String: String }[];
   behavior: number;
   codeComment?: string;
 };

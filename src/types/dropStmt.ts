@@ -8,7 +8,7 @@ import {
   boolean,
   optional,
 } from "decoders";
-import { PGString, stringDecoder } from "./constant";
+import { String, stringDecoder } from "./constant";
 import { TypeName, typeNameDecoder } from "./typeName";
 
 export enum RemoveType {
@@ -18,7 +18,7 @@ export enum RemoveType {
 }
 
 export type DropStmtSequence = {
-  objects: [[PGString]];
+  objects: [[{ String: String }]];
   removeType: RemoveType.SEQUENCE;
   behavior: number;
   codeComment?: string;
@@ -26,7 +26,7 @@ export type DropStmtSequence = {
 };
 
 export type DropStmtTable = {
-  objects: [[PGString]];
+  objects: [[{ String: String }]];
   removeType: RemoveType.TABLE;
   behavior: number;
   codeComment?: string;

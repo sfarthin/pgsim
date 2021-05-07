@@ -1,10 +1,14 @@
 import { exact, Decoder, either4, tuple2 } from "decoders";
 import { tuple1 } from "./tuple1";
-import { PGString, stringDecoder, Star, starDecoder } from "./constant";
+import { String, stringDecoder, A_Star, starDecoder } from "./constant";
 import { Location, locationDecoder } from "./location";
 
 export type ColumnRef = {
-  fields: [Star] | [PGString] | [PGString, PGString] | [PGString, Star];
+  fields:
+    | [{ A_Star: A_Star }]
+    | [{ String: String }]
+    | [{ String: String }, { String: String }]
+    | [{ String: String }, { A_Star: A_Star }];
   location: Location;
 };
 
