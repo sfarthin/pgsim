@@ -4,6 +4,7 @@ import { rawConditionDecoder, RawCondition } from "./rawExpr";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { SortBy, sortByDecoder } from "./sortBy";
 import { JoinExpr, joinExprDecoder } from "./joinExpr";
+import { ColumnRef, columnRefDecoder } from "./columnRef";
 
 export type ResTarget = {
   name?: string;
@@ -24,7 +25,7 @@ export type SelectStmt = {
   }[];
   fromClause?: ({ RangeVar: RangeVar } | { JoinExpr: JoinExpr })[];
   whereClause?: RawCondition;
-  groupClause?: unknown;
+  groupClause?: { ColumnRef: ColumnRef }[];
   withClause?: unknown;
   intoClause?: unknown; // SELECT * INTO TABLE onek2 FROM onek;
   limitOffset?: unknown;
@@ -40,6 +41,7 @@ export type SelectStmt = {
     targetList?: string[];
     fromClause?: string[];
     whereClause?: string[];
+    groupClause?: string[];
   };
 };
 // | {
@@ -84,7 +86,7 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
     )
   ),
   whereClause: d.optional((blob) => rawConditionDecoder(blob)),
-  groupClause: d.unknown,
+  groupClause: d.optional(d.array(d.exact({ ColumnRef: columnRefDecoder }))),
   intoClause: d.unknown,
   withClause: d.unknown,
   limitOffset: d.unknown,

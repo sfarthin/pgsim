@@ -5,6 +5,7 @@ import { rawCondition } from "./rawExpr";
 import { Formatter, addToLastLine } from "./util";
 import rangeVar from "./rangeVar";
 import joinExpr from "./joinExpr";
+import columnRef from "./columnRef";
 
 function toTargetList<T>(c: SelectStmt, f: Formatter<T>): T[][] {
   const { keyword, indent, symbol, _, identifier } = f;
@@ -39,7 +40,7 @@ function toTargetList<T>(c: SelectStmt, f: Formatter<T>): T[][] {
 }
 
 export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
-  const { keyword, indent, identifier } = f;
+  const { keyword, indent, symbol, identifier, _ } = f;
 
   const select = toTargetList(c, f);
 
@@ -76,11 +77,27 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
       ]
     : [];
 
+  const groupBy = c.groupClause
+    ? [
+        [identifier("GROUP"), _, identifier("BY")],
+        ...indent(
+          c.groupClause.flatMap((r, i) => [
+            ...comment(c.codeComments?.groupClause?.[i], f),
+            [
+              ...columnRef(r.ColumnRef, f),
+              ...(i === (c.groupClause?.length ?? 0) - 1 ? [] : [symbol(",")]),
+            ],
+          ])
+        ),
+      ]
+    : [];
+
   // Lets add the appropiate amount of tabs.
   return [
     ...select,
     ...from,
     ...where,
+    ...groupBy,
     ...(c.sortClause ? sortBy(c.sortClause, f) : []),
   ];
 }

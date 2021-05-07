@@ -1214,6 +1214,7 @@ const keywordList = [
   "EXISTS",
   "FOREIGN",
   "FROM",
+  "GROUP",
   "IF",
   "IN",
   "INCREMENT",
@@ -1308,6 +1309,7 @@ export const DROP = keyword("DROP");
 export const ENUM = keyword("ENUM");
 export const EXISTS = keyword("EXISTS");
 export const FOREIGN = keyword("FOREIGN");
+export const GROUP = keyword("GROUP");
 export const FROM = keyword("FROM");
 export const IN = keyword("IN");
 export const IF = keyword("IF");

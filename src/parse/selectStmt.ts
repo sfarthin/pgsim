@@ -16,12 +16,41 @@ import {
   AS,
   or,
   oneToMany,
+  GROUP,
+  BY,
 } from "./util";
 import { rawCondition } from "./rawExpr";
 import { SelectStmt } from "../types";
 import { sortBy } from "./sortBy";
 import { rangeVar } from "./rangeVar";
 import { joinExpr } from "./joinExpr";
+import { columnRef } from "./columnRef";
+
+const groupBy = transform(
+  sequence([
+    __,
+    GROUP,
+    __,
+    BY,
+    __,
+    columnRef, // 4
+    zeroToMany(sequence([__, COMMA, __, columnRef])),
+  ]),
+  (v) => ({
+    value: [
+      { ColumnRef: v[5] },
+      ...v[6].map(([, , , ColumnRef]) => ({
+        ColumnRef,
+      })),
+    ].flatMap((c) => (c ? [c] : [])),
+    codeComments: {
+      groupClause: [
+        combineComments(v[0], v[2], v[4]),
+        ...v[6].map((r) => combineComments(r[0], r[2])),
+      ],
+    },
+  })
+);
 
 const where = transform(
   // 4
@@ -77,10 +106,12 @@ const target = transform(
     ),
   ]),
   (v, ctx) => ({
-    ResTarget: {
-      val: v[0].value,
-      location: ctx.pos,
-      ...(v[1] ? { name: v[1].length === 4 ? v[1][3] : v[1][1] } : {}),
+    value: {
+      ResTarget: {
+        val: v[0].value,
+        location: ctx.pos,
+        ...(v[1] ? { name: v[1].length === 4 ? v[1][3] : v[1][1] } : {}),
+      },
     },
     codeComment: combineComments(v[0].codeComment, v[1]?.[0], v[1]?.[2]),
   })
@@ -95,26 +126,33 @@ export const select: Rule<SelectStmt> = transform(
     zeroToMany(sequence([__, COMMA, __, target])), // 3
     __,
     optional(from), // 5
-    optional(sortBy), // 6
+    optional(groupBy),
+    optional(sortBy), // 7
   ]),
   (v) => {
+    const from = v[5];
+    const sortBy = v[7];
+    const groupBy = v[6];
+
     return {
       targetList: [
-        v[2],
+        v[2].value,
         ...v[3].map((r) => ({
-          ...r[3],
+          ...r[3].value,
         })),
       ],
-      ...v[5],
-      ...(v[6] ? { sortClause: v[6] } : {}),
+      ...from,
+      ...(groupBy ? { groupClause: groupBy.value } : {}),
+      ...(sortBy ? { sortClause: sortBy } : {}),
       op: 0,
       codeComments: {
-        fromClause: v[5]?.codeComments?.fromClause,
+        fromClause: from?.codeComments?.fromClause,
         targetList: [
           combineComments(v[1], v[2].codeComment, v[4]),
           ...v[3].map((r) => combineComments(r[0], r[2], r[3].codeComment)),
         ],
-        whereClause: v[5]?.codeComments?.whereClause,
+        whereClause: from?.codeComments?.whereClause,
+        groupClause: groupBy?.codeComments.groupClause,
       },
     };
   }
