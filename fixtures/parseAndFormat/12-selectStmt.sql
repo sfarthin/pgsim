@@ -41,6 +41,10 @@ SELECT count(*) from foo;
 -- We can give aliases
 SELECT 1 foo;
 SELECT 1 as foo;
+SELECT 1 as "foo";
+SELECT NULL;
+SELECT 1 is NOT NULL;
+SELECT 1 is NULL;
 SELECT * FROM users as u;
 SELECT * FROM users u;
 

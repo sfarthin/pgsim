@@ -297,8 +297,8 @@ if (process.argv[2]) {
       const end = unexpectedStatement.RawStmt.stmt_len ?? 99999;
       const rawSql = sql.substring(start, start + end);
       throw new Error(
-        `Expected "${statementName}", but got "${
-          Object.keys(unexpectedStatement)[0]
+        `${c.red(file)}: Expected "${statementName}", but got "${
+          Object.keys(unexpectedStatement.RawStmt.stmt)[0]
         }"${NEWLINE}${NEWLINE}${c.blue(rawSql)}`
       );
     }

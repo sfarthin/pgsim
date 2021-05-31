@@ -1200,17 +1200,20 @@ const keywordList = [
   "BY",
   "CACHE",
   "CASCADE",
+  "CASE",
   "CONCURRENTLY",
-  "CONSTRAINT",
+  // "CONSTRAINT",
   "COLUMN",
   "CREATE",
   "CYCLE",
-  "DEFAULT",
+  // "DEFAULT",
   "DELETE",
   "DESC",
   "DROP",
   "ORDER",
   "ENUM",
+  "END",
+  "ELSE",
   "EXISTS",
   "FOREIGN",
   "FROM",
@@ -1228,7 +1231,7 @@ const keywordList = [
   "NO",
   "NONE",
   "NOT",
-  "NULL",
+  // "NULL",
   "ON",
   "OR",
   "ORDER",
@@ -1246,6 +1249,7 @@ const keywordList = [
   "START",
   "TABLE",
   "TO",
+  "THEN",
   "UNIQUE",
   "UPDATE",
   "USING",
@@ -1253,6 +1257,7 @@ const keywordList = [
   "VIEW",
   "WITH",
   "WHERE",
+  "WHEN",
 ] as const;
 
 export function keyword(
@@ -1298,15 +1303,18 @@ export const BEFORE = keyword("BEFORE");
 export const BY = keyword("BY");
 export const CACHE = keyword("CACHE");
 export const CASCADE = keyword("CASCADE");
+export const CASE = keyword("CASE");
 export const CONCURRENTLY = keyword("CONCURRENTLY");
-export const CONSTRAINT = keyword("CONSTRAINT");
+export const CONSTRAINT = keyword("CONSTRAINT" as any); // <-- exeption for Truebill
 export const COLUMN = keyword("COLUMN");
 export const CREATE = keyword("CREATE");
 export const CYCLE = keyword("CYCLE");
-export const DEFAULT = keyword("DEFAULT");
+export const DEFAULT = keyword("DEFAULT" as any); // <-- exeption for Truebill
 export const DESC = keyword("DESC");
 export const DROP = keyword("DROP");
 export const ENUM = keyword("ENUM");
+export const END = keyword("END");
+export const ELSE = keyword("ELSE");
 export const EXISTS = keyword("EXISTS");
 export const FOREIGN = keyword("FOREIGN");
 export const GROUP = keyword("GROUP");
@@ -1324,7 +1332,7 @@ export const MINVALUE = keyword("MINVALUE");
 export const NO = keyword("NO");
 export const NONE = keyword("NONE");
 export const NOT = keyword("NOT");
-export const NULL = keyword("NULL");
+export const NULL = keyword("NULL" as any); // <-- exeption for Truebill
 export const ON = keyword("ON");
 export const OR = keyword("OR");
 export const ORDER = keyword("ORDER");
@@ -1343,6 +1351,7 @@ export const SET = keyword("SET");
 export const START = keyword("START");
 export const TABLE = keyword("TABLE");
 export const TO = keyword("TO");
+export const THEN = keyword("THEN");
 export const TYPE = keyword("TYPE" as any); // <-- One exeption where we can use it ad an identifier
 export const UNIQUE = keyword("UNIQUE");
 export const USING = keyword("USING");
@@ -1350,6 +1359,7 @@ export const VALUE = keyword("VALUE");
 export const VIEW = keyword("VIEW");
 export const WITH = keyword("WITH");
 export const WHERE = keyword("WHERE");
+export const WHEN = keyword("WHEN");
 
 export const SEMICOLON = constant(";");
 export const EQUALS = constant("=");

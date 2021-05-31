@@ -84,6 +84,9 @@ SELECT
 	1 AS foo;
 
 SELECT
+	1 AS foo;
+
+SELECT
 	*
 FROM
 	users AS u;

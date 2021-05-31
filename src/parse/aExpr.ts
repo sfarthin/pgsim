@@ -30,6 +30,7 @@ const operatorsWithTwoParams = or([
   or([
     constant("^"),
     constant("&"),
+    constant("||"),
     constant("|"),
     constant("#"),
     constant("/"),

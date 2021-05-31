@@ -39,6 +39,8 @@ import {
   A_Star,
   Null,
   AlterTableCmd,
+  CaseWhen,
+  CaseExpr,
 } from "../types";
 
 // Full list here: https://doxygen.postgresql.org/nodes_8h.html#a83ba1e84fa23f6619c3d29036b160919
@@ -82,7 +84,9 @@ export type Node =
   | { String: String }
   | { Integer: Integer }
   | { Null: Null }
-  | { A_Star: A_Star };
+  | { A_Star: A_Star }
+  | { CaseWhen: CaseWhen }
+  | { CaseExpr: CaseExpr };
 
 // Converts a union of two types into an intersection
 // i.e. A | B -> A & B
@@ -200,6 +204,10 @@ export function children(node: Node): Node[] {
     return [];
   } else if ("ViewStmt" in node) {
     return [node.ViewStmt.view];
+  } else if ("CaseWhen" in node) {
+    return [node.CaseWhen.expr, node.CaseWhen.value];
+  } else if ("CaseExpr" in node) {
+    return node.CaseExpr.args;
   }
 
   return [];

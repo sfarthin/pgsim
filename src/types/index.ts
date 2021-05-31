@@ -22,6 +22,7 @@ export * from "./alterSeqStmt";
 export * from "./alterTableStmt";
 export * from "./booleanTest";
 export * from "./boolExpr";
+export * from "./caseExpr";
 export * from "./columnRef";
 export * from "./constant";
 export * from "./constraint";

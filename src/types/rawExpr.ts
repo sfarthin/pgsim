@@ -11,6 +11,7 @@ import { AExpr, aExprDecoder } from "./aExpr";
 // import { NullTest, nullTestDecoder } from "./nullTest";
 import { RowExpr, rowExprDecoder } from "./rowExpr";
 import { SubLink, subLinkDecoder } from "./subLink";
+import { CaseExpr, caseExprDecoder } from "./caseExpr";
 
 export type RawValue =
   | { ColumnRef: ColumnRef } // myTable.myColumn
@@ -18,7 +19,8 @@ export type RawValue =
   | { FuncCall: FuncCall } // foo()
   | { A_Const: A_Const } // 'foo' ... 1 ... 0.9
   | { TypeCast: TypeCast } // 'adasd':text
-  | { RowExpr: RowExpr }; // (1,2,3,4)
+  | { RowExpr: RowExpr } // (1,2,3,4)
+  | { CaseExpr: CaseExpr };
 
 export const rawValueDecoder: d.Decoder<RawValue> = dispatch({
   ColumnRef: (blob) => columnRefDecoder(blob),
@@ -57,6 +59,7 @@ export const rawConditionDecoder: d.Decoder<RawCondition> = dispatch({
   BoolExpr: (blob) => boolExprDecoder(blob),
   A_Expr: (blob) => aExprDecoder(blob),
   SubLink: (blob) => subLinkDecoder(blob),
+  CaseExpr: (blob) => caseExprDecoder(blob),
 
   // NullTest: (blob) => nullTestDecoder(blob),
   // BooleanTest: (blob) => booleanTestDecoder(blob), // someting IS true

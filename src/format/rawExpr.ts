@@ -7,6 +7,7 @@ import columnRef from "./columnRef";
 import boolExpr from "./boolExpr";
 import rowExpr from "./rowExpr";
 import sublink from "./sublink";
+import caseExpr from "./caseExpr";
 import { Formatter } from "./util";
 
 /**
@@ -40,6 +41,8 @@ export function rawCondition<T>(
     return boolExpr(c.BoolExpr, f, includeParens);
   } else if ("SubLink" in c) {
     return sublink(c.SubLink, f);
+  } else if ("CaseExpr" in c) {
+    return caseExpr(c.CaseExpr, f);
   } else {
     return [rawValue(c, f)];
   }
