@@ -15,6 +15,7 @@ export type CaseWhen = {
 
 export type CaseExpr = {
   args: { CaseWhen: CaseWhen }[];
+  defresult?: RawValue;
   location: Location;
 };
 
@@ -30,5 +31,6 @@ export const caseExprDecoder: d.Decoder<CaseExpr> = d.exact({
       CaseWhen: caseWhenDecoder,
     })
   ),
+  defresult: d.optional((blob) => rawValueDecoder(blob)),
   location: locationDecoder,
 });

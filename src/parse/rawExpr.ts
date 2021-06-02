@@ -16,6 +16,7 @@ import { funcCall } from "./funcCall";
 import { RawValue, RawCondition } from "../types";
 import { columnRef } from "./columnRef";
 import { notBoolExpr, boolConnection } from "./boolExpr";
+import { nullTestConnection } from "./nullTest";
 import {
   aExprDoubleParams,
   aExprSingleParm,
@@ -39,7 +40,6 @@ export const rawValue: Rule<{
       aExprSingleParm,
       typeCastLiteral,
       aConst,
-      caseExpr,
 
       transform(funcCall, ({ value, codeComment }) => ({
         value: { FuncCall: value },
@@ -59,7 +59,7 @@ export const rawValue: Rule<{
         codeComment,
       })),
     ]),
-    optional(or([typeCastConnection, aExprFactorial, aExprDoubleParams])),
+    optional(or([nullTestConnection, typeCastConnection, aExprFactorial])),
   ]),
   (v) => {
     if (v[1]) {
@@ -108,6 +108,7 @@ export const rawCondition: Rule<{
         return v[0];
       }), // See above ^^
       notBoolExpr, // NOT XXX
+      caseExpr,
       (ctx) => subLink(ctx), // exists in (SELECT ...)
 
       // a rawCondition in parens
@@ -116,7 +117,7 @@ export const rawCondition: Rule<{
         (v) => ({ ...v[2], hasParens: true })
       ),
     ]),
-    zeroToMany(or([aExprIn, boolConnection])),
+    zeroToMany(or([boolConnection, aExprIn, aExprDoubleParams])),
   ]),
   (v) => {
     let condition = v[0];

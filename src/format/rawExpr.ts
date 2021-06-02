@@ -8,6 +8,7 @@ import boolExpr from "./boolExpr";
 import rowExpr from "./rowExpr";
 import sublink from "./sublink";
 import caseExpr from "./caseExpr";
+import nullTest from "./nullTest";
 import { Formatter } from "./util";
 
 /**
@@ -25,6 +26,8 @@ export function rawValue<T>(c: RawValue, f: Formatter<T>): T[] {
     return columnRef(c.ColumnRef, f);
   } else if ("RowExpr" in c) {
     return rowExpr(c.RowExpr, f);
+  } else if ("NullTest" in c) {
+    return nullTest(c.NullTest, f);
   }
 
   throw new Error(`RawValue not handled: ${Object.keys(c)[0]}`);

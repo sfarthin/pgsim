@@ -1,7 +1,7 @@
 import * as d from "decoders";
 import { stringDecoder, String } from "./constant";
 import { Location, locationDecoder } from "./location";
-import { RawValue, rawValueDecoder } from "./rawExpr";
+import { RawCondition, RawValue, rawValueDecoder } from "./rawExpr";
 import { dispatchByField } from "./dispatch";
 
 // https://doxygen.postgresql.org/parsenodes_8h.html#a41cee9367d9d92ec6b4ee0bbc0df09fd
@@ -28,15 +28,15 @@ export type AExpr =
   | {
       kind: AExprKind.AEXPR_OP;
       name: { String: String }[];
-      lexpr?: RawValue;
-      rexpr?: RawValue;
+      lexpr?: RawCondition;
+      rexpr?: RawCondition;
       location: Location;
     }
   | {
       kind: AExprKind.AEXPR_IN;
       name: { String: String }[];
-      lexpr: RawValue;
-      rexpr: RawValue[];
+      lexpr: RawCondition;
+      rexpr: RawCondition[];
       location: Location;
     };
 

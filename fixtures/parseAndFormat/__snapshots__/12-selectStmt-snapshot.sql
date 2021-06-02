@@ -87,6 +87,15 @@ SELECT
 	1 AS foo;
 
 SELECT
+	NULL;
+
+SELECT
+	1 IS NOT NULL;
+
+SELECT
+	1 IS NULL;
+
+SELECT
 	*
 FROM
 	users AS u;

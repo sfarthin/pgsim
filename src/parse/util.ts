@@ -1231,6 +1231,7 @@ const keywordList = [
   "NO",
   "NONE",
   "NOT",
+  "IS",
   // "NULL",
   "ON",
   "OR",
@@ -1333,6 +1334,7 @@ export const NO = keyword("NO");
 export const NONE = keyword("NONE");
 export const NOT = keyword("NOT");
 export const NULL = keyword("NULL" as any); // <-- exeption for Truebill
+export const IS = keyword("IS");
 export const ON = keyword("ON");
 export const OR = keyword("OR");
 export const ORDER = keyword("ORDER");

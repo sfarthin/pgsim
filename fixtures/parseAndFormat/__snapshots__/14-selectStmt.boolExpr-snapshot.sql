@@ -98,7 +98,12 @@ SELECT
 	);
 
 SELECT
-	4 IN (1, 2, 3, 4);
+	4 IN (
+		1,
+		2,
+		3,
+		4
+	);
 
 SELECT
 	400 IN (
