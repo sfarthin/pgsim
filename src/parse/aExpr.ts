@@ -1,4 +1,4 @@
-import { connectRawCondition, rawCondition } from "./rawExpr";
+import { connectRawValue, rawValue } from "./rawExpr";
 import {
   sequence,
   __,
@@ -59,7 +59,7 @@ export const aExprSingleParm: Rule<{
   codeComment: string;
   value: { A_Expr: AExpr } | { A_Const: A_Const };
 }> = transform(
-  sequence([operatorsWithOneParams, __, (ctx) => rawCondition(ctx)]),
+  sequence([operatorsWithOneParams, __, (ctx) => rawValue(ctx)]),
   (v, ctx) => {
     const operation = v[0].value;
     return {
@@ -107,8 +107,8 @@ export const aExprSingleParm: Rule<{
 );
 
 export const aExprDoubleParams = (ctx: Context) =>
-  connectRawCondition(
-    sequence([__, operatorsWithTwoParams, __, (ctx) => rawCondition(ctx)]),
+  connectRawValue(
+    sequence([__, operatorsWithTwoParams, __, (ctx) => rawValue(ctx)]),
     (c1, v) => {
       return {
         codeComment: combineComments(
@@ -137,7 +137,7 @@ export const aExprDoubleParams = (ctx: Context) =>
   )(ctx);
 
 export const aExprFactorial = (ctx: Context) =>
-  connectRawCondition(
+  connectRawValue(
     sequence([__, constant("!"), lookForWhiteSpaceOrComment]),
     (c1, v) => {
       return {
@@ -161,7 +161,7 @@ export const aExprFactorial = (ctx: Context) =>
   )(ctx);
 
 export const aExprIn = (ctx: Context) =>
-  connectRawCondition(sequence([__, constant("in"), __, rowExpr]), (c1, v) => {
+  connectRawValue(sequence([__, constant("in"), __, rowExpr]), (c1, v) => {
     return {
       codeComment: combineComments(
         c1.codeComment,

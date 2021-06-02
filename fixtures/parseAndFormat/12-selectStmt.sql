@@ -47,6 +47,7 @@ SELECT 1 is NOT NULL;
 SELECT 1 is NULL;
 SELECT * FROM users as u;
 SELECT * FROM users u;
+SELECT * FROM schema.u;
 
 -- We can do ordering.
 SELECT 1 ORDER BY 1;
@@ -54,3 +55,4 @@ SELECT 1 ORDER BY 1 DESC;
 SELECT 1 ORDER BY 1 ASC;
 SELECT 1, 2 ORDER BY 1 ASC, 2;
 SELECT 1, 2 as foo ORDER BY 1 ASC, foo;
+select foo['2'];

@@ -25,7 +25,7 @@ export default function <T>(c: TypeCast, f: Formatter<T>): T[] {
 
   if (c.arg) {
     return [
-      ...rawValue(c.arg, f),
+      ...rawValue(c.arg, f).flat(),
       symbol("::"),
       identifier(
         c.typeName.TypeName.names.length === 1

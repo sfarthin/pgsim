@@ -21,3 +21,14 @@ SELECT
 		SELECT
 			1
 	);
+
+SELECT
+	foo
+FROM
+	foo
+WHERE
+	-- Double connector
+	subscriptions.transaction_name::text IN (
+		SELECT
+			foo
+	);

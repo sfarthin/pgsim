@@ -1,6 +1,8 @@
 // See https://www.postgresql.org/docs/7.2/sql-precedence.html
 // decreasing order
 
+import { RawValue } from "./rawExpr";
+
 // ::	left	PostgreSQL-style typecast
 // [ ]	left	array element selection
 // .	left	table/column name separator
@@ -21,3 +23,10 @@
 // NOT	right	logical negation
 // AND	left	logical conjunction
 // OR	left	logical disjunction
+// const precendence = [
+//     ['TypeCast', 'left']
+// ] as const
+
+// export default function adjustPrecedence(node: RawValue): RawValue {
+
+// }

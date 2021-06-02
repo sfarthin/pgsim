@@ -13,7 +13,7 @@ export default function <T>(c: { SortBy: SortBy }[], f: Formatter<T>): T[][] {
         return [
           ...comment(s.SortBy.codeComment, f),
           [
-            ...rawValue(s.SortBy.node, f),
+            ...rawValue(s.SortBy.node, f).flat(),
             ...(s.SortBy.sortby_dir === SortByDir.SORTBY_ASC
               ? [_, keyword("ASC")]
               : s.SortBy.sortby_dir === SortByDir.SORTBY_DESC

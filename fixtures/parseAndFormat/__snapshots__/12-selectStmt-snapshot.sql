@@ -105,6 +105,11 @@ SELECT
 FROM
 	users AS u;
 
+SELECT
+	*
+FROM
+	schema.u;
+
 -- We can do ordering.
 SELECT
 	1

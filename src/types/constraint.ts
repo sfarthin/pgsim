@@ -11,12 +11,7 @@ import {
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { String, stringDecoder } from "./constant";
 import { tuple1 } from "./tuple1";
-import {
-  RawCondition,
-  RawValue,
-  rawValueDecoder,
-  rawConditionDecoder,
-} from "./rawExpr";
+import { RawValue, rawValueDecoder } from "./rawExpr";
 import { Location, locationDecoder } from "./location";
 import { dispatchByField } from "./dispatch";
 
@@ -196,7 +191,7 @@ export type CheckConstraint = {
   contype: ConType.CHECK;
   conname: string;
   location: Location;
-  raw_expr: RawCondition;
+  raw_expr: RawValue;
   skip_validation?: boolean;
   initially_valid?: boolean;
 };
@@ -205,7 +200,7 @@ export const CheckConstraintDecoder: Decoder<CheckConstraint> = exact({
   contype: constant(ConType.CHECK) as Decoder<ConType.CHECK>,
   conname: string,
   location: locationDecoder,
-  raw_expr: rawConditionDecoder,
+  raw_expr: rawValueDecoder,
   skip_validation: optional(boolean),
   initially_valid: optional(boolean),
 });

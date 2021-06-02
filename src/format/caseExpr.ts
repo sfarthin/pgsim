@@ -9,7 +9,7 @@ export default function caseExpr<T>(c: CaseExpr, f: Formatter<T>): T[][] {
   const when = c.args.map((a) => caseWhen(a.CaseWhen, f)).flat();
 
   const elseClause = c.defresult
-    ? [[keyword("ELSE"), _, ...rawValue(c.defresult, f)]]
+    ? [[keyword("ELSE"), _, ...rawValue(c.defresult, f).flat()]]
     : [];
 
   return [

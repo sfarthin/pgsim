@@ -1,6 +1,6 @@
 import * as d from "decoders";
 import { Location, locationDecoder } from "./location";
-import { rawConditionDecoder, RawCondition } from "./rawExpr";
+import { rawValueDecoder, RawValue } from "./rawExpr";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { SortBy, sortByDecoder } from "./sortBy";
 import { JoinExpr, joinExprDecoder } from "./joinExpr";
@@ -8,13 +8,13 @@ import { ColumnRef, columnRefDecoder } from "./columnRef";
 
 export type ResTarget = {
   name?: string;
-  val: RawCondition;
+  val: RawValue;
   location: Location;
 };
 
 export const resTargetDecoder: d.Decoder<ResTarget> = d.exact({
   name: d.optional(d.string),
-  val: (blob) => rawConditionDecoder(blob),
+  val: (blob) => rawValueDecoder(blob),
   location: locationDecoder,
 });
 
@@ -24,7 +24,7 @@ export type SelectStmt = {
     ResTarget?: ResTarget;
   }[];
   fromClause?: ({ RangeVar: RangeVar } | { JoinExpr: JoinExpr })[];
-  whereClause?: RawCondition;
+  whereClause?: RawValue;
   groupClause?: { ColumnRef: ColumnRef }[];
   withClause?: unknown;
   intoClause?: unknown; // SELECT * INTO TABLE onek2 FROM onek;
@@ -85,7 +85,7 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
       )
     )
   ),
-  whereClause: d.optional((blob) => rawConditionDecoder(blob)),
+  whereClause: d.optional((blob) => rawValueDecoder(blob)),
   groupClause: d.optional(d.array(d.exact({ ColumnRef: columnRefDecoder }))),
   intoClause: d.unknown,
   withClause: d.unknown,

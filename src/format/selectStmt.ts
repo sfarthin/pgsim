@@ -1,7 +1,7 @@
 import sortBy from "./sortBy";
 import { SelectStmt } from "../types/selectStmt";
 import comment from "./comment";
-import { rawCondition } from "./rawExpr";
+import { rawValue } from "./rawExpr";
 import { Formatter, addToLastLine } from "./util";
 import rangeVar from "./rangeVar";
 import joinExpr from "./joinExpr";
@@ -16,7 +16,7 @@ function toTargetList<T>(c: SelectStmt, f: Formatter<T>): T[][] {
     }
 
     // Lets add AS part if needed
-    const target = addToLastLine(rawCondition(v.ResTarget?.val, f), [
+    const target = addToLastLine(rawValue(v.ResTarget?.val, f), [
       ...(v.ResTarget?.name
         ? [_, keyword("AS"), _, identifier(v.ResTarget.name)]
         : []),
@@ -72,7 +72,7 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
         [identifier("WHERE")],
         ...indent([
           ...comment(c.codeComments?.whereClause?.[0], f),
-          ...rawCondition(c.whereClause, f),
+          ...rawValue(c.whereClause, f),
         ]),
       ]
     : [];

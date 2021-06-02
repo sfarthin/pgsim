@@ -1,14 +1,9 @@
 import * as d from "decoders";
 import { Location, locationDecoder } from "./location";
-import {
-  RawCondition,
-  rawConditionDecoder,
-  RawValue,
-  rawValueDecoder,
-} from "./rawExpr";
+import { RawValue, rawValueDecoder } from "./rawExpr";
 
 export type CaseWhen = {
-  expr: RawCondition;
+  expr: RawValue;
   result: RawValue;
   location: Location;
 };
@@ -20,7 +15,7 @@ export type CaseExpr = {
 };
 
 export const caseWhenDecoder: d.Decoder<CaseWhen> = d.exact({
-  expr: (blob) => rawConditionDecoder(blob),
+  expr: (blob) => rawValueDecoder(blob),
   result: (blob) => rawValueDecoder(blob),
   location: locationDecoder,
 });

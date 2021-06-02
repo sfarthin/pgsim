@@ -3,7 +3,6 @@ import {
   or,
   transform,
   sequence,
-  optional,
   __,
   LPAREN,
   RPAREN,
@@ -13,7 +12,7 @@ import {
 import { aConst } from "./aConst";
 import { typeCast } from "./typeCast";
 import { funcCall } from "./funcCall";
-import { RawValue, RawCondition } from "../types";
+import { RawValue } from "../types";
 import { columnRef } from "./columnRef";
 import { notBoolExpr, boolConnection } from "./boolExpr";
 import { nullTestConnection } from "./nullTest";
@@ -27,8 +26,8 @@ import { rowExpr } from "./rowExpr";
 import { subLinkConnection, subLink } from "./subLink";
 import { typeCastConnection, typeCastLiteral } from "./typeCast";
 import { caseExpr } from "./caseExpr";
+import { aIndirection } from "./aIndirection";
 
-// This should include equestions and type casts.
 export const rawValue: Rule<{
   value: RawValue;
   codeComment: string;
@@ -40,6 +39,7 @@ export const rawValue: Rule<{
       aExprSingleParm,
       typeCastLiteral,
       aConst,
+      aIndirection,
 
       transform(funcCall, ({ value, codeComment }) => ({
         value: { FuncCall: value },
@@ -49,6 +49,10 @@ export const rawValue: Rule<{
         value: { ColumnRef: value },
         codeComment: "",
       })),
+      notBoolExpr, // NOT XXX
+      caseExpr,
+      (ctx) => subLink(ctx), // exists in (SELECT ...)
+
       transform(
         sequence([LPAREN, __, (ctx) => rawValue(ctx), __, RPAREN]),
         (v) => ({ ...v[2], hasParens: true })
@@ -59,13 +63,27 @@ export const rawValue: Rule<{
         codeComment,
       })),
     ]),
-    optional(or([nullTestConnection, typeCastConnection, aExprFactorial])),
+    zeroToMany(
+      or([
+        subLinkConnection,
+        nullTestConnection,
+        typeCastConnection,
+        boolConnection,
+        aExprFactorial,
+
+        aExprIn,
+        aExprDoubleParams,
+      ])
+    ),
   ]),
   (v) => {
-    if (v[1]) {
-      return v[1](v[0]);
+    let node = v[0];
+    for (const connector of v[1]) {
+      // @ts-expect-error
+      node = connector(node);
     }
-    return v[0];
+
+    return node;
   }
 );
 
@@ -83,87 +101,6 @@ export function connectRawValue<B>(
     b: B,
     c: Context
   ) => { value: RawValue; codeComment: string }
-) {
-  return transform(
-    ruleB,
-    (r2, ctx) => (r1: {
-      value: RawValue;
-      codeComment: string;
-      hasParens?: boolean;
-    }) => extensionFn(r1, r2, ctx)
-  );
-}
-
-export const rawCondition: Rule<{
-  value: RawCondition;
-  codeComment: string;
-  hasParens?: boolean;
-}> = transform(
-  sequence([
-    or([
-      transform(sequence([rawValue, optional(subLinkConnection)]), (v) => {
-        if (v[1]) {
-          return v[1](v[0]);
-        }
-        return v[0];
-      }), // See above ^^
-      notBoolExpr, // NOT XXX
-      caseExpr,
-      (ctx) => subLink(ctx), // exists in (SELECT ...)
-
-      // a rawCondition in parens
-      transform(
-        sequence([LPAREN, __, (ctx) => rawCondition(ctx), __, RPAREN]),
-        (v) => ({ ...v[2], hasParens: true })
-      ),
-    ]),
-    zeroToMany(or([boolConnection, aExprIn, aExprDoubleParams])),
-  ]),
-  (v) => {
-    let condition = v[0];
-    for (const connect of v[1]) {
-      condition = connect(condition);
-    }
-    return condition;
-  }
-);
-
-/**
- * This helper allows us to organize code appropiately
- */
-export function connectRawCondition<B>(
-  ruleB: Rule<B>,
-  extensionFn: (
-    a: {
-      value: RawCondition;
-      codeComment: string;
-      hasParens?: boolean;
-    },
-    b: B,
-    c: Context
-  ) => { value: RawCondition; codeComment: string }
-) {
-  return transform(
-    ruleB,
-    (r2, ctx) => (r1: {
-      value: RawCondition;
-      codeComment: string;
-      hasParens?: boolean;
-    }) => extensionFn(r1, r2, ctx)
-  );
-}
-
-export function connectRawConditionFromValue<B>(
-  ruleB: Rule<B>,
-  extensionFn: (
-    a: {
-      value: RawValue;
-      codeComment: string;
-      hasParens?: boolean;
-    },
-    b: B,
-    c: Context
-  ) => { value: RawCondition; codeComment: string }
 ) {
   return transform(
     ruleB,

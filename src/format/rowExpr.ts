@@ -7,10 +7,7 @@ export default function rowExpr<T>(c: RowExpr, f: Formatter<T>): T[] {
 
   return [
     symbol("("),
-    ...join(
-      c.args.map((a) => rawValue(a, f)),
-      [symbol(","), _]
-    ),
+    ...join(c.args.map((a) => rawValue(a, f)).flat(), [symbol(","), _]),
     symbol(")"),
   ];
 }

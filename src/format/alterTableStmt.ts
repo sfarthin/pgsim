@@ -20,7 +20,7 @@ function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
         _,
         keyword("DEFAULT"),
         _,
-        ...(c.def ? rawValue(c.def, f) : [number(1)]),
+        ...(c.def ? rawValue(c.def, f).flat() : [number(1)]),
       ];
     case AlterTableCmdSubType.ADD_CONSTRAINT:
       return [keyword("ADD"), ...toConstraints([c.def.Constraint], f, true)];

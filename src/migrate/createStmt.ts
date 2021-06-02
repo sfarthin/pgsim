@@ -56,13 +56,13 @@ function alterCmds(fromTable: CreateStmt, toTable: CreateStmt): string[] {
             formatRawValue(
               newDefaultConstraint?.Constraint.raw_expr,
               textFormatter
-            ),
+            )[0],
           ]) !==
             textFormatter.concat([
               formatRawValue(
                 originalDefault?.Constraint.raw_expr,
                 textFormatter
-              ),
+              )[0],
             ])))
     ) {
       cmds.push(
@@ -70,7 +70,7 @@ function alterCmds(fromTable: CreateStmt, toTable: CreateStmt): string[] {
           formatRawValue(
             newDefaultConstraint?.Constraint.raw_expr,
             textFormatter
-          ),
+          )[0],
         ])}`
       );
     }

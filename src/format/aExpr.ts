@@ -1,12 +1,12 @@
 import { AExpr, AExprKind } from "../types";
-import { rawCondition } from "./rawExpr";
+import { rawValue } from "./rawExpr";
 import { Formatter, join } from "./util";
 
 export default function aExpr<T>(c: AExpr, f: Formatter<T>): T[][] {
   const { _, keyword, symbol, indent } = f;
   if (c.kind === AExprKind.AEXPR_OP) {
-    const firstCondition = c.lexpr ? rawCondition(c.lexpr, f) : null;
-    const secondCondition = c.rexpr ? rawCondition(c.rexpr, f) : null;
+    const firstCondition = c.lexpr ? rawValue(c.lexpr, f) : null;
+    const secondCondition = c.rexpr ? rawValue(c.rexpr, f) : null;
     const hasTwoParams = firstCondition && secondCondition;
 
     if (
@@ -31,8 +31,8 @@ export default function aExpr<T>(c: AExpr, f: Formatter<T>): T[][] {
       ];
     }
   } else {
-    const condition = rawCondition(c.lexpr, f);
-    const rexpr = [...c.rexpr.map((r) => rawCondition(r, f)).flat()];
+    const condition = rawValue(c.lexpr, f);
+    const rexpr = [...c.rexpr.map((r) => rawValue(r, f)).flat()];
     const rexprWithCommas = rexpr.map((l, i) =>
       i === rexpr.length - 1 ? l : l.concat(symbol(","))
     );

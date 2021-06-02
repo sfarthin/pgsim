@@ -26,3 +26,18 @@ SELECT
 			1
 		ELSE '1'
 	END;
+
+SELECT
+	CASE
+		WHEN
+			TRUE
+		THEN
+			'1'
+	END
+	 || 
+	CASE
+		WHEN
+			TRUE
+		THEN
+			'2'
+	END;

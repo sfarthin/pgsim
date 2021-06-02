@@ -1,4 +1,4 @@
-import { rawValue, rawCondition } from "./rawExpr";
+import { rawValue } from "./rawExpr";
 import {
   sequence,
   __,
@@ -23,7 +23,7 @@ const caseWhen: Rule<{
     __,
     WHEN,
     __,
-    (ctx) => rawCondition(ctx),
+    (ctx) => rawValue(ctx),
     __,
     THEN,
     __,

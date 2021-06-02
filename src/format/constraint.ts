@@ -117,7 +117,7 @@ export function toConstraint<T>(
         ...con,
         keyword("DEFAULT"),
         _,
-        ...rawValue(constraint.raw_expr, f),
+        ...rawValue(constraint.raw_expr, f).flat(),
       ];
     case ConType.NOT_NULL:
       return [...con, keyword("NOT"), _, keyword("NULL")];

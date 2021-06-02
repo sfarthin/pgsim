@@ -173,7 +173,8 @@ export function children(node: Node): Node[] {
   } else if ("RangeSubselect" in node) {
     return [];
   } else if ("FuncCall" in node) {
-    return [...(node.FuncCall.args?.flat() ?? [])];
+    return [];
+    // return [...(node.FuncCall.args?.flat() ?? [])];
   } else if ("IndexElem" in node) {
     return [];
   } else if ("IndexStmt" in node) {
@@ -205,7 +206,7 @@ export function children(node: Node): Node[] {
   } else if ("ViewStmt" in node) {
     return [node.ViewStmt.view];
   } else if ("CaseWhen" in node) {
-    return [node.CaseWhen.expr, node.CaseWhen.value];
+    return [node.CaseWhen.expr, node.CaseWhen.result];
   } else if ("CaseExpr" in node) {
     return node.CaseExpr.args;
   }

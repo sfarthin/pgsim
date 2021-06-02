@@ -1,7 +1,7 @@
 import { JoinExpr, JoinType } from "../types";
 import { Formatter } from "./util";
 import rangeVar from "./rangeVar";
-import { rawCondition } from "./rawExpr";
+import { rawValue } from "./rawExpr";
 
 export default function joinExpr<T>(c: JoinExpr, f: Formatter<T>): T[][] {
   const { keyword, _, symbol, indent } = f;
@@ -23,7 +23,7 @@ export default function joinExpr<T>(c: JoinExpr, f: Formatter<T>): T[][] {
       _,
       symbol("("),
     ],
-    ...indent(rawCondition(c.quals, f)),
+    ...indent(rawValue(c.quals, f)),
     [symbol(")")],
   ];
 }

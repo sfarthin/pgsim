@@ -15,7 +15,7 @@ export default function <T>(c: SubLink, f: Formatter<T>): T[][] {
       ];
     case SubLinkType.ANY_SUBLINK:
       return [
-        [...rawValue(c.testexpr, f), _, keyword("IN"), _, symbol("(")],
+        [...rawValue(c.testexpr, f).flat(), _, keyword("IN"), _, symbol("(")],
         ...indent(innerSelect(c.subselect.SelectStmt, f)),
         [symbol(")")],
       ];

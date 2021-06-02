@@ -1,5 +1,5 @@
 import { JoinExpr, JoinType } from "../types";
-import { rawCondition } from "./rawExpr";
+import { rawValue } from "./rawExpr";
 import {
   transform,
   identifier,
@@ -35,7 +35,7 @@ export const joinExpr: Rule<{
     __, // 9
     ON,
     __,
-    (ctx) => rawCondition(ctx),
+    (ctx) => rawValue(ctx),
   ]),
   (v) => ({
     value: {

@@ -1,6 +1,6 @@
 import { BoolExpr, BoolOp } from "../types";
-import { rawCondition, connectRawCondition } from "./rawExpr";
-import { RawCondition } from "../types";
+import { rawValue, connectRawValue } from "./rawExpr";
+import { RawValue } from "../types";
 import {
   sequence,
   transform,
@@ -17,7 +17,7 @@ import {
 // Pur parser will nest each bool argument in a BoolExpr, but we want to keep them all flat in args.
 // SELECT FALSE AND FALSE AND FALSE;
 function condenseBoolArguments(
-  exisitingArgs: RawCondition[],
+  exisitingArgs: RawValue[],
   boolop: BoolOp,
   hasParens: boolean
 ) {
@@ -25,7 +25,7 @@ function condenseBoolArguments(
     return exisitingArgs;
   }
 
-  let args: RawCondition[] = [];
+  let args: RawValue[] = [];
   for (const arg of exisitingArgs) {
     if ("BoolExpr" in arg && boolop === arg.BoolExpr.boolop) {
       // If the operation is the same, lets flatten this structure.
@@ -95,7 +95,7 @@ function condenseNestedBoolExpressions(
 export const notBoolExpr: Rule<{
   value: { BoolExpr: BoolExpr };
   codeComment: string;
-}> = transform(sequence([NOT, __, (ctx) => rawCondition(ctx)]), (v, ctx) => {
+}> = transform(sequence([NOT, __, (ctx) => rawValue(ctx)]), (v, ctx) => {
   return {
     value: {
       BoolExpr: {
@@ -109,8 +109,8 @@ export const notBoolExpr: Rule<{
 });
 
 export const boolConnection = (ctx: Context) =>
-  connectRawCondition(
-    sequence([__, or([AND, OR]), __, (ctx) => rawCondition(ctx)]),
+  connectRawValue(
+    sequence([__, or([AND, OR]), __, (ctx) => rawValue(ctx)]),
     (c1, v) => {
       return {
         value: {

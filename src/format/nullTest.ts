@@ -6,7 +6,7 @@ export default function rowExpr<T>(c: NullTest, f: Formatter<T>): T[] {
   const { symbol, _, keyword } = f;
 
   return [
-    ...rawValue(c.arg, f),
+    ...rawValue(c.arg, f).flat(),
     _,
     keyword("IS"),
     _,

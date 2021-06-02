@@ -19,7 +19,7 @@ import {
   GROUP,
   BY,
 } from "./util";
-import { rawCondition } from "./rawExpr";
+import { rawValue } from "./rawExpr";
 import { SelectStmt } from "../types";
 import { sortBy } from "./sortBy";
 import { rangeVar } from "./rangeVar";
@@ -58,7 +58,7 @@ const where = transform(
     WHERE,
     __,
     transform(
-      (ctx) => rawCondition(ctx),
+      (ctx) => rawValue(ctx),
       ({ value, codeComment }, ctx) => ({
         value,
         pos: ctx.pos,
@@ -100,7 +100,7 @@ const from = transform(
 
 const target = transform(
   sequence([
-    (ctx) => rawCondition(ctx),
+    (ctx) => rawValue(ctx),
     optional(
       or([sequence([__, AS, __, identifier]), sequence([__, identifier])])
     ),

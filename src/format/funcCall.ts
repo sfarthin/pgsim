@@ -18,10 +18,7 @@ export default function funcCall<T>(c: FuncCall, f: Formatter<T>): T[] {
 
     // foo, goo, etc
     ...(c.args
-      ? join(
-          c.args.map((p) => rawValue(p, f)),
-          [symbol(","), _]
-        )
+      ? join(c.args.map((p) => rawValue(p, f)).flat(), [symbol(","), _])
       : []),
     symbol(")"),
   ];
