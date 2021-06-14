@@ -139,3 +139,6 @@ SELECT
 ORDER BY
 	1 ASC,
 	foo;
+
+SELECT
+	foo['2'];

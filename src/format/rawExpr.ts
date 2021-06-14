@@ -9,6 +9,7 @@ import rowExpr from "./rowExpr";
 import sublink from "./sublink";
 import caseExpr from "./caseExpr";
 import nullTest from "./nullTest";
+import aIndirection from "./aIndirection";
 import { Formatter } from "./util";
 
 export function rawValue<T>(
@@ -37,6 +38,8 @@ export function rawValue<T>(
     return sublink(c.SubLink, f);
   } else if ("CaseExpr" in c) {
     return caseExpr(c.CaseExpr, f);
+  } else if ("A_Indirection" in c) {
+    return aIndirection(c.A_Indirection, f);
   }
 
   throw new Error(`RawValue not handled: ${Object.keys(c)[0]}`);

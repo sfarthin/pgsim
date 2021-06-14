@@ -26,7 +26,7 @@ import { rowExpr } from "./rowExpr";
 import { subLinkConnection, subLink } from "./subLink";
 import { typeCastConnection, typeCastLiteral } from "./typeCast";
 import { caseExpr } from "./caseExpr";
-import { aIndirection } from "./aIndirection";
+import { aIndirectionConnection } from "./aIndirection";
 
 export const rawValue: Rule<{
   value: RawValue;
@@ -39,7 +39,6 @@ export const rawValue: Rule<{
       aExprSingleParm,
       typeCastLiteral,
       aConst,
-      aIndirection,
 
       transform(funcCall, ({ value, codeComment }) => ({
         value: { FuncCall: value },
@@ -68,6 +67,7 @@ export const rawValue: Rule<{
         subLinkConnection,
         nullTestConnection,
         typeCastConnection,
+        aIndirectionConnection,
         boolConnection,
         aExprFactorial,
 
