@@ -108,6 +108,39 @@ export const notBoolExpr: Rule<{
   };
 });
 
+// export const boolConnection = (ctx: Context) =>
+//   connectRawValue(
+//     sequence([__, or([AND, OR]), __, (ctx) => rawValue(ctx)]),
+//     (v) => v[3],
+//     (c1, c2, v) => {
+//       return {
+//         value: {
+//           BoolExpr: {
+//             boolop: v[1].value === "AND" ? BoolOp.AND : BoolOp.OR,
+//             args: [c1.value, c2.value],
+//             location: v[1].start,
+//           },
+//           // BoolExpr: condenseNestedBoolExpressions(
+//           //   {
+//           //     boolop: v[1].value === "AND" ? BoolOp.AND : BoolOp.OR,
+//           //     args: [c1.value, v[3].value],
+//           //     location: v[1].start,
+//           //   },
+//           //   { hasParens: "hasParens" in v[3] && !!v[3].hasParens }
+//           // ),
+//         },
+//         codeComment: combineComments(
+//           Array.isArray(c1)
+//             ? combineComments(...c1.map((c) => c.codeComment))
+//             : c1.codeComment,
+//           v[0],
+//           v[2],
+//           v[3].codeComment
+//         ),
+//       };
+//     }
+//   )(ctx);
+
 export const boolConnection = (ctx: Context) =>
   connectRawValue(
     sequence([__, or([AND, OR]), __, (ctx) => rawValue(ctx)]),

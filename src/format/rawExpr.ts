@@ -17,7 +17,6 @@ export function rawValue<T>(
   f: Formatter<T>,
   includeParens?: boolean
 ): T[][] {
-  // <-- returns a single line.
   if ("TypeCast" in c) {
     return [typeCast(c.TypeCast, f)];
   } else if ("A_Const" in c) {

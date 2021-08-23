@@ -98,7 +98,7 @@ type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends (
 
 // Flattens two union types into a single type with optional values
 // i.e. FlattenUnion<{ a: number, c: number } | { b: string, c: number }> = { a?: number, b?: string, c: number }
-type FlattenUnion<T> = {
+export type FlattenUnion<T> = {
   [K in keyof UnionToIntersection<T>]: K extends keyof T
     ? T[K] extends any[]
       ? T[K]

@@ -1,5 +1,5 @@
 import { aConst } from "./aConst";
-import { connectRawValue } from "./rawExpr";
+import { rawValuePostfix } from "./rawExpr";
 import {
   sequence,
   __,
@@ -10,7 +10,7 @@ import {
 } from "./util";
 
 export const aIndirectionConnection = (ctx: Context) =>
-  connectRawValue(
+  rawValuePostfix(
     sequence([OPEN_BRACKET, __, aConst, __, CLOSE_BRACKET]),
     (c1, v) => {
       return {

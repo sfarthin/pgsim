@@ -56,3 +56,13 @@ SELECT 1 ORDER BY 1 ASC;
 SELECT 1, 2 ORDER BY 1 ASC, 2;
 SELECT 1, 2 as foo ORDER BY 1 ASC, foo;
 select foo['2'];
+SELECT foo(c.foo);
+
+-- Precedence
+SELECT 1 + 1::int;
+SELECT 1::int + 1;
+SELECT foo[0] + 1;
+SELECT 1 + foo[0];
+SELECT foo::int;
+SELECT (5 !) - 6;
+SELECT 2 - 2 - 2;

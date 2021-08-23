@@ -38,9 +38,9 @@ const groupBy = transform(
   ]),
   (v) => ({
     value: [
-      { ColumnRef: v[5] },
+      { ColumnRef: v[5].value.ColumnRef },
       ...v[6].map(([, , , ColumnRef]) => ({
-        ColumnRef,
+        ColumnRef: ColumnRef.value.ColumnRef,
       })),
     ].flatMap((c) => (c ? [c] : [])),
     codeComments: {

@@ -28,7 +28,7 @@ export type RawValue =
   | { A_Expr: AExpr } // foo in (1,2,3) ... or 1 = 1
   | { SubLink: SubLink }
   | { CaseExpr: CaseExpr }
-  | { A_Indirection?: AIndirection }; // foo[0]
+  | { A_Indirection: AIndirection }; // foo[0]
 
 export const rawValueDecoder: d.Decoder<RawValue> = dispatch({
   ColumnRef: (blob) => columnRefDecoder(blob),

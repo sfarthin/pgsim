@@ -1,4 +1,4 @@
-import { connectRawValue } from "./rawExpr";
+import { rawValuePostfix } from "./rawExpr";
 import {
   sequence,
   __,
@@ -11,7 +11,7 @@ import {
 } from "./util";
 
 export const nullTestConnection = (ctx: Context) =>
-  connectRawValue(sequence([__, IS, __, optional(NOT), __, NULL]), (c1, v) => {
+  rawValuePostfix(sequence([__, IS, __, optional(NOT), __, NULL]), (c1, v) => {
     return {
       value: {
         NullTest: {

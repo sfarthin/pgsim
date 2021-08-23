@@ -1,4 +1,4 @@
-import { connectRawValue, rawValue } from "./rawExpr";
+import { connectRawValue, rawValue, rawValuePostfix } from "./rawExpr";
 import {
   sequence,
   __,
@@ -137,7 +137,7 @@ export const aExprDoubleParams = (ctx: Context) =>
   )(ctx);
 
 export const aExprFactorial = (ctx: Context) =>
-  connectRawValue(
+  rawValuePostfix(
     sequence([__, constant("!"), lookForWhiteSpaceOrComment]),
     (c1, v) => {
       return {
@@ -180,7 +180,7 @@ export const aExprIn = (ctx: Context) =>
             },
           ],
           lexpr: c1.value as RawValue, // TODO ... this currently allows "(1 AND 1) = 'foo'". Fix in the future.
-          rexpr: v[3].value.args,
+          rexpr: v[3].value.RowExpr.args,
           location: v[1].start,
         },
       },

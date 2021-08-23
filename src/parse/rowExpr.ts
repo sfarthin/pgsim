@@ -12,7 +12,7 @@ import { RowExpr } from "../types/rowExpr";
 import { rawValue } from "./rawExpr";
 
 export const rowExpr: Rule<{
-  value: RowExpr;
+  value: { RowExpr: RowExpr };
   codeComment: string;
 }> = transform(
   sequence([
@@ -28,9 +28,11 @@ export const rowExpr: Rule<{
     const args = v[4].map((i) => i[2].value);
     return {
       value: {
-        args: [v[2].value, ...args],
-        row_format: 2,
-        location: v[0].start,
+        RowExpr: {
+          args: [v[2].value, ...args],
+          row_format: 2,
+          location: v[0].start,
+        },
       },
       codeComment: "",
     };

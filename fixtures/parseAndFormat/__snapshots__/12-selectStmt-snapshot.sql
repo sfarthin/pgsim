@@ -142,3 +142,27 @@ ORDER BY
 
 SELECT
 	foo['2'];
+
+SELECT
+	foo(c.foo);
+
+-- Precedence
+SELECT
+	1 + 1::int4;
+
+SELECT
+	1::int4 + 1;
+
+SELECT
+	foo[0] + 1;
+
+SELECT
+	1 + foo[0];
+
+SELECT
+	foo::int4;
+
+SELECT
+	5! - 6;
+
+-- SELECT 2 - 2 - 2;

@@ -13,7 +13,7 @@ import {
 } from "./util";
 import { select } from "./selectStmt";
 import { SubLink, SubLinkType } from "../types";
-import { connectRawValue } from "./rawExpr";
+import { rawValuePostfix } from "./rawExpr";
 
 export const subLinkExists: Rule<{
   value: { SubLink: SubLink };
@@ -54,7 +54,7 @@ export const subLinkExpr: Rule<{
 export const subLink = or([subLinkExists, subLinkExpr]);
 
 export const subLinkConnection = (ctx: Context) =>
-  connectRawValue(
+  rawValuePostfix(
     sequence([__, IN, __, LPAREN, __, select, __, RPAREN]),
     (c1, v) => {
       return {

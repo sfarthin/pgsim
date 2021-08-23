@@ -20,7 +20,7 @@ import {
   typeNames,
   getTypeDetails,
 } from "../types";
-import { connectRawValue } from "./rawExpr";
+import { rawValuePostfix } from "./rawExpr";
 
 const booleanLiteral: Rule<{
   value: { TypeCast: TypeCast };
@@ -110,7 +110,7 @@ export const typeCastLiteral: Rule<{
 });
 
 export const typeCastConnection = (ctx: Context) =>
-  connectRawValue(sequence([__, constant("::"), __, typeNameRule]), (c1, v) => {
+  rawValuePostfix(sequence([__, constant("::"), __, typeNameRule]), (c1, v) => {
     const typeName = v[3].value;
     const parsedType = getTypeDetails(typeName);
 

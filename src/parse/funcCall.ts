@@ -19,7 +19,7 @@ import { rawValue } from "./rawExpr";
 
 // THis should include equestions and type casts.
 export const funcCall: Rule<{
-  value: FuncCall;
+  value: { FuncCall: FuncCall };
   codeComment: string;
 }> = transform(
   sequence([
@@ -50,16 +50,18 @@ export const funcCall: Rule<{
     );
     return {
       value: {
-        funcname: v[0].split(".").map((k) => ({
-          String: {
-            str: k,
-          },
-        })),
-        ...(agg_star ? { agg_star: true } : args.length > 0 ? { args } : {}),
-        // func_variadic?: boolean; // select concat(variadic array [1,2,3])
-        // agg_distinct?: boolean;
-        // over?: unknown;
-        location: ctx.pos,
+        FuncCall: {
+          funcname: v[0].split(".").map((k) => ({
+            String: {
+              str: k,
+            },
+          })),
+          ...(agg_star ? { agg_star: true } : args.length > 0 ? { args } : {}),
+          // func_variadic?: boolean; // select concat(variadic array [1,2,3])
+          // agg_distinct?: boolean;
+          // over?: unknown;
+          location: ctx.pos,
+        },
       },
       codeComment: combineComments(
         v[1],
