@@ -1,12 +1,54 @@
-import { AExpr, AExprKind } from "../types";
+import { AExpr, AExprKind, RawValue } from "../types";
 import { rawValue } from "./rawExpr";
 import { Formatter, join } from "./util";
+import { getPrecedence } from "../parse/aExpr";
 
-export default function aExpr<T>(c: AExpr, f: Formatter<T>): T[][] {
+function doesSecondConditionNeedParens(c: AExpr) {
+  if (!c.lexpr || !c.rexpr) {
+    return false;
+  }
+  if ("A_Expr" in c.rexpr) {
+    return getPrecedence(c) < getPrecedence(c.rexpr.A_Expr);
+  }
+
+  return false;
+}
+
+function wrapParens<T>(
+  a: T[][],
+  f: Formatter<T>,
+  includeParens?: boolean
+): T[][] {
+  const { symbol } = f;
+
+  if (!includeParens) {
+    return a;
+  }
+
+  if (a.length === 1) {
+    return [[symbol("("), ...a[0], symbol(")")]];
+  }
+
+  return [
+    [symbol("("), ...a[0]],
+    ...a.slice(1, a.length - 2),
+    [...a[a.length - 1], symbol(")")],
+  ];
+}
+
+export default function aExpr<T>(
+  c: AExpr,
+  f: Formatter<T>,
+  includeParens?: boolean
+): T[][] {
   const { _, keyword, symbol, indent } = f;
   if (c.kind === AExprKind.AEXPR_OP) {
     const firstCondition = c.lexpr ? rawValue(c.lexpr, f) : null;
-    const secondCondition = c.rexpr ? rawValue(c.rexpr, f) : null;
+    const secondCondition = c.rexpr
+      ? doesSecondConditionNeedParens(c)
+        ? rawValue(c.rexpr, f, true)
+        : rawValue(c.rexpr, f)
+      : null;
     const hasTwoParams = firstCondition && secondCondition;
 
     if (
@@ -14,21 +56,29 @@ export default function aExpr<T>(c: AExpr, f: Formatter<T>): T[][] {
       (!secondCondition || secondCondition.length === 1)
     ) {
       // If both are jsut one line, then lets put it on the same line.
-      return [
+      return wrapParens(
         [
-          ...(firstCondition ? firstCondition[0] : []),
-          ...(hasTwoParams ? [_] : []),
-          symbol(c.name[0].String.str),
-          ...(secondCondition ? [_] : []),
-          ...(secondCondition ? secondCondition[0] : []),
+          [
+            ...(firstCondition ? firstCondition[0] : []),
+            ...(hasTwoParams ? [_] : []),
+            symbol(c.name[0].String.str),
+            ...(secondCondition ? [_] : []),
+            ...(secondCondition ? secondCondition[0] : []),
+          ],
         ],
-      ];
+        f,
+        includeParens
+      );
     } else {
-      return [
-        ...(firstCondition ? firstCondition : []),
-        [_, symbol(c.name[0].String.str), _],
-        ...(secondCondition ? secondCondition : []),
-      ];
+      return wrapParens(
+        [
+          ...(firstCondition ? firstCondition : []),
+          [_, symbol(c.name[0].String.str), _],
+          ...(secondCondition ? secondCondition : []),
+        ],
+        f,
+        includeParens
+      );
     }
   } else {
     const condition = rawValue(c.lexpr, f);

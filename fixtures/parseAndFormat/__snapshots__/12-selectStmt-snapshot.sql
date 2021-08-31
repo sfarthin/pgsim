@@ -165,9 +165,35 @@ SELECT
 SELECT
 	5! - 6;
 
--- SELECT 1 - 2 - 3;
--- SELECT -2 - 2;
--- SELECT 1 + 2 ^ 2;
--- SELECT 2 ^ 2 + 1;
--- SELECT 1 * 2 + 3;
--- SELECT 2 + 2 * 2;
+SELECT
+	1 * 2 - 3;
+
+SELECT
+	1 * (2 - 3);
+
+SELECT
+	1 - 2 - 3;
+
+SELECT
+	1 - 2 - -3;
+
+SELECT
+	-2 - 2;
+
+SELECT
+	-2 - -2.20;
+
+SELECT
+	1 + 2 ^ 2;
+
+SELECT
+	2 ^ 2 + 1;
+
+SELECT
+	1 * 2 + 3;
+
+SELECT
+	2 + 2 * 2;
+
+SELECT
+	2 + 2 * 2;

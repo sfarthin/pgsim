@@ -12,6 +12,7 @@ import {
 } from "./util";
 import { RawValue, AExprKind, AExpr, A_Const } from "../types";
 import { rowExpr } from "./rowExpr";
+import { negateAConst } from "./aConst";
 
 // * / %	left	multiplication, division, modulo
 // + -	left	addition, subtraction
@@ -33,8 +34,20 @@ const precedence = [
   ["=", "!="],
 ];
 
-const getPrecedence = (x: string) =>
-  precedence.findIndex((ops) => (ops as readonly string[]).includes(x));
+export const getPrecedence = (aExpr: AExpr | undefined) => {
+  if (!aExpr) {
+    return 0;
+  }
+
+  const op = aExpr.name[0].String.str;
+
+  // unary operator
+  if (!aExpr.lexpr && op === "-") {
+    return -1;
+  }
+
+  return precedence.findIndex((ops) => (ops as readonly string[]).includes(op));
+};
 
 const operatorsWithTwoParams = or([
   constant("="),
@@ -104,18 +117,21 @@ export const aExprSingleParm: Rule<{
               },
             } as { A_Const: A_Const })
           : {
-              A_Expr: {
-                kind: AExprKind.AEXPR_OP,
-                name: [
-                  {
-                    String: {
-                      str: operation,
+              A_Expr: condenseNestedAExpressions(
+                {
+                  kind: AExprKind.AEXPR_OP,
+                  name: [
+                    {
+                      String: {
+                        str: operation,
+                      },
                     },
-                  },
-                ],
-                rexpr: v[2].value,
-                location: ctx.pos,
-              },
+                  ],
+                  rexpr: v[2].value,
+                  location: ctx.pos,
+                },
+                { hasParens: false }
+              ),
             },
     };
   }
@@ -136,25 +152,33 @@ function condenseNestedAExpressions(
     !Array.isArray(aExpr.rexpr) &&
     aExpr.rexpr &&
     "A_Expr" in aExpr.rexpr &&
-    getPrecedence(aExpr.name[0].String.str) <=
-      getPrecedence(aExpr.rexpr.A_Expr.name[0].String.str) &&
+    getPrecedence(aExpr) <= getPrecedence(aExpr.rexpr.A_Expr) &&
     !hasParens
   ) {
     const op = aExpr.name[0].String.str;
     const subOp = aExpr.rexpr.A_Expr.name[0].String.str;
 
+    const unaryConst =
+      aExpr.rexpr.A_Expr.lexpr && "A_Const" in aExpr.rexpr.A_Expr.lexpr
+        ? aExpr.rexpr.A_Expr.lexpr.A_Const
+        : null;
+    const isUnary = op === "-" && !aExpr.lexpr;
+
     return {
       kind: AExprKind.AEXPR_OP,
       name: [{ String: { str: subOp } }],
-      lexpr: {
-        A_Expr: {
-          kind: AExprKind.AEXPR_OP,
-          name: [{ String: { str: op } }],
-          lexpr: aExpr.lexpr,
-          rexpr: aExpr.rexpr.A_Expr.lexpr,
-          location: aExpr.location,
-        },
-      },
+      lexpr:
+        isUnary && unaryConst
+          ? { A_Const: negateAConst(unaryConst) }
+          : {
+              A_Expr: {
+                kind: AExprKind.AEXPR_OP,
+                name: [{ String: { str: op } }],
+                lexpr: aExpr.lexpr,
+                rexpr: aExpr.rexpr.A_Expr.lexpr,
+                location: aExpr.location,
+              },
+            },
       rexpr: aExpr.rexpr.A_Expr.rexpr as RawValue,
       location: aExpr.rexpr.A_Expr.location,
     };

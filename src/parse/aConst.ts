@@ -84,3 +84,37 @@ export const aConst: Rule<{
     codeComment: s.codeComment,
   })
 );
+
+export function negateAConst(aConst: A_Const): A_Const {
+  if ("String" in aConst.val || "Null" in aConst.val) {
+    // consider throwing an error
+    return aConst;
+  }
+
+  if ("Integer" in aConst.val) {
+    const hasMinus = aConst.val.Integer.ival < 0;
+    return {
+      val: {
+        Integer: {
+          ival: aConst.val.Integer.ival * -1,
+        },
+      },
+      location: aConst.location - (!hasMinus ? 1 : 0),
+    };
+  }
+
+  if ("Float" in aConst.val) {
+    const hasMinus = aConst.val.Float.str.match(/^\-/);
+    const minus = !hasMinus ? "-" : "";
+    return {
+      val: {
+        Float: {
+          str: `${minus}${aConst.val.Float.str.replace(/^\-/, "")}`,
+        },
+      },
+      location: aConst.location,
+    };
+  }
+
+  throw new Error("Unexpected Constant");
+}

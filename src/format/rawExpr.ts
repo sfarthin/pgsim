@@ -30,7 +30,7 @@ export function rawValue<T>(
   } else if ("NullTest" in c) {
     return [nullTest(c.NullTest, f)];
   } else if ("A_Expr" in c) {
-    return aExpr(c.A_Expr, f);
+    return aExpr(c.A_Expr, f, includeParens);
   } else if ("BoolExpr" in c) {
     return boolExpr(c.BoolExpr, f, includeParens);
   } else if ("SubLink" in c) {
