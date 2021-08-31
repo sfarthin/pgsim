@@ -14,4 +14,6 @@ SELECT
 SELECT
 	'1' || '2';
 
--- SELECT (1 and 2);
+SELECT
+	1 AND
+	2;

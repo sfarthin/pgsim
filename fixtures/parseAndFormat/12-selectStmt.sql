@@ -27,12 +27,12 @@ SELECT -4;
 SELECT -49999999999999999999999999999999999999999999999999999999999999999999999999999999;
 SELECT - 4;
 -- Can handle various expressions with different operations.
--- SELECT 4 < 4.0 * 3;
--- SELECT 4 * 4.0 < 3;
--- SELECT 4 * 4.0 * 3;
--- SELECT 4 - 4.0 * 3;
--- SELECT 4 - 4.0 + 3;
--- SELECT 4 * 4.0 / 3;
+SELECT 4 < 4.0 * 3;
+SELECT 4 * 4.0 < 3;
+SELECT 4 * 4.0 * 3;
+SELECT 4 - 4.0 * 3;
+SELECT 4 - 4.0 + 3;
+SELECT 4 * 4.0 / 3;
 
 -- We can use STAR
 SELECT * FROM foo;
@@ -76,3 +76,7 @@ SELECT 2 ^ 2 + 1;
 SELECT 1 * 2 + 3;
 SELECT 2 + 2 * 2;
 SELECT 2 + (2 * 2);
+SELECT 0 > (SELECT 1);
+
+
+SELECT * FROM foo WHERE bar.foo_id = foo.id AND foo.created_at = NOW();
