@@ -10,9 +10,9 @@ import {
   Rule,
   lookForWhiteSpaceOrComment,
 } from "./util";
-import { RawValue, AExprKind, AExpr, A_Const } from "../types";
+import { RawValue, AExprKind, AExpr, A_Const, BoolExpr } from "../types";
 import { rowExpr } from "./rowExpr";
-import { negateAConst } from "./aConst";
+import { adjustPrecedence } from "./rawValuePrecendence";
 
 // * / %	left	multiplication, division, modulo
 // + -	left	addition, subtraction
@@ -85,21 +85,21 @@ const operatorsWithOneParams = or([
 
 export const aExprSingleParm: Rule<{
   codeComment: string;
-  value: { A_Expr: AExpr } | { A_Const: A_Const };
+  value: RawValue;
 }> = transform(
   sequence([operatorsWithOneParams, __, (ctx) => rawValue(ctx)]),
   (v, ctx) => {
     const operation = v[0].value;
     return {
       codeComment: combineComments(v[1], v[2].codeComment),
-      value:
+      value: adjustPrecedence(
         // If the right expr is a float or integer, we want to condense
         // it into a single value
         operation === "-" &&
-        "A_Const" in v[2].value &&
-        ("Float" in v[2].value.A_Const.val ||
-          "Integer" in v[2].value.A_Const.val)
-          ? ({
+          "A_Const" in v[2].value &&
+          ("Float" in v[2].value.A_Const.val ||
+            "Integer" in v[2].value.A_Const.val)
+          ? {
               A_Const: {
                 location: ctx.pos,
                 val:
@@ -115,77 +115,27 @@ export const aExprSingleParm: Rule<{
                         },
                       },
               },
-            } as { A_Const: A_Const })
-          : {
-              A_Expr: condenseNestedAExpressions(
-                {
-                  kind: AExprKind.AEXPR_OP,
-                  name: [
-                    {
-                      String: {
-                        str: operation,
-                      },
-                    },
-                  ],
-                  rexpr: v[2].value,
-                  location: ctx.pos,
-                },
-                { hasParens: false }
-              ),
-            },
-    };
-  }
-);
-
-// We need to make some rearranging to make sure our AST matches postgres.
-function condenseNestedAExpressions(
-  aExpr: AExpr,
-  { hasParens }: { hasParens: boolean }
-): AExpr {
-  // Since "*" takes precedence over "+", lets move it to the top
-  // SELECT 1 * 2 + 3
-  //        ^^^^^
-  //        THis becomes argument 1 now
-  //        whereas before it was grouped like:
-  //        1 * (2 + 3)
-  if (
-    !Array.isArray(aExpr.rexpr) &&
-    aExpr.rexpr &&
-    "A_Expr" in aExpr.rexpr &&
-    getPrecedence(aExpr) <= getPrecedence(aExpr.rexpr.A_Expr) &&
-    !hasParens
-  ) {
-    const op = aExpr.name[0].String.str;
-    const subOp = aExpr.rexpr.A_Expr.name[0].String.str;
-
-    const unaryConst =
-      aExpr.rexpr.A_Expr.lexpr && "A_Const" in aExpr.rexpr.A_Expr.lexpr
-        ? aExpr.rexpr.A_Expr.lexpr.A_Const
-        : null;
-    const isUnary = op === "-" && !aExpr.lexpr;
-
-    return {
-      kind: AExprKind.AEXPR_OP,
-      name: [{ String: { str: subOp } }],
-      lexpr:
-        isUnary && unaryConst
-          ? { A_Const: negateAConst(unaryConst) }
+            }
           : {
               A_Expr: {
                 kind: AExprKind.AEXPR_OP,
-                name: [{ String: { str: op } }],
-                lexpr: aExpr.lexpr,
-                rexpr: aExpr.rexpr.A_Expr.lexpr,
-                location: aExpr.location,
+                name: [
+                  {
+                    String: {
+                      str: operation,
+                    },
+                  },
+                ],
+                rexpr: v[2].value,
+                location: ctx.pos,
               },
             },
-      rexpr: aExpr.rexpr.A_Expr.rexpr as RawValue,
-      location: aExpr.rexpr.A_Expr.location,
+
+        { hasParens: v[2].hasParens }
+      ),
     };
   }
-
-  return aExpr;
-}
+);
 
 export const aExprDoubleParams = (ctx: Context) =>
   connectRawValue(
@@ -198,9 +148,9 @@ export const aExprDoubleParams = (ctx: Context) =>
           v[2],
           v[3].codeComment
         ),
-        value: {
-          A_Expr: condenseNestedAExpressions(
-            {
+        value: adjustPrecedence(
+          {
+            A_Expr: {
               kind: AExprKind.AEXPR_OP,
               name: [
                 {
@@ -213,9 +163,9 @@ export const aExprDoubleParams = (ctx: Context) =>
               rexpr: v[3].value,
               location: v[1].start,
             },
-            { hasParens: "hasParens" in v[3] && !!v[3].hasParens }
-          ),
-        },
+          },
+          { hasParens: v[3].hasParens }
+        ),
       };
     }
   )(ctx);

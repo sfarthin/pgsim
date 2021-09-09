@@ -79,4 +79,4 @@ SELECT 2 + (2 * 2);
 SELECT 0 > (SELECT 1);
 
 
-SELECT * FROM foo WHERE bar.foo_id = foo.id AND foo.created_at = NOW();
+-- SELECT * FROM foo WHERE 1 = 1 AND 2 = 2;
