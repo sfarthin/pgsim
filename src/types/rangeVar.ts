@@ -1,13 +1,4 @@
-import {
-  Decoder,
-  string,
-  exact,
-  number,
-  boolean,
-  optional,
-  either3,
-  constant,
-} from "decoders";
+import * as d from "decoders";
 import { Alias, aliasDecoder } from "./alias";
 import { Location, locationDecoder } from "./location";
 
@@ -33,16 +24,12 @@ export type RangeVar = {
   alias?: { Alias: Alias };
 };
 
-export const rangeVarDecoder: Decoder<RangeVar> = exact({
-  schemaname: optional(string),
-  relname: string,
-  inhOpt: optional(number),
-  relpersistence: either3(
-    constant("p" as "p"),
-    constant("u" as "u"),
-    constant("t" as "t")
-  ),
+export const rangeVarDecoder: d.Decoder<RangeVar> = d.exact({
+  schemaname: d.optional(d.string),
+  relname: d.string,
+  inhOpt: d.optional(d.number),
+  relpersistence: d.either3(d.constant("p"), d.constant("u"), d.constant("t")),
   location: locationDecoder,
-  inh: optional(boolean),
-  alias: optional(exact({ Alias: aliasDecoder })),
+  inh: d.optional(d.boolean),
+  alias: d.optional(d.exact({ Alias: aliasDecoder })),
 });

@@ -26,9 +26,12 @@ GROUP BY
 SELECT
 	*
 FROM
-	foo JOIN f ON (
-		TRUE = TRUE
-	)
+	foo
+	JOIN
+		f
+		ON (
+			TRUE = TRUE
+		)
 GROUP BY
 	a.b,
 	c;

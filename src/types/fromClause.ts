@@ -8,20 +8,8 @@ import {
   unknown,
 } from "decoders";
 import { JoinExpr, joinExprDecoder } from "./joinExpr";
-import { aliasDecoder, Alias } from "./alias";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
-
-export type RangeSubselect = {
-  subquery?: unknown; // <--- Need to decode it at runtime,
-  alias: { Alias: Alias }; // <-- Must have an alias when in from
-  lateral?: boolean; // see gist.sql
-};
-
-export const rangeSubselectDecoder: Decoder<RangeSubselect> = exact({
-  subquery: unknown,
-  alias: exact({ Alias: aliasDecoder }),
-  lateral: optional(boolean),
-});
+import { RangeSubselect, rangeSubselectDecoder } from "./RangeSubselect";
 
 export type FromClause =
   | { RangeVar: RangeVar }

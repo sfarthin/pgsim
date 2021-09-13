@@ -1,6 +1,7 @@
 import * as d from "decoders";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { RawValue, rawValueDecoder } from "./rawExpr";
+import { RangeSubselect, rangeSubselectDecoder } from "./RangeSubselect";
 
 // https://doxygen.postgresql.org/nodes_8h.html#aef400c43b34e3ecc3f7b342aa821395d
 export enum JoinType {
@@ -16,8 +17,8 @@ export enum JoinType {
 
 export type JoinExpr = {
   jointype: JoinType;
-  larg: { RangeVar: RangeVar };
-  rarg: { RangeVar: RangeVar };
+  larg: { RangeVar: RangeVar } | { RangeSubselect: RangeSubselect };
+  rarg: { RangeVar: RangeVar } | { RangeSubselect: RangeSubselect };
   quals: RawValue;
   // isNatural?: unknown;
   // usingClause?: unknown;
@@ -26,8 +27,14 @@ export type JoinExpr = {
 
 export const joinExprDecoder: d.Decoder<JoinExpr> = d.exact({
   jointype: d.oneOf(Object.values(JoinType)) as d.Decoder<JoinType>,
-  larg: d.exact({ RangeVar: rangeVarDecoder }),
-  rarg: d.exact({ RangeVar: rangeVarDecoder }),
+  larg: d.either(
+    d.exact({ RangeVar: rangeVarDecoder }),
+    d.exact({ RangeSubselect: rangeSubselectDecoder })
+  ),
+  rarg: d.either(
+    d.exact({ RangeVar: rangeVarDecoder }),
+    d.exact({ RangeSubselect: rangeSubselectDecoder })
+  ),
   quals: (blob) => rawValueDecoder(blob),
   // isNatural: unknown,
   // usingClause: unknown,

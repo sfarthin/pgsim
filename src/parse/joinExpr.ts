@@ -17,6 +17,7 @@ import {
   combineComments,
 } from "./util";
 import { rangeVar } from "./rangeVar";
+import { rangeSubselect } from "./rangeSubselect";
 
 export const joinExpr: Rule<{
   value: { JoinExpr: JoinExpr };
@@ -29,7 +30,7 @@ export const joinExpr: Rule<{
     __, // 3
     JOIN,
     __, // 5
-    rangeVar,
+    or([rangeVar, rangeSubselect]),
     __,
     optional(or([sequence([AS, __, identifier]), identifier])),
     __, // 9
@@ -47,7 +48,10 @@ export const joinExpr: Rule<{
             ? JoinType.JOIN_RIGHT
             : JoinType.JOIN_INNER,
         larg: { RangeVar: v[0].value.RangeVar },
-        rarg: { RangeVar: v[6].value.RangeVar },
+        rarg:
+          "RangeVar" in v[6].value
+            ? { RangeVar: v[6].value.RangeVar }
+            : { RangeSubselect: v[6].value.RangeSubselect },
         quals: v[12].value,
       },
     },

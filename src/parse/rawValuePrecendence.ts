@@ -1,6 +1,6 @@
 import { RawValue, AExprKind, AExpr } from "../types";
 import { negateAConst } from "./aConst";
-import { BoolOp, RawExpr } from "../types";
+import { BoolOp } from "../types";
 
 const precedence = [
   ["*", "/", "%"],
@@ -90,7 +90,7 @@ export function adjustPrecedence(
       const op = aExpr.name[0].String.str;
       return {
         BoolExpr: {
-          boolop: aExpr.rexpr.BoolExpr.boolop,
+          boolop: aExpr.rexpr.BoolExpr.boolop as BoolOp.OR | BoolOp.AND,
           args: [
             // adjustPrecedence(
             {

@@ -33,7 +33,7 @@
   "dependencies": {
     "ansi-colors": "^4.1.1",
     "debrief": "^1.4.3",
-    "decoders": "^1.23.5",
+    "decoders": "^1.25.3",
     "lemons": "^1.6.0",
     "minimalist": "^1.0.0"
   }

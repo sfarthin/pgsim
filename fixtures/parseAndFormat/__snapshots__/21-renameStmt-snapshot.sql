@@ -1,0 +1,1 @@
+-- ALTER TABLE foo RENAME COLUMN "old_name" TO "new_name";

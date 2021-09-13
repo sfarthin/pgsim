@@ -17,35 +17,40 @@ export const rangeVar: Rule<{
   codeComment: string;
 }> = transform(
   sequence([
-    identifier,
-    optional(sequence([PERIOD, identifier])),
+    sequence([identifier, optional(sequence([PERIOD, identifier]))]),
+
     optional(
       or([sequence([__, AS, __, identifier]), sequence([__, identifier])])
     ),
   ]),
-  (v, ctx) => ({
-    value: {
-      RangeVar: {
-        ...(v[1] ? { relname: v[1][1], schemaname: v[0] } : { relname: v[0] }),
-        inh: true,
-        relpersistence: "p" as const,
-        location: ctx.pos,
-        ...(v[2]
-          ? {
-              alias: {
-                Alias: { aliasname: v[2].length === 4 ? v[2][3] : v[2][1] },
-              },
-            }
-          : {}),
-      },
-    },
-
-    codeComment: combineComments(
-      ...(v[2] && v[2].length === 4
-        ? [v[2][0], v[2][2]]
-        : v[2] && v[2].length === 2
-        ? [v[2][0]]
+  (v, ctx) => {
+    const codeComment = combineComments(
+      ...(v[1] && v[1].length === 4
+        ? [v[1][0], v[1][2]]
+        : v[1] && v[1].length === 2
+        ? [v[1][0]]
         : [])
-    ),
-  })
+    );
+
+    return {
+      value: {
+        RangeVar: {
+          ...(v[0][1]
+            ? { relname: v[0][1][1], schemaname: v[0][0] }
+            : { relname: v[0][0] }),
+          inh: true,
+          relpersistence: "p" as const,
+          location: ctx.pos,
+          ...(v[1]
+            ? {
+                alias: {
+                  Alias: { aliasname: v[1].length === 4 ? v[1][3] : v[1][1] },
+                },
+              }
+            : {}),
+        },
+      },
+      codeComment,
+    };
+  }
 );

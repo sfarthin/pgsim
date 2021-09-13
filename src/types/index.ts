@@ -12,6 +12,7 @@ import { AlterEnumStmt, alterEnumStmtDecoder } from "./alterEnumStmt";
 import { AlterOwnerStmt, alterOwnerStmtDecoder } from "./alterOwnerStmt";
 import { IndexStmt, indexStmtDecoder } from "./indexStmt";
 import { ViewStmt, viewStmtDecoder } from "./viewStmt";
+import { RenameStmt, renameStmtDecoder } from "./renameStmt";
 import dispatch from "./dispatch";
 
 export * from "./aExpr";
@@ -38,6 +39,7 @@ export * from "./InsertStmt";
 export * from "./joinExpr";
 export * from "./nullTest";
 export * from "./rangeVar";
+export * from "./rangeSubselect";
 export * from "./rawExpr";
 export * from "./selectStmt";
 export * from "./subLink";
@@ -48,6 +50,7 @@ export * from "./typeName";
 export * from "./variableSetStmt";
 export * from "./viewStmt";
 export * from "./rowExpr";
+export * from "./renameStmt";
 
 export type Stmt = {
   RawStmt: {
@@ -66,7 +69,8 @@ export type Stmt = {
       | { AlterOwnerStmt: AlterOwnerStmt }
       | { IndexStmt: IndexStmt }
       | { SelectStmt: SelectStmt }
-      | { ViewStmt: ViewStmt };
+      | { ViewStmt: ViewStmt }
+      | { RenameStmt: RenameStmt };
 
     // | { RenameStmt: Record<string, unknown> }
     // | { CompositeTypeStmt: Record<string, unknown> }
@@ -154,6 +158,7 @@ export const stmtDecoder: Decoder<Stmt> = exact({
       Comment: string,
       SelectStmt: selectStmtDecoder,
       ViewStmt: viewStmtDecoder,
+      RenameStmt: renameStmtDecoder,
 
       // RenameStmt: pojo,
       // CompositeTypeStmt: pojo,
