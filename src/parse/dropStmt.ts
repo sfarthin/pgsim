@@ -17,6 +17,7 @@ import {
   optional,
   RESTRICT,
   CASCADE,
+  VIEW,
 } from "./util";
 import {
   RemoveType,
@@ -33,7 +34,7 @@ export const dropStmt: Rule<DropStmt> = transform(
     _,
     DROP,
     __,
-    or([TABLE, SEQUENCE, TYPE]),
+    or([TABLE, SEQUENCE, TYPE, VIEW]),
     __,
     optional(
       transform(sequence([IF, __, EXISTS, __]), (v) =>
@@ -95,7 +96,12 @@ export const dropStmt: Rule<DropStmt> = transform(
           },
         ],
       ] as [[{ String: String }]],
-      removeType: type === "SEQUENCE" ? RemoveType.SEQUENCE : RemoveType.TABLE,
+      removeType:
+        type === "SEQUENCE"
+          ? RemoveType.SEQUENCE
+          : type === "TABLE"
+          ? RemoveType.TABLE
+          : RemoveType.VIEW,
       behavior,
       codeComment,
       ...(missing_ok ? { missing_ok } : {}),

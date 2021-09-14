@@ -27,3 +27,5 @@ DROP TABLE yo CASCADE;
 -- yo
 -- yo
 DROP TABLE yo;
+
+DROP VIEW subscription_amount_rollups;

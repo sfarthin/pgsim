@@ -13,3 +13,5 @@ drop type IF EXISTS foo;
 
 drop table yo CASCADE;
 drop table yo /* yo */RESTRICT/* yo */;
+
+DROP VIEW subscription_amount_rollups;

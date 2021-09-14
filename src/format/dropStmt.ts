@@ -22,7 +22,8 @@ export default function <T>(c: DropStmt, f: Formatter<T>): T[][] {
 
   if (
     c.removeType === RemoveType.TABLE ||
-    c.removeType === RemoveType.SEQUENCE
+    c.removeType === RemoveType.SEQUENCE ||
+    c.removeType === RemoveType.VIEW
   ) {
     return [
       ...comment(c.codeComment, f),
@@ -31,7 +32,9 @@ export default function <T>(c: DropStmt, f: Formatter<T>): T[][] {
         _,
         c.removeType === RemoveType.TABLE
           ? keyword("TABLE")
-          : keyword("SEQUENCE"),
+          : c.removeType === RemoveType.SEQUENCE
+          ? keyword("SEQUENCE")
+          : keyword("VIEW"),
         _,
         ...(c.missing_ok ? [keyword("IF"), _, keyword("EXISTS"), _] : []),
         identifier(c.objects[0][0].String.str),
