@@ -29,6 +29,16 @@ SELECT
 FROM
 	public.foo;
 
+SELECT
+	foo
+FROM
+	foo
+	JOIN
+		bar
+		ON (
+			foo.id = bar.id
+		);
+
 -- one-off
 SELECT
 	pg_catalog.set_config('search_path', '', FALSE);

@@ -13,6 +13,7 @@ true;
 select 1 as Foo;
 select 1 as "Foo";
 SELECT foo FROM "public"."foo";
+SELECT foo FROM (foo JOIN bar ON (foo.id = bar.id));
 
 -- one-off
 SELECT pg_catalog.set_config('search_path', '', false);
