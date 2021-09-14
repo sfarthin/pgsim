@@ -1,4 +1,4 @@
-import { Decoder, exact, number, unknown } from "decoders";
+import * as d from "decoders";
 import { Location, locationDecoder } from "./location";
 
 export type BooleanTest = {
@@ -7,8 +7,8 @@ export type BooleanTest = {
   location: Location;
 };
 
-export const booleanTestDecoder: Decoder<BooleanTest> = exact({
-  arg: unknown,
-  booltesttype: number,
+export const booleanTestDecoder: d.Decoder<BooleanTest> = d.exact({
+  arg: d.unknown,
+  booltesttype: d.number,
   location: locationDecoder,
 });

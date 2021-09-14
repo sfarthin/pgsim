@@ -1,14 +1,4 @@
-import {
-  exact,
-  either6,
-  either,
-  constant,
-  number,
-  optional,
-  string,
-  array,
-  Decoder,
-} from "decoders";
+import * as d from "decoders";
 import { Location, locationDecoder } from "./location";
 
 export type DefElem =
@@ -37,26 +27,26 @@ export type DefElem =
       codeComment?: string;
     };
 
-export const defElemDecoder: Decoder<DefElem> = either(
-  exact({
-    defname: either6(
-      constant("start" as const),
-      constant("increment" as const),
-      constant("maxvalue" as const),
-      constant("cache" as const),
-      constant("minvalue" as const),
-      constant("cycle" as const)
+export const defElemDecoder: d.Decoder<DefElem> = d.either(
+  d.exact({
+    defname: d.either6(
+      d.constant("start"),
+      d.constant("increment"),
+      d.constant("maxvalue"),
+      d.constant("cache"),
+      d.constant("minvalue"),
+      d.constant("cycle")
     ),
-    arg: optional(exact({ Integer: exact({ ival: number }) })),
-    defaction: number,
+    arg: d.optional(d.exact({ Integer: d.exact({ ival: d.number }) })),
+    defaction: d.number,
     location: locationDecoder,
-    codeComment: optional(string),
+    codeComment: d.optional(d.string),
   }),
-  exact({
-    defname: constant("owned_by" as const),
-    arg: array(exact({ String: exact({ str: string }) })),
-    defaction: number,
+  d.exact({
+    defname: d.constant("owned_by"),
+    arg: d.array(d.exact({ String: d.exact({ str: d.string }) })),
+    defaction: d.number,
     location: locationDecoder,
-    codeComment: optional(string),
+    codeComment: d.optional(d.string),
   })
 );

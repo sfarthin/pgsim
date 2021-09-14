@@ -1,4 +1,4 @@
-import { boolean, exact, Decoder, optional, array, string } from "decoders";
+import * as d from "decoders";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { DefElem, defElemDecoder } from "./defElem";
 
@@ -9,9 +9,9 @@ export type CreateSeqStmt = {
   codeComment?: string;
 };
 
-export const createSeqStmtDecoder: Decoder<CreateSeqStmt> = exact({
-  sequence: exact({ RangeVar: rangeVarDecoder }),
-  options: optional(array(exact({ DefElem: defElemDecoder }))),
-  if_not_exists: optional(boolean),
-  codeComment: optional(string),
+export const createSeqStmtDecoder: d.Decoder<CreateSeqStmt> = d.exact({
+  sequence: d.exact({ RangeVar: rangeVarDecoder }),
+  options: d.optional(d.array(d.exact({ DefElem: defElemDecoder }))),
+  if_not_exists: d.optional(d.boolean),
+  codeComment: d.optional(d.string),
 });

@@ -1,13 +1,4 @@
-import {
-  optional,
-  array,
-  string,
-  exact,
-  Decoder,
-  number,
-  boolean,
-  unknown,
-} from "decoders";
+import * as d from "decoders";
 import { Constraint, constraintDecoder } from "./constraint";
 import { TypeName, typeNameDecoder } from "./typeName";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
@@ -24,21 +15,21 @@ export type ColumnDef = {
   codeComment?: string;
 };
 
-export const columnDefDecoder: Decoder<ColumnDef> = exact({
-  colname: string,
-  typeName: exact({ TypeName: typeNameDecoder }),
-  constraints: optional(array(exact({ Constraint: constraintDecoder }))),
-  is_local: boolean,
-  collClause: unknown,
+export const columnDefDecoder: d.Decoder<ColumnDef> = d.exact({
+  colname: d.string,
+  typeName: d.exact({ TypeName: typeNameDecoder }),
+  constraints: d.optional(d.array(d.exact({ Constraint: constraintDecoder }))),
+  is_local: d.boolean,
+  collClause: d.unknown,
   location: locationDecoder,
-  codeComment: optional(string),
+  codeComment: d.optional(d.string),
 });
 
 export type Relation = {
   RangeVar: RangeVar;
 };
 
-export const relationDecoder = exact({
+export const relationDecoder = d.exact({
   RangeVar: rangeVarDecoder,
 });
 
@@ -54,21 +45,21 @@ export type CreateStmt = {
   codeComment?: string;
 };
 
-export const createStmtDecoder: Decoder<CreateStmt> = exact({
+export const createStmtDecoder: d.Decoder<CreateStmt> = d.exact({
   relation: relationDecoder,
-  tableElts: optional(
-    array(
+  tableElts: d.optional(
+    d.array(
       dispatch({
         ColumnDef: columnDefDecoder,
         Constraint: constraintDecoder,
       })
     )
   ),
-  oncommit: number,
-  inhRelations: unknown,
-  options: unknown,
-  if_not_exists: optional(boolean),
-  partspec: unknown,
-  partbound: unknown,
-  codeComment: optional(string),
+  oncommit: d.number,
+  inhRelations: d.unknown,
+  options: d.unknown,
+  if_not_exists: d.optional(d.boolean),
+  partspec: d.unknown,
+  partbound: d.unknown,
+  codeComment: d.optional(d.string),
 });

@@ -1,4 +1,4 @@
-import { exact, Decoder } from "decoders";
+import * as d from "decoders";
 import { Location, locationDecoder } from "./location";
 import { typeNameDecoder, TypeName } from "./typeName";
 import { RawValue, rawValueDecoder } from "./rawExpr";
@@ -11,8 +11,8 @@ export type TypeCast = {
   location: Location;
 };
 
-export const typeCastDecoder: Decoder<TypeCast> = exact({
+export const typeCastDecoder: d.Decoder<TypeCast> = d.exact({
   arg: (blob) => rawValueDecoder(blob),
-  typeName: exact({ TypeName: typeNameDecoder }),
+  typeName: d.exact({ TypeName: typeNameDecoder }),
   location: locationDecoder,
 });

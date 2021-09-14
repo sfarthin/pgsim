@@ -1,15 +1,4 @@
-import {
-  array,
-  string,
-  exact,
-  Decoder,
-  number,
-  constant,
-  either9,
-  optional,
-  unknown,
-  boolean,
-} from "decoders";
+import * as d from "decoders";
 import {
   Relation,
   relationDecoder,
@@ -55,16 +44,18 @@ export type AlterTableAddColumn = {
   codeComment?: string;
 };
 
-export const alterTableAddColumnDecoder: Decoder<AlterTableAddColumn> = exact({
-  subtype: constant(
-    AlterTableCmdSubType.ADD_COLUMN
-  ) as Decoder<AlterTableCmdSubType.ADD_COLUMN>,
-  def: exact({
-    ColumnDef: columnDefDecoder,
-  }),
-  behavior: number,
-  codeComment: optional(string),
-});
+export const alterTableAddColumnDecoder: d.Decoder<AlterTableAddColumn> = d.exact(
+  {
+    subtype: d.constant(
+      AlterTableCmdSubType.ADD_COLUMN
+    ) as d.Decoder<AlterTableCmdSubType.ADD_COLUMN>,
+    def: d.exact({
+      ColumnDef: columnDefDecoder,
+    }),
+    behavior: d.number,
+    codeComment: d.optional(d.string),
+  }
+);
 
 /**
  * Drop Column
@@ -76,14 +67,14 @@ export type AlterTableDropColumn = {
   codeComment?: string;
 };
 
-export const alterTableDropColumnDecoder: Decoder<AlterTableDropColumn> = exact(
+export const alterTableDropColumnDecoder: d.Decoder<AlterTableDropColumn> = d.exact(
   {
-    subtype: constant(
+    subtype: d.constant(
       AlterTableCmdSubType.DROP
-    ) as Decoder<AlterTableCmdSubType.DROP>,
-    behavior: number,
-    name: optional(string),
-    codeComment: optional(string),
+    ) as d.Decoder<AlterTableCmdSubType.DROP>,
+    behavior: d.number,
+    name: d.optional(d.string),
+    codeComment: d.optional(d.string),
   }
 );
 
@@ -101,14 +92,14 @@ export type AlterTableAddConstraint = {
   codeComment?: string;
 };
 
-export const alterTableAddConstraintDecoder: Decoder<AlterTableAddConstraint> = exact(
+export const alterTableAddConstraintDecoder: d.Decoder<AlterTableAddConstraint> = d.exact(
   {
-    subtype: constant(
+    subtype: d.constant(
       AlterTableCmdSubType.ADD_CONSTRAINT
-    ) as Decoder<AlterTableCmdSubType.ADD_CONSTRAINT>,
-    def: exact({ Constraint: constraintDecoder }),
-    behavior: number,
-    codeComment: optional(string),
+    ) as d.Decoder<AlterTableCmdSubType.ADD_CONSTRAINT>,
+    def: d.exact({ Constraint: constraintDecoder }),
+    behavior: d.number,
+    codeComment: d.optional(d.string),
   }
 );
 
@@ -123,14 +114,14 @@ export type AlterTableDropConstraint = {
   codeComment?: string;
 };
 
-export const alterTableDropConstraintDecoder: Decoder<AlterTableDropConstraint> = exact(
+export const alterTableDropConstraintDecoder: d.Decoder<AlterTableDropConstraint> = d.exact(
   {
-    subtype: constant(
+    subtype: d.constant(
       AlterTableCmdSubType.DROP_CONSTRAINT
-    ) as Decoder<AlterTableCmdSubType.DROP_CONSTRAINT>,
-    name: string,
-    behavior: number,
-    codeComment: optional(string),
+    ) as d.Decoder<AlterTableCmdSubType.DROP_CONSTRAINT>,
+    name: d.string,
+    behavior: d.number,
+    codeComment: d.optional(d.string),
   }
 );
 
@@ -146,15 +137,17 @@ export type AlterTableColumnType = {
   codeComment?: string;
 };
 
-export const alterTableColumnDecoder: Decoder<AlterTableColumnType> = exact({
-  subtype: constant(
-    AlterTableCmdSubType.ALTER_COLUMN_TYPE
-  ) as Decoder<AlterTableCmdSubType.ALTER_COLUMN_TYPE>,
-  name: string,
-  def: unknown,
-  behavior: number,
-  codeComment: optional(string),
-});
+export const alterTableColumnDecoder: d.Decoder<AlterTableColumnType> = d.exact(
+  {
+    subtype: d.constant(
+      AlterTableCmdSubType.ALTER_COLUMN_TYPE
+    ) as d.Decoder<AlterTableCmdSubType.ALTER_COLUMN_TYPE>,
+    name: d.string,
+    def: d.unknown,
+    behavior: d.number,
+    codeComment: d.optional(d.string),
+  }
+);
 
 // {
 //   subtype:
@@ -168,19 +161,19 @@ export const alterTableColumnDecoder: Decoder<AlterTableColumnType> = exact({
 
 // | AlterTableCmdSubType.ADD_CONSTRAINT
 
-// exact({
-//   subtype: either(constant(14), constant(AlterTableCmdSubType.PRIMARY_KEY)),
-//   def: exact({
+//  d.exact({
+//   subtype: either(d.constant(14), d.constant(AlterTableCmdSubType.PRIMARY_KEY)),
+//   def:  d.exact({
 //     Constraint: constraintDecoder,
 //   }),
-//   behavior: number,
+//   behavior: d.number,
 // }),
 // alterTableDropConstraintDecoder,
-// exact({
-//   subtype: either3(constant(51), constant(36), constant(27)),
+//  d.exact({
+//   subtype: either3(d.constant(51), d.constant(36), d.constant(27)),
 //   def: mixed,
-//   behavior: number,
-//   newowner: optional(mixed),
+//   behavior: d.number,
+//   newowner:  d.optional(mixed),
 // })
 
 /**
@@ -193,13 +186,13 @@ export type AlterTableRowSecurity = {
   codeComment?: string;
 };
 
-export const alterTableRowSecurityDecoder: Decoder<AlterTableRowSecurity> = exact(
+export const alterTableRowSecurityDecoder: d.Decoder<AlterTableRowSecurity> = d.exact(
   {
-    subtype: constant(
+    subtype: d.constant(
       AlterTableCmdSubType.ROW_LEVEL_SECURITY
-    ) as Decoder<AlterTableCmdSubType.ROW_LEVEL_SECURITY>,
-    behavior: number,
-    codeComment: optional(string),
+    ) as d.Decoder<AlterTableCmdSubType.ROW_LEVEL_SECURITY>,
+    behavior: d.number,
+    codeComment: d.optional(d.string),
   }
 );
 
@@ -213,13 +206,13 @@ export type AlterTableInherit = {
   codeComment?: string;
 };
 
-export const alterTableInheritDecoder: Decoder<AlterTableInherit> = exact({
-  subtype: constant(
+export const alterTableInheritDecoder: d.Decoder<AlterTableInherit> = d.exact({
+  subtype: d.constant(
     AlterTableCmdSubType.INHERIT
-  ) as Decoder<AlterTableCmdSubType.INHERIT>,
-  def: unknown,
-  behavior: number,
-  codeComment: optional(string),
+  ) as d.Decoder<AlterTableCmdSubType.INHERIT>,
+  def: d.unknown,
+  behavior: d.number,
+  codeComment: d.optional(d.string),
 });
 
 /**
@@ -232,13 +225,13 @@ export type AlterTableIndex = {
   codeComment?: string;
 };
 
-export const alterTableIndexDecoder: Decoder<AlterTableIndex> = exact({
-  subtype: constant(
+export const alterTableIndexDecoder: d.Decoder<AlterTableIndex> = d.exact({
+  subtype: d.constant(
     AlterTableCmdSubType.INDEX
-  ) as Decoder<AlterTableCmdSubType.INDEX>,
-  def: unknown,
-  behavior: number,
-  codeComment: optional(string),
+  ) as d.Decoder<AlterTableCmdSubType.INDEX>,
+  def: d.unknown,
+  behavior: d.number,
+  codeComment: d.optional(d.string),
 });
 
 /**
@@ -251,13 +244,13 @@ export type AlterTableOwner = {
   codeComment?: string;
 };
 
-export const alterTableOwnerDecoder: Decoder<AlterTableOwner> = exact({
-  subtype: constant(
+export const alterTableOwnerDecoder: d.Decoder<AlterTableOwner> = d.exact({
+  subtype: d.constant(
     AlterTableCmdSubType.OWNER
-  ) as Decoder<AlterTableCmdSubType.OWNER>,
-  newowner: unknown,
-  behavior: number,
-  codeComment: optional(string),
+  ) as d.Decoder<AlterTableCmdSubType.OWNER>,
+  newowner: d.unknown,
+  behavior: d.number,
+  codeComment: d.optional(d.string),
 });
 
 /**
@@ -270,13 +263,13 @@ export type AlterTableReset = {
   codeComment?: string;
 };
 
-export const alterTableResetDecoder: Decoder<AlterTableReset> = exact({
-  subtype: constant(
+export const alterTableResetDecoder: d.Decoder<AlterTableReset> = d.exact({
+  subtype: d.constant(
     AlterTableCmdSubType.RESET
-  ) as Decoder<AlterTableCmdSubType.RESET>,
-  def: unknown,
-  behavior: number,
-  codeComment: optional(string),
+  ) as d.Decoder<AlterTableCmdSubType.RESET>,
+  def: d.unknown,
+  behavior: d.number,
+  codeComment: d.optional(d.string),
 });
 
 /**
@@ -289,13 +282,13 @@ export type AlterTableCluster = {
   codeComment?: string;
 };
 
-export const alterTableClusterDecoder: Decoder<AlterTableCluster> = exact({
-  subtype: constant(
+export const alterTableClusterDecoder: d.Decoder<AlterTableCluster> = d.exact({
+  subtype: d.constant(
     AlterTableCmdSubType.CLUSTER
-  ) as Decoder<AlterTableCmdSubType.CLUSTER>,
-  name: unknown,
-  behavior: number,
-  codeComment: optional(string),
+  ) as d.Decoder<AlterTableCmdSubType.CLUSTER>,
+  name: d.unknown,
+  behavior: d.number,
+  codeComment: d.optional(d.string),
 });
 
 /**
@@ -307,13 +300,13 @@ export type AlterTableSetWithoutCluster = {
   codeComment?: string;
 };
 
-export const alterTableSetWithoutClusterDecoder: Decoder<AlterTableSetWithoutCluster> = exact(
+export const alterTableSetWithoutClusterDecoder: d.Decoder<AlterTableSetWithoutCluster> = d.exact(
   {
-    subtype: constant(
+    subtype: d.constant(
       AlterTableCmdSubType.SET_WITHOUT_CLUSTER
-    ) as Decoder<AlterTableCmdSubType.SET_WITHOUT_CLUSTER>,
-    behavior: number,
-    codeComment: optional(string),
+    ) as d.Decoder<AlterTableCmdSubType.SET_WITHOUT_CLUSTER>,
+    behavior: d.number,
+    codeComment: d.optional(d.string),
   }
 );
 
@@ -327,14 +320,16 @@ export type AlterTableRestrict = {
   codeComment?: string;
 };
 
-export const alterTableRestrictDecoder: Decoder<AlterTableRestrict> = exact({
-  subtype: constant(
-    AlterTableCmdSubType.RESTRICT
-  ) as Decoder<AlterTableCmdSubType.RESTRICT>,
-  name: string,
-  behavior: number,
-  codeComment: optional(string),
-});
+export const alterTableRestrictDecoder: d.Decoder<AlterTableRestrict> = d.exact(
+  {
+    subtype: d.constant(
+      AlterTableCmdSubType.RESTRICT
+    ) as d.Decoder<AlterTableCmdSubType.RESTRICT>,
+    name: d.string,
+    behavior: d.number,
+    codeComment: d.optional(d.string),
+  }
+);
 
 /**
  * ATTACH_PARTITION
@@ -347,14 +342,14 @@ export type AlterTableAttachPartition = {
   codeComment?: string;
 };
 
-export const alterTableAttachPartitionDecoder: Decoder<AlterTableAttachPartition> = exact(
+export const alterTableAttachPartitionDecoder: d.Decoder<AlterTableAttachPartition> = d.exact(
   {
-    subtype: constant(
+    subtype: d.constant(
       AlterTableCmdSubType.ATTACH_PARTITION
-    ) as Decoder<AlterTableCmdSubType.ATTACH_PARTITION>,
-    def: unknown,
-    behavior: number,
-    codeComment: optional(string),
+    ) as d.Decoder<AlterTableCmdSubType.ATTACH_PARTITION>,
+    def: d.unknown,
+    behavior: d.number,
+    codeComment: d.optional(d.string),
   }
 );
 
@@ -370,15 +365,15 @@ export type AlterTableSetDefault = {
   codeComment?: string;
 };
 
-export const alterTableSetDefaultDecoder: Decoder<AlterTableSetDefault> = exact(
+export const alterTableSetDefaultDecoder: d.Decoder<AlterTableSetDefault> = d.exact(
   {
-    subtype: constant(
+    subtype: d.constant(
       AlterTableCmdSubType.SET_DEFAULT
-    ) as Decoder<AlterTableCmdSubType.SET_DEFAULT>,
-    name: string,
+    ) as d.Decoder<AlterTableCmdSubType.SET_DEFAULT>,
+    name: d.string,
     def: (blob) => rawValueDecoder(blob),
-    behavior: number,
-    codeComment: optional(string),
+    behavior: d.number,
+    codeComment: d.optional(d.string),
   }
 );
 
@@ -393,14 +388,14 @@ export type AlterTableDropNotNull = {
   codeComment?: string;
 };
 
-export const alterTableDropNotNullDecoder: Decoder<AlterTableDropNotNull> = exact(
+export const alterTableDropNotNullDecoder: d.Decoder<AlterTableDropNotNull> = d.exact(
   {
-    subtype: constant(
+    subtype: d.constant(
       AlterTableCmdSubType.DROP_NOT_NULL
-    ) as Decoder<AlterTableCmdSubType.DROP_NOT_NULL>,
-    name: string,
-    behavior: number,
-    codeComment: optional(string),
+    ) as d.Decoder<AlterTableCmdSubType.DROP_NOT_NULL>,
+    name: d.string,
+    behavior: d.number,
+    codeComment: d.optional(d.string),
   }
 );
 
@@ -415,14 +410,14 @@ export type AlterTableSetNotNull = {
   codeComment?: string;
 };
 
-export const alterTableSetNotNullDecoder: Decoder<AlterTableSetNotNull> = exact(
+export const alterTableSetNotNullDecoder: d.Decoder<AlterTableSetNotNull> = d.exact(
   {
-    subtype: constant(
+    subtype: d.constant(
       AlterTableCmdSubType.SET_NOT_NULL
-    ) as Decoder<AlterTableCmdSubType.SET_NOT_NULL>,
-    name: string,
-    behavior: number,
-    codeComment: optional(string),
+    ) as d.Decoder<AlterTableCmdSubType.SET_NOT_NULL>,
+    name: d.string,
+    behavior: d.number,
+    codeComment: d.optional(d.string),
   }
 );
 
@@ -449,7 +444,7 @@ export type AlterTableCmd =
   | AlterTableDropNotNull
   | AlterTableSetNotNull;
 
-export const alterTableCmdDecoder: Decoder<AlterTableCmd> = either9(
+export const alterTableCmdDecoder: d.Decoder<AlterTableCmd> = d.either9(
   alterTableAddColumnDecoder,
   alterTableDropColumnDecoder,
   alterTableAddConstraintDecoder,
@@ -458,7 +453,7 @@ export const alterTableCmdDecoder: Decoder<AlterTableCmd> = either9(
   alterTableInheritDecoder,
   alterTableIndexDecoder,
   alterTableOwnerDecoder,
-  either9(
+  d.either9(
     alterTableResetDecoder,
     alterTableClusterDecoder,
     alterTableSetWithoutClusterDecoder,
@@ -479,10 +474,10 @@ export type AlterTableStmt = {
   missing_ok?: boolean;
 };
 
-export const alterTableStmtDecoder: Decoder<AlterTableStmt> = exact({
+export const alterTableStmtDecoder: d.Decoder<AlterTableStmt> = d.exact({
   relation: relationDecoder,
-  cmds: array(exact({ AlterTableCmd: alterTableCmdDecoder })),
-  relkind: number,
-  missing_ok: optional(boolean),
-  codeComment: optional(string),
+  cmds: d.array(d.exact({ AlterTableCmd: alterTableCmdDecoder })),
+  relkind: d.number,
+  missing_ok: d.optional(d.boolean),
+  codeComment: d.optional(d.string),
 });

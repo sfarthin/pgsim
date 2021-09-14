@@ -1,4 +1,4 @@
-import { string, exact, Decoder, optional, array, unknown } from "decoders";
+import * as d from "decoders";
 import { Location, locationDecoder } from "./location";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 
@@ -8,10 +8,10 @@ export type ResTargetInsert = {
   indirection?: unknown;
 };
 
-export const resTargetInsertDecoder: Decoder<ResTargetInsert> = exact({
-  name: optional(string),
+export const resTargetInsertDecoder: d.Decoder<ResTargetInsert> = d.exact({
+  name: d.optional(d.string),
   location: locationDecoder,
-  indirection: unknown,
+  indirection: d.unknown,
 });
 
 export type InsertStmt = {
@@ -35,11 +35,11 @@ export type InsertStmt = {
   onConflictClause?: unknown;
 };
 
-export const insertStmtDecoder: Decoder<InsertStmt> = exact({
-  relation: exact({ RangeVar: rangeVarDecoder }),
-  cols: optional(array(exact({ ResTarget: resTargetInsertDecoder }))),
-  selectStmt: optional(exact({ SelectStmt: unknown })),
-  returningList: unknown,
-  override: unknown,
-  onConflictClause: unknown,
+export const insertStmtDecoder: d.Decoder<InsertStmt> = d.exact({
+  relation: d.exact({ RangeVar: rangeVarDecoder }),
+  cols: d.optional(d.array(d.exact({ ResTarget: resTargetInsertDecoder }))),
+  selectStmt: d.optional(d.exact({ SelectStmt: d.unknown })),
+  returningList: d.unknown,
+  override: d.unknown,
+  onConflictClause: d.unknown,
 });

@@ -1,4 +1,4 @@
-import { exact, Decoder, string, number, optional } from "decoders";
+import * as d from "decoders";
 import { CreateStmt, createStmtDecoder } from "./createStmt";
 import { AlterTableStmt, alterTableStmtDecoder } from "./alterTableStmt";
 import { SelectStmt, selectStmtDecoder } from "./selectStmt";
@@ -139,10 +139,10 @@ export type Stmt = {
   };
 };
 
-export const stmtDecoder: Decoder<Stmt> = exact({
-  RawStmt: exact({
-    stmt_len: optional(number),
-    stmt_location: optional(number),
+export const stmtDecoder: d.Decoder<Stmt> = d.exact({
+  RawStmt: d.exact({
+    stmt_len: d.optional(d.number),
+    stmt_location: d.optional(d.number),
     stmt: dispatch({
       CreateStmt: createStmtDecoder,
       AlterTableStmt: alterTableStmtDecoder,
@@ -154,7 +154,7 @@ export const stmtDecoder: Decoder<Stmt> = exact({
       AlterEnumStmt: alterEnumStmtDecoder,
       AlterOwnerStmt: alterOwnerStmtDecoder,
       IndexStmt: indexStmtDecoder,
-      Comment: string,
+      Comment: d.string,
       SelectStmt: selectStmtDecoder,
       ViewStmt: viewStmtDecoder,
       RenameStmt: renameStmtDecoder,
