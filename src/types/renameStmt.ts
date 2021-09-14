@@ -15,6 +15,7 @@ export type RenameStmt = {
   subname: string;
   newname: string;
   behavior: 0;
+  codeComment?: string;
 };
 
 export const renameStmtDecoder: d.Decoder<RenameStmt> = d.exact({
@@ -26,4 +27,5 @@ export const renameStmtDecoder: d.Decoder<RenameStmt> = d.exact({
   subname: d.string,
   newname: d.string,
   behavior: d.constant(0),
+  codeComment: d.optional(d.string),
 });

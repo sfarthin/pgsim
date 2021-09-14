@@ -10,6 +10,9 @@ false,
 -- bar
 true;
 
+select 1 as Foo;
+select 1 as "Foo";
+
 -- one-off
 SELECT pg_catalog.set_config('search_path', '', false);
 select nextval('accounts_id_seq' :: regclass);

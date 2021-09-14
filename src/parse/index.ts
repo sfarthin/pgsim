@@ -28,6 +28,7 @@ import { alterTableStmt } from "./alterTableStmt";
 import { selectStmt } from "./selectStmt";
 import { viewStmt } from "./viewStmt";
 import { codeComments } from "./codeComments";
+import { renameStmt } from "./renameStmt";
 
 const CommentStatement = transform(
   sequence([
@@ -57,6 +58,7 @@ const stmts: Rule<Stmt[]> = transform(
           transform(alterTableStmt, (v) => ({ AlterTableStmt: v })),
           transform(selectStmt, (v) => ({ SelectStmt: v })),
           transform(viewStmt, (v) => ({ ViewStmt: v })),
+          transform(renameStmt, (v) => ({ RenameStmt: v })),
 
           // Standalone comments
           CommentStatement,

@@ -9,6 +9,7 @@ import alterOwnerStmt from "./alterOwnerStmt";
 import alterTableStmt from "./alterTableStmt";
 import viewStmt from "./viewStmt";
 import selectStmt from "./selectStmt";
+import renameStmt from "./renameStmt";
 import comment from "./comment";
 import { Stmt, StatementType } from "../types";
 import {
@@ -77,6 +78,8 @@ function formatStmt<T>(stmt: Stmt, f: Formatter<T>, opts?: Opts): T[][] {
     return selectStmt(s.SelectStmt, f);
   } else if ("ViewStmt" in s) {
     return viewStmt(s.ViewStmt, f);
+  } else if ("RenameStmt" in s) {
+    return renameStmt(s.RenameStmt, f);
   }
 
   throw new Error(`Cannot format ${Object.keys(s)}`);

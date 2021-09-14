@@ -18,6 +18,12 @@ SELECT
 	-- bar
 	TRUE;
 
+SELECT
+	1 AS foo;
+
+SELECT
+	1 AS "Foo";
+
 -- one-off
 SELECT
 	pg_catalog.set_config('search_path', '', FALSE);

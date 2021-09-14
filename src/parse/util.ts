@@ -1019,6 +1019,24 @@ export function or<A, B, C, D, E, F, G, H, I, J, K, L, M>(
     Rule<M>
   ]
 ): Rule<A | B | C | D | E | F | G | H | I | J | K | L | M>;
+export function or<A, B, C, D, E, F, G, H, I, J, K, L, M, N>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>
+  ]
+): Rule<A | B | C | D | E | F | G | H | I | J | K | L | M | N>;
 
 export function or<T>(rules: Rule<any>[]): Rule<any> {
   return (ctx: Context) => {
@@ -1404,7 +1422,7 @@ export const identifier: Rule<string> = (ctx: Context) => {
   const result = or([
     transform(
       sequence([regexChar(/[a-zA-Z_]/), zeroToMany(regexChar(/[a-zA-Z0-9_]/))]),
-      (v) => v[0].concat(v[1].join("")).toLowerCase()
+      (v) => v[0].concat(v[1].join("")).toLowerCase() // <-- set to lowercase
     ),
     transform(
       sequence([
@@ -1413,7 +1431,7 @@ export const identifier: Rule<string> = (ctx: Context) => {
         zeroToMany(regexChar(/[a-zA-Z0-9_]/)),
         constant('"'),
       ]),
-      (v) => v[1].concat(v[2].join("")).toLowerCase()
+      (v) => v[1].concat(v[2].join("")) // <-- not set to lowercase
     ),
   ])(ctx);
 

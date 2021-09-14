@@ -6,9 +6,10 @@ import { Formatter, addToLastLine } from "./util";
 import rangeVar from "./rangeVar";
 import joinExpr from "./joinExpr";
 import columnRef from "./columnRef";
+import identifier from "./identifier";
 
 function toTargetList<T>(c: SelectStmt, f: Formatter<T>): T[][] {
-  const { keyword, indent, symbol, _, identifier } = f;
+  const { keyword, indent, symbol, _ } = f;
 
   const targetList = c.targetList.flatMap((v, i) => {
     if (!v.ResTarget?.val) {
@@ -18,7 +19,7 @@ function toTargetList<T>(c: SelectStmt, f: Formatter<T>): T[][] {
     // Lets add AS part if needed
     const target = addToLastLine(rawValue(v.ResTarget?.val, f), [
       ...(v.ResTarget?.name
-        ? [_, keyword("AS"), _, identifier(v.ResTarget.name)]
+        ? [_, keyword("AS"), _, identifier(v.ResTarget.name, f)]
         : []),
     ]);
 
@@ -40,7 +41,7 @@ function toTargetList<T>(c: SelectStmt, f: Formatter<T>): T[][] {
 }
 
 export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
-  const { keyword, indent, symbol, identifier, _ } = f;
+  const { keyword, indent, symbol, _ } = f;
 
   const select = toTargetList(c, f);
 
@@ -69,7 +70,7 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
 
   const where = c.whereClause
     ? [
-        [identifier("WHERE")],
+        [keyword("WHERE")],
         ...indent([
           ...comment(c.codeComments?.whereClause?.[0], f),
           ...rawValue(c.whereClause, f),
@@ -79,7 +80,7 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
 
   const groupBy = c.groupClause
     ? [
-        [identifier("GROUP"), _, identifier("BY")],
+        [keyword("GROUP"), _, keyword("BY")],
         ...indent(
           c.groupClause.flatMap((r, i) => [
             ...comment(c.codeComments?.groupClause?.[i], f),
