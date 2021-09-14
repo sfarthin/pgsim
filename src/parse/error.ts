@@ -192,11 +192,7 @@ export const getFriendlyErrorMessage = ({
       startLine: start.line + 1,
     }) + NEWLINE;
   if (expectedAst) {
-    error += `${NEWLINE}${NEWLINE}${JSON.stringify(
-      expectedAst.RawStmt.stmt,
-      null,
-      2
-    )}`;
+    error += `${NEWLINE}${NEWLINE}${JSON.stringify(expectedAst.stmt, null, 2)}`;
   }
   error += NEWLINE;
 

@@ -21,9 +21,9 @@ import assert from "assert";
 function removeVariableSetStmt(stmts: Stmt[]) {
   return stmts.filter(
     (s) =>
-      !("Comment" in s.RawStmt.stmt) &&
-      !("VariableSetStmt" in s.RawStmt.stmt) &&
-      !("SelectStmt" in s.RawStmt.stmt)
+      !("Comment" in s.stmt) &&
+      !("VariableSetStmt" in s.stmt) &&
+      !("SelectStmt" in s.stmt)
   );
 }
 

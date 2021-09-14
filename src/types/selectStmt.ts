@@ -19,7 +19,8 @@ export const resTargetDecoder: d.Decoder<ResTarget> = d.exact({
 });
 
 export type SelectStmt = {
-  op: number;
+  op: "SETOP_NONE";
+  limitOption: "LIMIT_OPTION_DEFAULT";
   targetList: {
     ResTarget?: ResTarget;
   }[];
@@ -95,7 +96,8 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
   distinctClause: d.unknown,
   lockingClause: d.unknown,
   sortClause: d.optional(d.array(d.exact({ SortBy: sortByDecoder }))),
-  op: d.number,
+  op: d.constant("SETOP_NONE"),
+  limitOption: d.constant("LIMIT_OPTION_DEFAULT"),
 });
 //   ,
 //   exact({

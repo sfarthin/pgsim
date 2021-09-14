@@ -21,15 +21,11 @@ export default function migrate(
   }
 
   const fromCreateStmt = fromDump
-    .map((s) =>
-      "CreateStmt" in s.RawStmt.stmt ? s.RawStmt.stmt.CreateStmt : null
-    )
+    .map((s) => ("CreateStmt" in s.stmt ? s.stmt.CreateStmt : null))
     .filter(Boolean) as CreateStmt[];
 
   const toCreateStmt = toDump
-    .map((s) =>
-      "CreateStmt" in s.RawStmt.stmt ? s.RawStmt.stmt.CreateStmt : null
-    )
+    .map((s) => ("CreateStmt" in s.stmt ? s.stmt.CreateStmt : null))
     .filter(Boolean) as CreateStmt[];
 
   migration.push(createStmt(fromCreateStmt, toCreateStmt));

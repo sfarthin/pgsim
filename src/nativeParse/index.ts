@@ -1,40 +1,36 @@
 import * as d from "decoders";
 import { stmtDecoder, Stmt } from "../types";
-// @ts-expect-error
-import { parse as pgParse } from "pg-query-native-latest";
+import { parseQuerySync } from "libpg-query";
 import { toLineAndColumn } from "../parse/error";
 import { NEWLINE } from "../format/util";
 
 export const parserResultDecoder = d.exact({
+  version: d.number,
   // This is unknown because Error messages are hard to read if we do this here, we validate each query seperately
-  query: d.array(d.unknown),
-  stderr: d.optional(d.string),
-  error: d.optional(d.unknown),
+  stmts: d.array(d.unknown),
 });
 
 export default function parse(sql: string, filename: string): Stmt[] {
-  const unsafeResult = pgParse(sql);
-  const { query: queries, stderr, error } = d.guard(parserResultDecoder)(
-    unsafeResult
-  );
+  const unsafeResult = parseQuerySync(sql);
+  const { version, stmts } = d.guard(parserResultDecoder)(unsafeResult);
 
-  if (stderr || error) {
-    if (error) {
-      throw new Error(
-        `${sql}${NEWLINE}${NEWLINE}${filename}: ${String(error)}`
-      );
-    } else {
-      throw new Error(stderr || "");
-    }
-  }
+  // if (stderr || error) {
+  //   if (error) {
+  //     throw new Error(
+  //       `${sql}${NEWLINE}${NEWLINE}${filename}: ${String(error)}`
+  //     );
+  //   } else {
+  //     throw new Error(stderr || "");
+  //   }
+  // }
 
-  return queries.map((s: any) => {
+  return stmts.map((s: any) => {
     try {
       return d.guard(stmtDecoder)(s);
     } catch (_e) {
       const e = _e as { message: string };
-      const startAst = s.RawStmt.stmt_location ?? 0;
-      const endAst = s.RawStmt.stmt_len ?? 99999;
+      const startAst = s.stmt_location ?? 0;
+      const endAst = s.stmt_len ?? 99999;
       const originalSql = sql.substring(startAst, startAst + endAst);
       const { line, column } = toLineAndColumn(sql, startAst);
       e.message = `Error decoding AST in ${filename}(${line + 1}, ${

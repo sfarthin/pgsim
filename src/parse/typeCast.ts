@@ -38,14 +38,12 @@ const booleanLiteral: Rule<{
           },
         },
         typeName: {
-          TypeName: {
-            names: [
-              { String: { str: "pg_catalog" } },
-              { String: { str: "bool" } },
-            ],
-            typemod: -1,
-            location: -1,
-          },
+          names: [
+            { String: { str: "pg_catalog" } },
+            { String: { str: "bool" } },
+          ],
+          typemod: -1,
+          location: -1,
         },
         location: -1,
       },
@@ -82,26 +80,24 @@ export const typeCastLiteral: Rule<{
           },
         },
         typeName: {
-          TypeName: {
-            names: [
-              ...(parsedType.hasPGCatalog
-                ? [
-                    {
-                      String: {
-                        str: "pg_catalog",
-                      },
+          names: [
+            ...(parsedType.hasPGCatalog
+              ? [
+                  {
+                    String: {
+                      str: "pg_catalog",
                     },
-                  ]
-                : []),
-              {
-                String: {
-                  str: parsedType.name,
-                },
+                  },
+                ]
+              : []),
+            {
+              String: {
+                str: parsedType.name,
               },
-            ] as TypeName["names"],
-            typemod: -1,
-            location: v[2].start,
-          },
+            },
+          ] as TypeName["names"],
+          typemod: -1,
+          location: v[2].start,
         },
         location: -1,
       },
@@ -120,26 +116,24 @@ export const typeCastConnection = (ctx: Context) =>
         TypeCast: {
           arg: c1.value,
           typeName: {
-            TypeName: {
-              names: [
-                ...(parsedType.hasPGCatalog
-                  ? [
-                      {
-                        String: {
-                          str: "pg_catalog",
-                        },
+            names: [
+              ...(parsedType.hasPGCatalog
+                ? [
+                    {
+                      String: {
+                        str: "pg_catalog",
                       },
-                    ]
-                  : []),
-                {
-                  String: {
-                    str: parsedType.name,
-                  },
+                    },
+                  ]
+                : []),
+              {
+                String: {
+                  str: parsedType.name,
                 },
-              ] as TypeName["names"],
-              typemod: -1,
-              location: v[3].start,
-            },
+              },
+            ] as TypeName["names"],
+            typemod: -1,
+            location: v[3].start,
           },
           location: v[1].start,
         },

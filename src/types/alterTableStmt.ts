@@ -1,12 +1,8 @@
 import * as d from "decoders";
-import {
-  Relation,
-  relationDecoder,
-  ColumnDef,
-  columnDefDecoder,
-} from "./createStmt";
+import { ColumnDef, columnDefDecoder } from "./createStmt";
 import { Constraint, constraintDecoder } from "./constraint";
 import { rawValueDecoder, RawValue } from "./rawExpr";
+import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { String } from "./constant";
 
 export enum AlterTableCmdSubType {
@@ -467,7 +463,7 @@ export const alterTableCmdDecoder: d.Decoder<AlterTableCmd> = d.either9(
 );
 
 export type AlterTableStmt = {
-  relation: Relation;
+  relation: RangeVar;
   cmds: Array<{ AlterTableCmd: AlterTableCmd }>;
   relkind: number;
   codeComment?: string;
@@ -475,7 +471,7 @@ export type AlterTableStmt = {
 };
 
 export const alterTableStmtDecoder: d.Decoder<AlterTableStmt> = d.exact({
-  relation: relationDecoder,
+  relation: rangeVarDecoder,
   cmds: d.array(d.exact({ AlterTableCmd: alterTableCmdDecoder })),
   relkind: d.number,
   missing_ok: d.optional(d.boolean),

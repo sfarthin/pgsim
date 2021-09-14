@@ -99,7 +99,7 @@ function removeComments(stmts: Stmt[]): Stmt[] {
       ])
     ) as Stmt[])
       // Only in PEGJS parser
-      .filter((stmt) => !("Comment" in stmt.RawStmt.stmt))
+      .filter((stmt) => !("Comment" in stmt.stmt))
   );
 }
 
@@ -140,8 +140,8 @@ export default function parseAndFormat(
   const astNoComments = removeComments(ast);
   const actualAstNoComments = removeComments(realAst);
   for (const key in astNoComments) {
-    const start = astNoComments[key].RawStmt.stmt_location ?? 0;
-    const end = astNoComments[key].RawStmt.stmt_len ?? 99999;
+    const start = astNoComments[key].stmt_location ?? 0;
+    const end = astNoComments[key].stmt_len ?? 99999;
     const rawSql = sql.substring(start, start + end);
 
     const nextToken = findNextToken(sql, start);
@@ -183,15 +183,15 @@ export default function parseAndFormat(
   const formattedAstNoStyle = removeStyle(formattedAst);
 
   for (const key in astNoStyle) {
-    const startAst = ast[key].RawStmt.stmt_location ?? 0;
-    const endAst = ast[key].RawStmt.stmt_len ?? 99999;
+    const startAst = ast[key].stmt_location ?? 0;
+    const endAst = ast[key].stmt_len ?? 99999;
     const originalSql = sql.substring(startAst, startAst + endAst);
 
     const nextToken = findNextToken(sql, startAst);
     const { line } = toLineAndColumn(sql, nextToken.start);
 
-    const startFormattedAst = formattedAst[key].RawStmt.stmt_location ?? 0;
-    const endFormattedAst = formattedAst[key].RawStmt.stmt_len ?? 99999;
+    const startFormattedAst = formattedAst[key].stmt_location ?? 0;
+    const endFormattedAst = formattedAst[key].stmt_len ?? 99999;
     const formattedSqlStmt = formattedSql.substring(
       startFormattedAst,
       startFormattedAst + endFormattedAst
@@ -288,17 +288,16 @@ if (process.argv[2]) {
     // 3. Make sure the filename should match the statement type.
     const unexpectedStatement = ast.find(
       (s: Stmt) =>
-        Object.keys(s.RawStmt.stmt)[0].toLowerCase() !==
-          statementName.toLowerCase() &&
-        Object.keys(s.RawStmt.stmt)[0].toLowerCase() !== "comment"
+        Object.keys(s.stmt)[0].toLowerCase() !== statementName.toLowerCase() &&
+        Object.keys(s.stmt)[0].toLowerCase() !== "comment"
     );
     if (unexpectedStatement) {
-      const start = unexpectedStatement.RawStmt.stmt_location ?? 0;
-      const end = unexpectedStatement.RawStmt.stmt_len ?? 99999;
+      const start = unexpectedStatement.stmt_location ?? 0;
+      const end = unexpectedStatement.stmt_len ?? 99999;
       const rawSql = sql.substring(start, start + end);
       throw new Error(
         `${c.red(file)}: Expected "${statementName}", but got "${
-          Object.keys(unexpectedStatement.RawStmt.stmt)[0]
+          Object.keys(unexpectedStatement.stmt)[0]
         }"${NEWLINE}${NEWLINE}${c.blue(rawSql)}`
       );
     }

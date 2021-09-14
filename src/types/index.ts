@@ -52,178 +52,174 @@ export * from "./rowExpr";
 export * from "./renameStmt";
 
 export type Stmt = {
-  RawStmt: {
-    stmt_len?: number;
-    stmt_location?: number;
-    stmt: // SUPPORTED START
-    | { Comment: string } // <-- on our parser only, for trailing comments
-      | { CreateStmt: CreateStmt }
-      | { CreateEnumStmt: CreateEnumStmt }
-      | { AlterSeqStmt: AlterSeqStmt }
-      | { CreateSeqStmt: CreateSeqStmt }
-      | { VariableSetStmt: VariableSetStmt }
-      | { AlterEnumStmt: AlterEnumStmt }
-      | { AlterTableStmt: AlterTableStmt }
-      | { DropStmt: DropStmt }
-      | { AlterOwnerStmt: AlterOwnerStmt }
-      | { IndexStmt: IndexStmt }
-      | { SelectStmt: SelectStmt }
-      | { ViewStmt: ViewStmt }
-      | { RenameStmt: RenameStmt };
+  stmt_len?: number;
+  stmt_location?: number;
+  stmt: // SUPPORTED START
+  | { Comment: string } // <-- on our parser only, for trailing comments
+    | { CreateStmt: CreateStmt }
+    | { CreateEnumStmt: CreateEnumStmt }
+    | { AlterSeqStmt: AlterSeqStmt }
+    | { CreateSeqStmt: CreateSeqStmt }
+    | { VariableSetStmt: VariableSetStmt }
+    | { AlterEnumStmt: AlterEnumStmt }
+    | { AlterTableStmt: AlterTableStmt }
+    | { DropStmt: DropStmt }
+    | { AlterOwnerStmt: AlterOwnerStmt }
+    | { IndexStmt: IndexStmt }
+    | { SelectStmt: SelectStmt }
+    | { ViewStmt: ViewStmt }
+    | { RenameStmt: RenameStmt };
 
-    // | { RenameStmt: Record<string, unknown> }
-    // | { CompositeTypeStmt: Record<string, unknown> }
+  // | { RenameStmt: Record<string, unknown> }
+  // | { CompositeTypeStmt: Record<string, unknown> }
 
-    // // Pass 2
-    // | { InsertStmt: InsertStmt }
+  // // Pass 2
+  // | { InsertStmt: InsertStmt }
 
-    // | { UpdateStmt: Record<string, unknown> }
-    // // Pass 3
+  // | { UpdateStmt: Record<string, unknown> }
+  // // Pass 3
 
-    // | { CommentStmt: Record<string, unknown> }
-    // | { TransactionStmt: Record<string, unknown> } // BEGIN...END
-    // | { CreateRoleStmt: Record<string, unknown> }
+  // | { CommentStmt: Record<string, unknown> }
+  // | { TransactionStmt: Record<string, unknown> } // BEGIN...END
+  // | { CreateRoleStmt: Record<string, unknown> }
 
-    // | { DefineStmt: Record<string, unknown> }
-    // | { CreateFunctionStmt: Record<string, unknown> }
-    // | { CreateCastStmt: Record<string, unknown> }
-    // | { DeleteStmt: Record<string, unknown> }
-    // | { CreateRangeStmt: Record<string, unknown> }
-    // | { TruncateStmt: Record<string, unknown> }
-    // | { ExplainStmt: Record<string, unknown> }
-    // | { DropRoleStmt: Record<string, unknown> }
-    // | { CreateTableAsStmt: Record<string, unknown> }
-    // | { VariableShowStmt: Record<string, unknown> } // SHOW DateStyle;
-    // | { DoStmt: Record<string, unknown> }
-    // | { VacuumStmt: Record<string, unknown> }
-    // | { AlterRoleStmt: Record<string, unknown> }
-    // | { CreateSchemaStmt: Record<string, unknown> }
-    // | { CreateSchemaStmt: Record<string, unknown> }
-    // | { AlterDefaultPrivilegesStmt: Record<string, unknown> }
-    // | { GrantStmt: Record<string, unknown> }
-    // | { DeclareCursorStmt: Record<string, unknown> }
-    // | { CopyStmt: Record<string, unknown> }
-    // | { CreateDomainStmt: Record<string, unknown> }
-    // | { FetchStmt: Record<string, unknown> }
-    // | { ClosePortalStmt: Record<string, unknown> }
-    // | { PrepareStmt: Record<string, unknown> }
-    // | { ExecuteStmt: Record<string, unknown> }
-    // | { RuleStmt: Record<string, unknown> }
-    // | { ReindexStmt: Record<string, unknown> }
-    // | { SecLabelStmt: Record<string, unknown> }
-    // | { AlterRoleSetStmt: Record<string, unknown> }
-    // | { LockStmt: Record<string, unknown> }
-    // | { NotifyStmt: Record<string, unknown> }
-    // | { ListenStmt: Record<string, unknown> }
-    // | { UnlistenStmt: Record<string, unknown> }
-    // | { DiscardStmt: Record<string, unknown> }
-    // | { AlterFunctionStmt: Record<string, unknown> }
-    // | { AlterTSDictionaryStmt: Record<string, unknown> }
-    // | { AlterTSConfigurationStmt: Record<string, unknown> }
-    // | { CreateTrigStmt: Record<string, unknown> }
-    // | { AlterOpFamilyStmt: Record<string, unknown> }
-    // | { CreatePolicyStmt: Record<string, unknown> }
+  // | { DefineStmt: Record<string, unknown> }
+  // | { CreateFunctionStmt: Record<string, unknown> }
+  // | { CreateCastStmt: Record<string, unknown> }
+  // | { DeleteStmt: Record<string, unknown> }
+  // | { CreateRangeStmt: Record<string, unknown> }
+  // | { TruncateStmt: Record<string, unknown> }
+  // | { ExplainStmt: Record<string, unknown> }
+  // | { DropRoleStmt: Record<string, unknown> }
+  // | { CreateTableAsStmt: Record<string, unknown> }
+  // | { VariableShowStmt: Record<string, unknown> } // SHOW DateStyle;
+  // | { DoStmt: Record<string, unknown> }
+  // | { VacuumStmt: Record<string, unknown> }
+  // | { AlterRoleStmt: Record<string, unknown> }
+  // | { CreateSchemaStmt: Record<string, unknown> }
+  // | { CreateSchemaStmt: Record<string, unknown> }
+  // | { AlterDefaultPrivilegesStmt: Record<string, unknown> }
+  // | { GrantStmt: Record<string, unknown> }
+  // | { DeclareCursorStmt: Record<string, unknown> }
+  // | { CopyStmt: Record<string, unknown> }
+  // | { CreateDomainStmt: Record<string, unknown> }
+  // | { FetchStmt: Record<string, unknown> }
+  // | { ClosePortalStmt: Record<string, unknown> }
+  // | { PrepareStmt: Record<string, unknown> }
+  // | { ExecuteStmt: Record<string, unknown> }
+  // | { RuleStmt: Record<string, unknown> }
+  // | { ReindexStmt: Record<string, unknown> }
+  // | { SecLabelStmt: Record<string, unknown> }
+  // | { AlterRoleSetStmt: Record<string, unknown> }
+  // | { LockStmt: Record<string, unknown> }
+  // | { NotifyStmt: Record<string, unknown> }
+  // | { ListenStmt: Record<string, unknown> }
+  // | { UnlistenStmt: Record<string, unknown> }
+  // | { DiscardStmt: Record<string, unknown> }
+  // | { AlterFunctionStmt: Record<string, unknown> }
+  // | { AlterTSDictionaryStmt: Record<string, unknown> }
+  // | { AlterTSConfigurationStmt: Record<string, unknown> }
+  // | { CreateTrigStmt: Record<string, unknown> }
+  // | { AlterOpFamilyStmt: Record<string, unknown> }
+  // | { CreatePolicyStmt: Record<string, unknown> }
 
-    // | { DeallocateStmt: Record<string, unknown> }
-    // | { CreateConversionStmt: Record<string, unknown> }
-    // | { AlterObjectSchemaStmt: Record<string, unknown> }
-    // | { CreateFdwStmt: Record<string, unknown> }
-    // | { CreateForeignServerStmt: Record<string, unknown> }
-    // | { CreatePLangStmt: Record<string, unknown> }
-    // | { CreateOpFamilyStmt: Record<string, unknown> }
-    // | { CreateOpClassStmt: Record<string, unknown> }
-    // | { CreateStatsStmt: Record<string, unknown> }
-    // | { AlterOperatorStmt: Record<string, unknown> }
-    // | { ClusterStmt: Record<string, unknown> }
-    // | { CreateEventTrigStmt: Record<string, unknown> };
-  };
+  // | { DeallocateStmt: Record<string, unknown> }
+  // | { CreateConversionStmt: Record<string, unknown> }
+  // | { AlterObjectSchemaStmt: Record<string, unknown> }
+  // | { CreateFdwStmt: Record<string, unknown> }
+  // | { CreateForeignServerStmt: Record<string, unknown> }
+  // | { CreatePLangStmt: Record<string, unknown> }
+  // | { CreateOpFamilyStmt: Record<string, unknown> }
+  // | { CreateOpClassStmt: Record<string, unknown> }
+  // | { CreateStatsStmt: Record<string, unknown> }
+  // | { AlterOperatorStmt: Record<string, unknown> }
+  // | { ClusterStmt: Record<string, unknown> }
+  // | { CreateEventTrigStmt: Record<string, unknown> };
 };
 
 export const stmtDecoder: d.Decoder<Stmt> = d.exact({
-  RawStmt: d.exact({
-    stmt_len: d.optional(d.number),
-    stmt_location: d.optional(d.number),
-    stmt: dispatch({
-      CreateStmt: createStmtDecoder,
-      AlterTableStmt: alterTableStmtDecoder,
-      CreateSeqStmt: createSeqStmtDecoder,
-      VariableSetStmt: variableSetStmtDecoder,
-      CreateEnumStmt: createEnumStmtDecoder,
-      AlterSeqStmt: alterSeqStmtDecoder,
-      DropStmt: dropStmtDecoder,
-      AlterEnumStmt: alterEnumStmtDecoder,
-      AlterOwnerStmt: alterOwnerStmtDecoder,
-      IndexStmt: indexStmtDecoder,
-      Comment: d.string,
-      SelectStmt: selectStmtDecoder,
-      ViewStmt: viewStmtDecoder,
-      RenameStmt: renameStmtDecoder,
+  stmt_len: d.optional(d.number),
+  stmt_location: d.optional(d.number),
+  stmt: dispatch({
+    CreateStmt: createStmtDecoder,
+    AlterTableStmt: alterTableStmtDecoder,
+    CreateSeqStmt: createSeqStmtDecoder,
+    VariableSetStmt: variableSetStmtDecoder,
+    CreateEnumStmt: createEnumStmtDecoder,
+    AlterSeqStmt: alterSeqStmtDecoder,
+    DropStmt: dropStmtDecoder,
+    AlterEnumStmt: alterEnumStmtDecoder,
+    AlterOwnerStmt: alterOwnerStmtDecoder,
+    IndexStmt: indexStmtDecoder,
+    Comment: d.string,
+    SelectStmt: selectStmtDecoder,
+    ViewStmt: viewStmtDecoder,
+    RenameStmt: renameStmtDecoder,
 
-      // RenameStmt: pojo,
-      // CompositeTypeStmt: pojo,
+    // RenameStmt: pojo,
+    // CompositeTypeStmt: pojo,
 
-      // InsertStmt: insertStmtDecoder,
+    // InsertStmt: insertStmtDecoder,
 
-      // UpdateStmt: pojo,
-      // DropStmt: pojo,
-      // DefineStmt: pojo,
-      // CreateFunctionStmt: pojo,
-      // CreateCastStmt: pojo,
-      // DeleteStmt: pojo,
-      // CreateRangeStmt: pojo,
-      // TruncateStmt: pojo,
-      // ExplainStmt: pojo,
-      // CreateRoleStmt: pojo,
-      // DropRoleStmt: pojo,
-      // CreateTableAsStmt: pojo,
-      // TransactionStmt: pojo,
-      // VariableShowStmt: pojo,
-      // VacuumStmt: pojo,
-      // AlterRoleStmt: pojo,
-      // CreateSchemaStmt: pojo,
-      // AlterDefaultPrivilegesStmt: pojo,
-      // GrantStmt: pojo,
-      // DeclareCursorStmt: pojo,
-      // CopyStmt: pojo,
-      // CreateDomainStmt: pojo,
-      // FetchStmt: pojo,
-      // ClosePortalStmt: pojo,
-      // PrepareStmt: pojo,
-      // ExecuteStmt: pojo,
-      // RuleStmt: pojo,
-      // ReindexStmt: pojo,
-      // SecLabelStmt: pojo,
-      // AlterRoleSetStmt: pojo,
-      // LockStmt: pojo,
+    // UpdateStmt: pojo,
+    // DropStmt: pojo,
+    // DefineStmt: pojo,
+    // CreateFunctionStmt: pojo,
+    // CreateCastStmt: pojo,
+    // DeleteStmt: pojo,
+    // CreateRangeStmt: pojo,
+    // TruncateStmt: pojo,
+    // ExplainStmt: pojo,
+    // CreateRoleStmt: pojo,
+    // DropRoleStmt: pojo,
+    // CreateTableAsStmt: pojo,
+    // TransactionStmt: pojo,
+    // VariableShowStmt: pojo,
+    // VacuumStmt: pojo,
+    // AlterRoleStmt: pojo,
+    // CreateSchemaStmt: pojo,
+    // AlterDefaultPrivilegesStmt: pojo,
+    // GrantStmt: pojo,
+    // DeclareCursorStmt: pojo,
+    // CopyStmt: pojo,
+    // CreateDomainStmt: pojo,
+    // FetchStmt: pojo,
+    // ClosePortalStmt: pojo,
+    // PrepareStmt: pojo,
+    // ExecuteStmt: pojo,
+    // RuleStmt: pojo,
+    // ReindexStmt: pojo,
+    // SecLabelStmt: pojo,
+    // AlterRoleSetStmt: pojo,
+    // LockStmt: pojo,
 
-      // NotifyStmt: pojo,
-      // ListenStmt: pojo,
-      // UnlistenStmt: pojo,
-      // DiscardStmt: pojo,
-      // AlterFunctionStmt: pojo,
-      // AlterTSConfigurationStmt: pojo,
-      // AlterTSDictionaryStmt: pojo,
-      // CreateTrigStmt: pojo,
-      // AlterOpFamilyStmt: pojo,
-      // CreatePolicyStmt: pojo,
-      // DeallocateStmt: pojo,
-      // CreateConversionStmt: pojo,
-      // CommentStmt: pojo,
-      // AlterObjectSchemaStmt: pojo,
-      // CreateFdwStmt: pojo,
-      // CreateForeignServerStmt: pojo,
-      // CreatePLangStmt: pojo,
-      // CreateOpFamilyStmt: pojo,
-      // CreateOpClassStmt: pojo,
-      // DoStmt: pojo,
-      // CreateStatsStmt: pojo,
-      // AlterOperatorStmt: pojo,
-      // ClusterStmt: pojo,
-      // CreateEventTrigStmt: pojo,
-    }),
+    // NotifyStmt: pojo,
+    // ListenStmt: pojo,
+    // UnlistenStmt: pojo,
+    // DiscardStmt: pojo,
+    // AlterFunctionStmt: pojo,
+    // AlterTSConfigurationStmt: pojo,
+    // AlterTSDictionaryStmt: pojo,
+    // CreateTrigStmt: pojo,
+    // AlterOpFamilyStmt: pojo,
+    // CreatePolicyStmt: pojo,
+    // DeallocateStmt: pojo,
+    // CreateConversionStmt: pojo,
+    // CommentStmt: pojo,
+    // AlterObjectSchemaStmt: pojo,
+    // CreateFdwStmt: pojo,
+    // CreateForeignServerStmt: pojo,
+    // CreatePLangStmt: pojo,
+    // CreateOpFamilyStmt: pojo,
+    // CreateOpClassStmt: pojo,
+    // DoStmt: pojo,
+    // CreateStatsStmt: pojo,
+    // AlterOperatorStmt: pojo,
+    // ClusterStmt: pojo,
+    // CreateEventTrigStmt: pojo,
   }),
 });
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type KeysOfUnion<T> = T extends any ? keyof T : never;
-export type StatementType = KeysOfUnion<Stmt["RawStmt"]["stmt"]>;
+export type StatementType = KeysOfUnion<Stmt["stmt"]>;

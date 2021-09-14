@@ -7,7 +7,7 @@ import dispatch from "./dispatch";
 
 export type ColumnDef = {
   colname: string;
-  typeName: { TypeName: TypeName };
+  typeName: TypeName;
   constraints?: Array<{ Constraint: Constraint }>;
   is_local: boolean;
   collClause?: unknown;
@@ -17,7 +17,7 @@ export type ColumnDef = {
 
 export const columnDefDecoder: d.Decoder<ColumnDef> = d.exact({
   colname: d.string,
-  typeName: d.exact({ TypeName: typeNameDecoder }),
+  typeName: typeNameDecoder,
   constraints: d.optional(d.array(d.exact({ Constraint: constraintDecoder }))),
   is_local: d.boolean,
   collClause: d.unknown,
@@ -25,18 +25,10 @@ export const columnDefDecoder: d.Decoder<ColumnDef> = d.exact({
   codeComment: d.optional(d.string),
 });
 
-export type Relation = {
-  RangeVar: RangeVar;
-};
-
-export const relationDecoder = d.exact({
-  RangeVar: rangeVarDecoder,
-});
-
 export type CreateStmt = {
-  relation: Relation;
+  relation: RangeVar;
   tableElts?: Array<{ ColumnDef: ColumnDef } | { Constraint: Constraint }>;
-  oncommit: number;
+  oncommit: "ONCOMMIT_NOOP";
   inhRelations?: unknown; // CREATE TEMP TABLE t2c (primary key (ab)) INHERITS (t2);
   options?: unknown;
   if_not_exists?: boolean;
@@ -46,7 +38,7 @@ export type CreateStmt = {
 };
 
 export const createStmtDecoder: d.Decoder<CreateStmt> = d.exact({
-  relation: relationDecoder,
+  relation: rangeVarDecoder,
   tableElts: d.optional(
     d.array(
       dispatch({
@@ -55,7 +47,7 @@ export const createStmtDecoder: d.Decoder<CreateStmt> = d.exact({
       })
     )
   ),
-  oncommit: d.number,
+  oncommit: d.constant("ONCOMMIT_NOOP"),
   inhRelations: d.unknown,
   options: d.unknown,
   if_not_exists: d.optional(d.boolean),

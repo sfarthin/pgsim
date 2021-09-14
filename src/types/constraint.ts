@@ -6,14 +6,18 @@ import { Location, locationDecoder } from "./location";
 import { dispatchByField } from "./dispatch";
 
 export enum ConType {
-  NULL = 0,
-  NOT_NULL = 1,
-  DEFAULT = 2,
-  CHECK = 4,
-  PRIMARY_KEY = 5,
-  UNIQUE = 6,
-  REFERENCE = 7,
-  FOREIGN_KEY = 8,
+  NULL = "CONSTR_NULL",
+  NOT_NULL = "CONSTR_NOTNULL",
+  DEFAULT = "CONSTR_DEFAULT",
+  CHECK = "CONSTR_CHECK",
+  PRIMARY_KEY = "CONSTR_PRIMARY",
+  UNIQUE = "CONSTR_UNIQUE",
+  EXCLUSION = "CONSTR_EXCLUSION",
+  FOREIGN_KEY = "CONSTR_FOREIGN",
+  DEFERRABLE = "CONSTR_ATTR_DEFERRABLE",
+  NOT_DEFERRABLE = "CONSTR_ATTR_NOT_DEFERRABLE",
+  DEFERRED = "CONSTR_ATTR_DEFERRED",
+  IMMEDIATE = "CONSTR_ATTR_IMMEDIATE",
 }
 
 /**
@@ -106,9 +110,7 @@ export type ForeignKeyConstraint = {
   fk_del_action?: "r" | "c" | "n" | "a" | "d";
   fk_matchtype?: string;
   initially_valid: boolean;
-  pktable: {
-    RangeVar: RangeVar;
-  };
+  pktable: RangeVar;
   pk_attrs?: { String: String }[];
   conname?: string;
   fk_attrs?: { String: String }[];
@@ -130,9 +132,7 @@ export const foreignKeyConstraint: d.Decoder<ForeignKeyConstraint> = d.exact({
   fk_del_action: d.optional(actionDecoders),
   fk_matchtype: d.string,
   initially_valid: d.boolean,
-  pktable: d.exact({
-    RangeVar: rangeVarDecoder,
-  }),
+  pktable: rangeVarDecoder,
   pk_attrs: d.optional(d.array(stringDecoder)),
   conname: d.optional(d.string),
   fk_attrs: d.optional(d.array(stringDecoder)),
@@ -143,7 +143,7 @@ export const foreignKeyConstraint: d.Decoder<ForeignKeyConstraint> = d.exact({
  */
 
 export type ReferenceConstraint = {
-  contype: ConType.REFERENCE;
+  contype: ConType.EXCLUSION;
   location: Location;
   fk_upd_action?: string;
   fk_del_action?: string;
@@ -159,7 +159,7 @@ export type ReferenceConstraint = {
 };
 
 export const referenceConstraint: d.Decoder<ReferenceConstraint> = d.exact({
-  contype: d.constant(ConType.REFERENCE),
+  contype: d.constant(ConType.EXCLUSION),
   location: locationDecoder,
   fk_upd_action: d.string,
   fk_del_action: d.string,
@@ -213,7 +213,7 @@ export const constraintDecoder: d.Decoder<Constraint> = dispatchByField(
     [ConType.DEFAULT]: defaultConstraintDecoder,
     [ConType.UNIQUE]: uniqueConstraintDecoder,
     [ConType.PRIMARY_KEY]: primaryKeyConstraintDecoder,
-    [ConType.REFERENCE]: referenceConstraint,
+    [ConType.EXCLUSION]: referenceConstraint,
     [ConType.FOREIGN_KEY]: foreignKeyConstraint,
     [ConType.CHECK]: CheckConstraintDecoder,
   }

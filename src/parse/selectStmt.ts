@@ -158,7 +158,8 @@ export const select: Rule<SelectStmt> = transform(
       ...from,
       ...(groupBy ? { groupClause: groupBy.value } : {}),
       ...(sortBy ? { sortClause: sortBy } : {}),
-      op: 0,
+      limitOption: "LIMIT_OPTION_DEFAULT",
+      op: "SETOP_NONE",
       codeComments: {
         fromClause: from?.codeComments?.fromClause,
         targetList: [

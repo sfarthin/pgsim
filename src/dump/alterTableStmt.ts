@@ -14,7 +14,7 @@ export default function alterTableStmt(
 ): void {
   const cmds = c.cmds;
   const tablename = c.relation.RangeVar.relname;
-  const table = d.find((ct) => ct.relation.RangeVar.relname === tablename);
+  const table = d.find((ct) => ct.relation.relname === tablename);
 
   if (!table) {
     throw new Error(`${tablename} does not exist`);

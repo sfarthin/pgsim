@@ -41,7 +41,7 @@ type Opts = {
 // ];
 
 function formatStmt<T>(stmt: Stmt, f: Formatter<T>, opts?: Opts): T[][] {
-  const s = stmt.RawStmt.stmt;
+  const s = stmt.stmt;
   const statementType = Object.keys(s)[0] as StatementType;
 
   if (opts?.ignore && opts.ignore.includes(statementType)) {
@@ -104,7 +104,7 @@ export default function format(_stmts: Stmt[] | string, opts?: Opts): string {
           // Lets skip over any comments
           const { start: pos } = findNextToken(
             opts.sql,
-            stmt.RawStmt.stmt_location ?? 0
+            stmt.stmt_location ?? 0
           );
 
           const { line, column } = toLineAndColumn(opts.sql, pos);
@@ -118,8 +118,7 @@ export default function format(_stmts: Stmt[] | string, opts?: Opts): string {
           }${NEWLINE}${NEWLINE}${getSnippetWithLineNumbers({
             str: opts.sql,
             start: pos,
-            end:
-              (stmt.RawStmt.stmt_location ?? 0) + (stmt.RawStmt.stmt_len ?? 20),
+            end: (stmt.stmt_location ?? 0) + (stmt.stmt_len ?? 20),
           })}${NEWLINE}`;
         } else {
           e.name = `Problem formatting${errorType}`;

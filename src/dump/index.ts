@@ -21,7 +21,7 @@ export default function dump(input: string | Stmt[]): string {
   };
 
   for (const index in stmts) {
-    const stmt = stmts[index].RawStmt.stmt;
+    const stmt = stmts[index].stmt;
 
     if ("CreateStmt" in stmt) {
       createStmt(dump.CreateStmt, stmt.CreateStmt);

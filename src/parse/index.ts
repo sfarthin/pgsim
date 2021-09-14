@@ -87,11 +87,9 @@ const stmts: Rule<Stmt[]> = transform(
           const stmt_len = eos[eos.length - 1] - stmt_location;
 
           return {
-            RawStmt: {
-              stmt,
-              stmt_len,
-              ...(stmt_location === 0 ? {} : { stmt_location }),
-            },
+            stmt,
+            stmt_len,
+            ...(stmt_location === 0 ? {} : { stmt_location }),
           };
         }
       )
@@ -107,31 +105,27 @@ function reduceComments(acc: Stmt[], stmt: Stmt): Stmt[] {
   // combine comment nodes and remove whitespace.
   if (
     previousStmt &&
-    "Comment" in previousStmt.RawStmt.stmt &&
-    "Comment" in stmt.RawStmt.stmt
+    "Comment" in previousStmt.stmt &&
+    "Comment" in stmt.stmt
   ) {
     return [
       ...acc.slice(0, -1),
       {
-        RawStmt: {
-          stmt: {
-            Comment: combineComments(
-              previousStmt.RawStmt.stmt.Comment,
-              stmt.RawStmt.stmt.Comment
-            ),
-          },
+        stmt: {
+          Comment: combineComments(
+            previousStmt.stmt.Comment,
+            stmt.stmt.Comment
+          ),
         },
       },
     ];
     // Just lead whitespace
-  } else if ("Comment" in stmt.RawStmt.stmt) {
+  } else if ("Comment" in stmt.stmt) {
     return [
       ...acc,
       {
-        RawStmt: {
-          stmt: {
-            Comment: stmt.RawStmt.stmt.Comment,
-          },
+        stmt: {
+          Comment: stmt.stmt.Comment,
         },
       },
     ];
