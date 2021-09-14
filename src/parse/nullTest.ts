@@ -16,7 +16,7 @@ export const nullTestConnection = (ctx: Context) =>
       value: {
         NullTest: {
           arg: c1.value,
-          nulltesttype: v[3] ? 1 : 0,
+          nulltesttype: v[3] ? "IS_NOT_NULL" : "IS_NULL",
           location: v[1].start,
         },
       },

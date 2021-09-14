@@ -8,7 +8,7 @@ export default function createSeqStmt<T>(
   f: Formatter<T>
 ): T[][] {
   const { keyword, _, identifier, symbol, indent } = f;
-  const name = c.sequence.RangeVar.relname;
+  const name = c.sequence.relname;
 
   return [
     ...comment(c.codeComment, f),

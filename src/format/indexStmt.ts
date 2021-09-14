@@ -17,7 +17,7 @@ export default function <T>(c: IndexStmt, f: Formatter<T>): T[][] {
       _,
       keyword("ON"),
       _,
-      identifier(c.relation.RangeVar.relname),
+      identifier(c.relation.relname),
       ...(c.accessMethod && c.accessMethod !== "btree"
         ? [_, keyword("USING"), _, identifier(c.accessMethod)]
         : []),

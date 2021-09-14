@@ -38,7 +38,7 @@ export const rangeSubselect: Rule<{
         RangeSubselect: {
           subquery: { SelectStmt: v[0][2] },
           alias: {
-            Alias: { aliasname: v[1].length === 4 ? v[1][3] : v[1][1] },
+            aliasname: v[1].length === 4 ? v[1][3] : v[1][1],
           },
         },
       },

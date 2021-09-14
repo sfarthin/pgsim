@@ -33,30 +33,15 @@ import {
 import { typeName } from "./typeName";
 import { constraint } from "./constraint";
 
-// TODO:
-// | AlterTableDropConstraint
-// | AlterTableRowSecurity
-// | AlterTableInherit
-// | AlterTableIndex
-// | AlterTableOwner
-// | AlterTableReset
-// | AlterTableCluster
-// | AlterTableSetWithoutCluster
-// | AlterTableRestrict
-// | AlterTableColumnType
-// | AlterTableAttachPartition
-// | AlterTableDropNotNull
-// | AlterTableSetNotNull;
-
 const alterTableAddConstraint: Rule<AlterTableAddConstraint> = transform(
   sequence([__, ADD, __, constraint, __]),
   (v) => {
     return {
-      subtype: AlterTableCmdSubType.ADD_CONSTRAINT,
+      subtype: AlterTableCmdSubType.AT_AddConstraint,
       def: {
         Constraint: v[3].value,
       },
-      behavior: 0,
+      behavior: "DROP_RESTRICT",
       codeComment: combineComments(v[0], v[2], v[3].codeComment, v[4]),
     };
   }
@@ -78,8 +63,8 @@ const alterTableDropColumn: Rule<AlterTableDropColumn> = transform(
   ]),
   (v) => {
     return {
-      subtype: AlterTableCmdSubType.DROP,
-      behavior: 0,
+      subtype: AlterTableCmdSubType.AT_DropColumn,
+      behavior: v[9]?.value === "RESTRICT" ? "DROP_RESTRICT" : "DROP_RESTRICT",
       name: v[7],
       codeComment: combineComments(
         v[0],
@@ -116,18 +101,18 @@ const alterTableAddColumn: Rule<AlterTableAddColumn> = transform(
     }));
 
     return {
-      subtype: AlterTableCmdSubType.ADD_COLUMN,
+      subtype: AlterTableCmdSubType.AT_AddColumn,
       def: {
         ColumnDef: {
           colname: v[7].value,
-          typeName: { TypeName: v[9].value },
+          typeName: v[9].value,
           ...(listOfConstraints ? { constraints: listOfConstraints } : {}),
           is_local: true,
           location: v[7].pos,
           codeComment: "",
         },
       },
-      behavior: 0,
+      behavior: "DROP_RESTRICT",
       codeComment: combineComments(
         v[0],
         v[2],
@@ -164,10 +149,10 @@ const alterTableSetDefault: Rule<AlterTableSetDefault> = transform(
   ]),
   (v) => {
     return {
-      subtype: AlterTableCmdSubType.SET_DEFAULT,
+      subtype: AlterTableCmdSubType.AT_ColumnDefault,
       name: v[5],
       def: v[11].value,
-      behavior: 0,
+      behavior: "DROP_RESTRICT",
       codeComment: combineComments(
         v[0],
         v[2],

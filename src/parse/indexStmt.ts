@@ -62,12 +62,10 @@ export const indexStmt: Rule<IndexStmt> = transform(
     return {
       ...(v[9] ? { idxname: v[9] } : {}),
       relation: {
-        RangeVar: {
-          relname: v[13].value,
-          inh: true,
-          relpersistence: "p",
-          location: v[13].pos,
-        },
+        relname: v[13].value,
+        inh: true,
+        relpersistence: "p",
+        location: v[13].pos,
       },
       ...(v[15] ? { accessMethod: v[15][2] } : {}),
       accessMethod: v[15]?.[2].value === "hash" ? "hash" : "btree",
@@ -77,8 +75,8 @@ export const indexStmt: Rule<IndexStmt> = transform(
         .map((j) => ({
           IndexElem: {
             name: j,
-            ordering: 0,
-            nulls_ordering: 0,
+            ordering: "SORTBY_DEFAULT",
+            nulls_ordering: "SORTBY_NULLS_DEFAULT",
           },
         })),
       ...(v[3] ? { unique: true } : {}),

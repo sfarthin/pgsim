@@ -43,9 +43,7 @@ export function toConstraint<T>(
 
   switch (constraint.contype) {
     case ConType.FOREIGN_KEY:
-      const table = identifier(
-        constraint.pktable.RangeVar.relname.toLowerCase()
-      );
+      const table = identifier(constraint.pktable.relname.toLowerCase());
       const columns = constraint.pk_attrs
         ? join(
             constraint.pk_attrs?.map((v) => [identifier(v.String.str)]),
@@ -168,7 +166,7 @@ export function toTableConstraint<T>(
         _,
         keyword("REFERENCES"),
         _,
-        identifier(constraint.pktable.RangeVar.relname),
+        identifier(constraint.pktable.relname),
         _,
         symbol("("),
         ...(constraint.pk_attrs

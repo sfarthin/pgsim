@@ -28,7 +28,7 @@ export const columnDef: Rule<ColumnDef> = transform(
     }));
     return {
       colname: value[1].value,
-      typeName: { TypeName: value[3].value },
+      typeName: value[3].value,
       ...(listOfConstraints ? { constraints: listOfConstraints } : {}),
       is_local: true,
       location: value[1].pos,

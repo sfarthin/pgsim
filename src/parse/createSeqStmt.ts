@@ -25,13 +25,11 @@ export const createSeqStmt: Rule<CreateSeqStmt> = transform(
     optional(ifNotExists), // 5
     __,
     transform(identifier, (v, ctx) => ({
-      RangeVar: {
-        relname: v,
-        relpersistence: "p",
-        inh: true,
-        location: ctx.pos,
-      },
-    })) as Rule<{ RangeVar: RangeVar }>,
+      relname: v,
+      relpersistence: "p" as const,
+      inh: true,
+      location: ctx.pos,
+    })),
     __,
     optional(defElemList), // 9
     __,

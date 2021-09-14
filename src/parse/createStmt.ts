@@ -90,13 +90,11 @@ export const createStmt: Rule<CreateStmt> = transform(
     transform(
       sequence([optional(sequence([identifier, PERIOD])), identifier]),
       (v, ctx) => ({
-        RangeVar: {
-          ...(v[0] ? { schemaname: v[0][0] } : {}),
-          relname: v[1],
-          relpersistence: "p" as const,
-          inh: true,
-          location: ctx.pos,
-        },
+        ...(v[0] ? { schemaname: v[0][0] } : {}),
+        relname: v[1],
+        relpersistence: "p" as const,
+        inh: true,
+        location: ctx.pos,
       })
     ),
     __,
@@ -123,7 +121,7 @@ export const createStmt: Rule<CreateStmt> = transform(
     return {
       relation,
       tableElts,
-      oncommit: 0,
+      oncommit: "ONCOMMIT_NOOP",
       ...(ifNotExists ? { if_not_exists: true } : {}),
       codeComment: comment,
     };

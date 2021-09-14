@@ -89,9 +89,7 @@ export default function createStmt(
   const tablesNotCreatedYet = toTables.filter(
     (toTable) =>
       !fromTables.some(
-        (fromTable) =>
-          toTable.relation.RangeVar.relname ===
-          fromTable.relation.RangeVar.relname
+        (fromTable) => toTable.relation.relname === fromTable.relation.relname
       )
   );
 
@@ -102,9 +100,9 @@ export default function createStmt(
 
   // 2. Alter tables that have changes
   for (const t of fromTables) {
-    const name = t.relation.RangeVar.relname;
+    const name = t.relation.relname;
     const toTable = toTables.find(
-      (toTable) => toTable.relation.RangeVar.relname === name
+      (toTable) => toTable.relation.relname === name
     );
 
     if (toTable) {

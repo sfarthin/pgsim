@@ -2,7 +2,7 @@ import * as d from "decoders";
 import { stringDecoder, String } from "./constant";
 import { Location, locationDecoder } from "./location";
 import { RawValue, rawValueDecoder } from "./rawExpr";
-import { dispatchByField } from "./dispatch";
+import { List, listDecoder } from "./list";
 
 // https://doxygen.postgresql.org/parsenodes_8h.html#a41cee9367d9d92ec6b4ee0bbc0df09fd
 // AEXPR_OP,                   /* normal operator */
@@ -20,8 +20,8 @@ import { dispatchByField } from "./dispatch";
 // AEXPR_BETWEEN_SYM,          /* name must be "BETWEEN SYMMETRIC" */
 // AEXPR_NOT_BETWEEN_SYM       /* name must be "NOT BETWEEN SYMMETRIC" */
 export enum AExprKind {
-  AEXPR_OP = 0, // normal operator
-  AEXPR_IN = 7, // IN - name must be "=" or "<>"
+  AEXPR_OP = "AEXPR_OP", // normal operator
+  AEXPR_IN = "AEXPR_IN", // IN - name must be "=" or "<>"
 }
 
 export type AExpr =
@@ -36,11 +36,11 @@ export type AExpr =
       kind: AExprKind.AEXPR_IN;
       name: { String: String }[];
       lexpr: RawValue;
-      rexpr: RawValue[];
+      rexpr: { List: List<RawValue> };
       location: Location;
     };
 
-export const aExprDecoder: d.Decoder<AExpr> = dispatchByField("kind", {
+export const aExprDecoder: d.Decoder<AExpr> = d.dispatch("kind", {
   [AExprKind.AEXPR_OP]: d.exact({
     kind: d.oneOf(Object.values(AExprKind)) as d.Decoder<AExprKind.AEXPR_OP>,
     name: d.array(stringDecoder),
@@ -52,7 +52,7 @@ export const aExprDecoder: d.Decoder<AExpr> = dispatchByField("kind", {
     kind: d.oneOf(Object.values(AExprKind)) as d.Decoder<AExprKind.AEXPR_IN>,
     name: d.array(stringDecoder),
     lexpr: (blob) => rawValueDecoder(blob),
-    rexpr: d.array((blob) => rawValueDecoder(blob)),
+    rexpr: d.exact({ List: listDecoder((blob) => rawValueDecoder(blob)) }),
     location: locationDecoder,
   }),
 });

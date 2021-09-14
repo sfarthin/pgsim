@@ -4,12 +4,12 @@ import { RawValue, rawValueDecoder } from "./rawExpr";
 
 export type NullTest = {
   arg: RawValue;
-  nulltesttype: number;
+  nulltesttype: "IS_NOT_NULL" | "IS_NULL";
   location: Location;
 };
 
 export const nullTestDecoder: d.Decoder<NullTest> = d.exact({
   arg: (blob) => rawValueDecoder(blob),
-  nulltesttype: d.number,
+  nulltesttype: d.either(d.constant("IS_NOT_NULL"), d.constant("IS_NULL")),
   location: locationDecoder,
 });

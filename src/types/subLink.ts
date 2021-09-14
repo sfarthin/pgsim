@@ -1,18 +1,17 @@
 import * as d from "decoders";
 import { Location, locationDecoder } from "./location";
 import { SelectStmt, selectStmtDecoder } from "./selectStmt";
-import { dispatchByField } from "./dispatch";
 import { RawValue, rawValueDecoder } from "./rawExpr";
 
 export enum SubLinkType {
-  EXISTS_SUBLINK = 0,
-  ALL_SUBLINK = 1,
-  ANY_SUBLINK = 2,
-  ROWCOMPARE_SUBLINK = 3,
-  EXPR_SUBLINK = 4,
-  MULTIEXPR_SUBLINK = 5,
-  ARRAY_SUBLINK = 6,
-  CTE_SUBLINK = 7,
+  EXISTS_SUBLINK = "EXISTS_SUBLINK",
+  ALL_SUBLINK = "ALL_SUBLINK",
+  ANY_SUBLINK = "ANY_SUBLINK",
+  ROWCOMPARE_SUBLINK = "ROWCOMPARE_SUBLINK",
+  EXPR_SUBLINK = "EXPR_SUBLINK",
+  MULTIEXPR_SUBLINK = "MULTIEXPR_SUBLINK",
+  ARRAY_SUBLINK = "ARRAY_SUBLINK",
+  CTE_SUBLINK = "CTE_SUBLINK",
 }
 
 export type SubLink =
@@ -40,7 +39,7 @@ export type SubLink =
     };
 
 export const subLinkDecoder: d.Decoder<SubLink> = (blob) =>
-  dispatchByField("subLinkType", {
+  d.dispatch("subLinkType", {
     [SubLinkType.EXISTS_SUBLINK]: d.exact({
       subLinkType: d.constant(
         SubLinkType.EXISTS_SUBLINK

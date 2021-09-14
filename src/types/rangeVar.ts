@@ -21,7 +21,7 @@ export type RangeVar = {
   relpersistence: "p" | "u" | "t";
   location: Location;
   inh?: boolean /* inheritance requested? */;
-  alias?: { Alias: Alias };
+  alias?: Alias;
 };
 
 export const rangeVarDecoder: d.Decoder<RangeVar> = d.exact({
@@ -31,5 +31,5 @@ export const rangeVarDecoder: d.Decoder<RangeVar> = d.exact({
   relpersistence: d.either3(d.constant("p"), d.constant("u"), d.constant("t")),
   location: locationDecoder,
   inh: d.optional(d.boolean),
-  alias: d.optional(d.exact({ Alias: aliasDecoder })),
+  alias: d.optional(aliasDecoder),
 });

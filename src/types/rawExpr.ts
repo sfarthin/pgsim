@@ -5,6 +5,7 @@ import { A_Const, aConstDecoder } from "./constant";
 import { TypeCast, typeCastDecoder } from "./typeCast";
 import { FuncCall, funcCallDecoder } from "./funcCall";
 import { ColumnRef, columnRefDecoder } from "./columnRef";
+import { ColumnDef, columnDefDecoder } from ".";
 import { BoolExpr, boolExprDecoder } from "./boolExpr";
 import { AExpr, aExprDecoder } from "./aExpr";
 // import { BooleanTest, booleanTestDecoder } from "./booleanTest";
@@ -16,6 +17,7 @@ import { AIndirection, aIndirectionDecoder } from "./aIndirection";
 
 export type RawValue =
   | { ColumnRef: ColumnRef } // myTable.myColumn
+  | { ColumnDef: ColumnDef }
   | { A_Expr: AExpr }
   | { SubLink: SubLink }
   | { BoolExpr: BoolExpr }
@@ -32,6 +34,7 @@ export type RawValue =
 
 export const rawValueDecoder: d.Decoder<RawValue> = dispatch({
   ColumnRef: (blob) => columnRefDecoder(blob),
+  ColumnDef: (blob) => columnDefDecoder(blob),
   FuncCall: (blob) => funcCallDecoder(blob),
   A_Const: (blob) => aConstDecoder(blob),
   TypeCast: (blob) => typeCastDecoder(blob),

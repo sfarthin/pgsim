@@ -1,19 +1,17 @@
-import { CreateStmt } from "../types";
+// import { CreateStmt } from "../types";
 
-export default function createStmt(d: CreateStmt[], c: CreateStmt): void {
-  const name = c.relation.RangeVar.relname;
+// export default function createStmt(d: CreateStmt[], c: CreateStmt): void {
+//   const name = c.relation.relname;
 
-  const existingCreateTable = d.some(
-    (s) => s.relation.RangeVar.relname === name
-  );
+//   const existingCreateTable = d.some((s) => s.relation.relname === name);
 
-  if (existingCreateTable) {
-    throw new Error(`Table "${name}" already exists`);
-  }
+//   if (existingCreateTable) {
+//     throw new Error(`Table "${name}" already exists`);
+//   }
 
-  if (!c.relation.RangeVar.schemaname) {
-    c.relation.RangeVar.schemaname = "public";
-  }
+//   if (!c.relation.schemaname) {
+//     c.relation.schemaname = "public";
+//   }
 
-  d.push(c);
-}
+//   d.push(c);
+// }

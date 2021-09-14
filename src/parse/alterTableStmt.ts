@@ -48,15 +48,13 @@ export const alterTableStmt: Rule<AlterTableStmt> = transform(
     const alterCmds = v[11].map((i) => i[1]);
     return {
       relation: {
-        RangeVar: {
-          ...v[9],
-          ...(!v[7] ? { inh: true } : {}),
-        },
+        ...v[9],
+        ...(!v[7] ? { inh: true } : {}),
       },
       cmds: [v[10]]
         .concat(alterCmds)
         .map((AlterTableCmd) => ({ AlterTableCmd })),
-      relkind: 37,
+      relkind: "OBJECT_TABLE",
       ...(v[5] ? { missing_ok: true } : {}),
       codeComment: combineComments(
         v[0],

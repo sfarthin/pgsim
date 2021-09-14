@@ -165,12 +165,10 @@ const foreignKeyConstraintExtended: Rule<{
     REFERENCES,
     __,
     transform(identifier, (v, ctx) => ({
-      RangeVar: {
-        inh: true,
-        relname: v,
-        relpersistence: "p" as const,
-        location: ctx.pos,
-      },
+      inh: true,
+      relname: v,
+      relpersistence: "p" as const,
+      location: ctx.pos,
     })), // 10
     __,
     optional(
@@ -249,12 +247,10 @@ const foreignKeyConstraint: Rule<{
     REFERENCES,
     __,
     transform(identifier, (v, ctx) => ({
-      RangeVar: {
-        inh: true,
-        relname: v,
-        relpersistence: "p" as const,
-        location: ctx.pos,
-      },
+      inh: true,
+      relname: v,
+      relpersistence: "p" as const,
+      location: ctx.pos,
     })),
     __,
     optional(sequence([LPAREN, __, identifier, __, RPAREN])),
@@ -466,12 +462,10 @@ const foreignKeyTableConstraint: Rule<ForeignKeyConstraint> = transform(
       fk_upd_action: "a",
       initially_valid: true,
       pktable: {
-        RangeVar: {
-          inh: true,
-          location: v[10].pos,
-          relname: v[10].value,
-          relpersistence: "p",
-        },
+        inh: true,
+        location: v[10].pos,
+        relname: v[10].value,
+        relpersistence: "p",
       },
       pk_attrs: v[12]?.[1].values.map((v) => ({ String: { str: v } })) ?? [],
       fk_attrs: v[5].values.map((v) => ({ String: { str: v } })) ?? [],

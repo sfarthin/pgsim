@@ -8,7 +8,7 @@ export default function <T>(
   includeParens?: boolean
 ): T[][] {
   const { symbol, _, keyword, indent } = f;
-  if (c.boolop === BoolOp.NOT) {
+  if (c.boolop === BoolOp.NOT_EXPR) {
     const condition = rawValue(c.args[0], f);
 
     if (condition.length === 1) {
@@ -18,10 +18,10 @@ export default function <T>(
     }
   }
 
-  const OP = c.boolop === BoolOp.AND ? "AND" : "OR";
+  const OP = c.boolop === BoolOp.AND_EXPR ? "AND" : "OR";
 
   const shouldIncludeParensInNestedCondition = c.args.some(
-    (arg) => "BoolExpr" in arg && arg.BoolExpr.boolop === BoolOp.OR
+    (arg) => "BoolExpr" in arg && arg.BoolExpr.boolop === BoolOp.OR_EXPR
   );
 
   const args = c.args.flatMap((a, i) => {

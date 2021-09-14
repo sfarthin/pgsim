@@ -43,9 +43,7 @@ export const rangeVar: Rule<{
           location: ctx.pos,
           ...(v[1]
             ? {
-                alias: {
-                  Alias: { aliasname: v[1].length === 4 ? v[1][3] : v[1][1] },
-                },
+                alias: { aliasname: v[1].length === 4 ? v[1][3] : v[1][1] },
               }
             : {}),
         },

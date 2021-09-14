@@ -58,7 +58,8 @@ export const dropStmt: Rule<DropStmt> = transform(
       value[10]
     );
     const restrictOrCascade = value[8]?.value;
-    const behavior = restrictOrCascade === "CASCADE" ? 1 : 0;
+    const behavior =
+      restrictOrCascade === "CASCADE" ? "DROP_CASCADE" : "DROP_RESTRICT";
     const type = value[3].value;
     const item = value[6].value;
     const missing_ok = value[5] !== null;
@@ -80,7 +81,7 @@ export const dropStmt: Rule<DropStmt> = transform(
             },
           },
         ] as [{ TypeName: TypeName }],
-        removeType: RemoveType.TYPE,
+        removeType: RemoveType.OBJECT_TYPE,
         behavior,
         codeComment,
         ...(missing_ok ? { missing_ok } : {}),
@@ -88,20 +89,24 @@ export const dropStmt: Rule<DropStmt> = transform(
     }
     return {
       objects: [
-        [
-          {
-            String: {
-              str: item,
-            },
+        {
+          List: {
+            items: [
+              {
+                String: {
+                  str: item,
+                },
+              },
+            ],
           },
-        ],
-      ] as [[{ String: String }]],
+        },
+      ],
       removeType:
         type === "SEQUENCE"
-          ? RemoveType.SEQUENCE
+          ? RemoveType.OBJECT_SEQUENCE
           : type === "TABLE"
-          ? RemoveType.TABLE
-          : RemoveType.VIEW,
+          ? RemoveType.OBJECT_TABLE
+          : RemoveType.OBJECT_VIEW,
       behavior,
       codeComment,
       ...(missing_ok ? { missing_ok } : {}),

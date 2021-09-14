@@ -6,16 +6,12 @@ export type RangeSubselect = {
   subquery: {
     SelectStmt: SelectStmt;
   };
-  alias: {
-    Alias: Alias;
-  };
+  alias: Alias;
 };
 
 export const rangeSubselectDecoder: d.Decoder<RangeSubselect> = d.exact({
   subquery: d.exact({
     SelectStmt: (blob) => selectStmtDecoder(blob),
   }),
-  alias: d.exact({
-    Alias: aliasDecoder,
-  }),
+  alias: aliasDecoder,
 });

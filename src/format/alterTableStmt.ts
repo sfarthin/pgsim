@@ -9,9 +9,9 @@ import rangeVar from "./rangeVar";
 function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
   const { keyword, _, identifier, number } = f;
   switch (c.subtype) {
-    case AlterTableCmdSubType.DROP:
+    case AlterTableCmdSubType.AT_DropColumn:
       return [keyword("DROP"), _, identifier(c.name ?? "")];
-    case AlterTableCmdSubType.SET_DEFAULT:
+    case AlterTableCmdSubType.AT_ColumnDefault:
       return [
         keyword("ALTER"),
         _,
@@ -23,9 +23,9 @@ function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
         _,
         ...(c.def ? rawValue(c.def, f).flat() : [number(1)]),
       ];
-    case AlterTableCmdSubType.ADD_CONSTRAINT:
+    case AlterTableCmdSubType.AT_AddConstraint:
       return [keyword("ADD"), ...toConstraints([c.def.Constraint], f, true)];
-    case AlterTableCmdSubType.ADD_COLUMN: {
+    case AlterTableCmdSubType.AT_AddColumn: {
       const colname = c.def.ColumnDef.colname.match(/^[a-zA-Z][a-zA-Z0-9]*$/)
         ? c.def.ColumnDef.colname
         : JSON.stringify(c.def.ColumnDef.colname);
@@ -59,9 +59,9 @@ export default function alterSeqStmt<T>(
       _,
       keyword("TABLE"),
       ...(c.missing_ok ? [_, keyword("IF"), _, keyword("EXISTS")] : []),
-      ...(!c.relation.RangeVar.inh ? [_, keyword("ONLY")] : []),
+      ...(!c.relation.inh ? [_, keyword("ONLY")] : []),
       _,
-      ...rangeVar(c.relation.RangeVar, f),
+      ...rangeVar(c.relation, f),
     ],
     ...indent(
       c.cmds

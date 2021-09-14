@@ -23,13 +23,11 @@ export const alterSeqStmt: Rule<AlterSeqStmt> = transform(
     __,
     transform(identifier, (v, ctx) => ({
       // 5
-      RangeVar: {
-        relname: v,
-        relpersistence: "p",
-        inh: true,
-        location: ctx.pos,
-      },
-    })) as Rule<{ RangeVar: RangeVar }>,
+      relname: v,
+      relpersistence: "p" as const,
+      inh: true,
+      location: ctx.pos,
+    })),
     commentsOnSameLine,
     defElemList, // 7
     __,

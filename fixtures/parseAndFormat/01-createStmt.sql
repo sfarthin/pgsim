@@ -1,5 +1,3 @@
-SELECT 1;
-
 CREATE /*foo */ TABLE adsiiodnsaoidnoasindosaind9 -- foo
 (
     -- integer

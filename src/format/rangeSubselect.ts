@@ -9,6 +9,6 @@ export default function <T>(c: RangeSubselect, f: Formatter<T>): T[][] {
   return [
     [symbol("(")],
     ...indent(innerSelect(c.subquery.SelectStmt, f)),
-    [symbol(")"), _, keyword("AS"), _, identifier(c.alias.Alias.aliasname, f)],
+    [symbol(")"), _, keyword("AS"), _, identifier(c.alias.aliasname, f)],
   ];
 }

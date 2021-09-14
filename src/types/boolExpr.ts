@@ -3,35 +3,42 @@ import { Location, locationDecoder } from "./location";
 import { RawValue, rawValueDecoder } from "./rawExpr";
 
 export enum BoolOp {
-  "AND" = 0,
-  "OR" = 1,
-  "NOT" = 2,
+  AND_EXPR = "AND_EXPR",
+  OR_EXPR = "OR_EXPR",
+  NOT_EXPR = "NOT_EXPR",
 }
 
 export type BoolExpr =
   | {
-      boolop: BoolOp.NOT;
+      boolop: BoolOp.NOT_EXPR;
       args: [RawValue];
       location: Location;
     }
   | {
-      boolop: BoolOp.AND | BoolOp.OR;
+      boolop: BoolOp.AND_EXPR;
+      args: RawValue[];
+      location: Location;
+    }
+  | {
+      boolop: BoolOp.OR_EXPR;
       args: RawValue[];
       location: Location;
     };
 
-export const boolExprDecoder: d.Decoder<BoolExpr> = d.either(
-  d.exact({
-    boolop: d.constant(BoolOp.NOT) as d.Decoder<BoolOp.NOT>,
+export const boolExprDecoder: d.Decoder<BoolExpr> = d.dispatch("boolop", {
+  [BoolOp.NOT_EXPR]: d.exact({
+    boolop: d.constant(BoolOp.NOT_EXPR),
     args: d.tuple1((blob) => rawValueDecoder(blob)),
     location: locationDecoder,
   }),
-  d.exact({
-    boolop: d.either(
-      d.constant(BoolOp.AND) as d.Decoder<BoolOp.AND>,
-      d.constant(BoolOp.OR) as d.Decoder<BoolOp.OR>
-    ),
+  [BoolOp.AND_EXPR]: d.exact({
+    boolop: d.constant(BoolOp.AND_EXPR),
     args: d.array((blob) => rawValueDecoder(blob)),
     location: locationDecoder,
-  })
-);
+  }),
+  [BoolOp.OR_EXPR]: d.exact({
+    boolop: d.constant(BoolOp.OR_EXPR),
+    args: d.array((blob) => rawValueDecoder(blob)),
+    location: locationDecoder,
+  }),
+});

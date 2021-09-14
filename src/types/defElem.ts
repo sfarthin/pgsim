@@ -13,16 +13,20 @@ export type DefElem =
       arg?: {
         Integer: { ival: number };
       };
-      defaction: number;
+      defaction: "DEFELEM_UNSPEC";
       location: Location;
       codeComment?: string;
     }
   | {
       defname: "owned_by";
       arg: {
-        String: { str: string };
-      }[];
-      defaction: number;
+        List: {
+          items: {
+            String: { str: string };
+          }[];
+        };
+      };
+      defaction: "DEFELEM_UNSPEC";
       location: Location;
       codeComment?: string;
     };
@@ -38,14 +42,18 @@ export const defElemDecoder: d.Decoder<DefElem> = d.either(
       d.constant("cycle")
     ),
     arg: d.optional(d.exact({ Integer: d.exact({ ival: d.number }) })),
-    defaction: d.number,
+    defaction: d.constant("DEFELEM_UNSPEC"),
     location: locationDecoder,
     codeComment: d.optional(d.string),
   }),
   d.exact({
     defname: d.constant("owned_by"),
-    arg: d.array(d.exact({ String: d.exact({ str: d.string }) })),
-    defaction: d.number,
+    arg: d.exact({
+      List: d.exact({
+        items: d.array(d.exact({ String: d.exact({ str: d.string }) })),
+      }),
+    }),
+    defaction: d.constant("DEFELEM_UNSPEC"),
     location: locationDecoder,
     codeComment: d.optional(d.string),
   })

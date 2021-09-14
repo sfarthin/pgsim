@@ -27,7 +27,7 @@ export const variableSetStmt: Rule<VariableSetStmt> = transform(
     endOfStatement,
   ]),
   (v) => ({
-    kind: 0,
+    kind: "VAR_SET_VALUE",
     name: v[3],
     args: [v[7].value],
     codeComment: combineComments(

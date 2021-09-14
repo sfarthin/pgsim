@@ -2,28 +2,24 @@ import * as d from "decoders";
 import { String, stringDecoder } from "../types/constant";
 
 export type AlterOwnerStmt = {
-  objectType: number;
-  object: [{ String: String }];
+  objectType: "OBJECT_TYPE";
+  object: { List: { items: [{ String: String }] } };
   newowner: {
-    RoleSpec: {
-      roletype: number;
-      rolename: string;
-      location: number;
-    };
+    roletype: "ROLESPEC_CSTRING";
+    rolename: string;
+    location: number;
   };
   codeComment?: string;
 };
 
 // export const alterOwnerStmtDecoder =
 export const alterOwnerStmtDecoder: d.Decoder<AlterOwnerStmt> = d.exact({
-  objectType: d.number,
-  object: d.tuple1(stringDecoder),
+  objectType: d.constant("OBJECT_TYPE"),
+  object: d.exact({ List: d.exact({ items: d.tuple1(stringDecoder) }) }),
   newowner: d.exact({
-    RoleSpec: d.exact({
-      roletype: d.number,
-      rolename: d.string,
-      location: d.number,
-    }),
+    roletype: d.constant("ROLESPEC_CSTRING"),
+    rolename: d.string,
+    location: d.number,
   }),
   codeComment: d.optional(d.string),
 });

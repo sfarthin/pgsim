@@ -4,7 +4,7 @@ import { Formatter } from "./util";
 
 export default function <T>(c: TypeCast, f: Formatter<T>): T[] {
   const { literal, symbol, identifier } = f;
-  const toBoolean = c.typeName.TypeName.names?.[1]?.String.str === "bool";
+  const toBoolean = c.typeName.names?.[1]?.String.str === "bool";
   const strKeyword =
     c.arg &&
     "A_Const" in c.arg &&
@@ -28,9 +28,9 @@ export default function <T>(c: TypeCast, f: Formatter<T>): T[] {
       ...rawValue(c.arg, f).flat(),
       symbol("::"),
       identifier(
-        c.typeName.TypeName.names.length === 1
-          ? c.typeName.TypeName.names[0].String.str
-          : c.typeName.TypeName.names[1].String.str
+        c.typeName.names.length === 1
+          ? c.typeName.names[0].String.str
+          : c.typeName.names[1].String.str
       ),
     ];
   }

@@ -90,7 +90,9 @@ export function adjustPrecedence(
       const op = aExpr.name[0].String.str;
       return {
         BoolExpr: {
-          boolop: aExpr.rexpr.BoolExpr.boolop as BoolOp.OR | BoolOp.AND,
+          boolop: aExpr.rexpr.BoolExpr.boolop as
+            | BoolOp.OR_EXPR
+            | BoolOp.AND_EXPR,
           args: [
             // adjustPrecedence(
             {
@@ -166,33 +168,33 @@ export function adjustPrecedence(
     //        TRUE AND (FALSE OR TRUE)
     if (
       "BoolExpr" in boolExpr.args[1] &&
-      boolExpr.boolop === BoolOp.AND && // If Parent is AND
-      boolExpr.args[1].BoolExpr.boolop === BoolOp.OR && // Child is OR
+      boolExpr.boolop === BoolOp.AND_EXPR && // If Parent is AND
+      boolExpr.args[1].BoolExpr.boolop === BoolOp.OR_EXPR && // Child is OR
       !hasParens
     ) {
       return {
         BoolExpr: {
-          boolop: BoolOp.OR,
+          boolop: BoolOp.OR_EXPR,
           args: [
             {
               BoolExpr: {
-                boolop: BoolOp.AND,
+                boolop: BoolOp.AND_EXPR,
                 location: boolExpr.location,
                 //   const subArgs =
                 //     "BoolExpr" in v[3].value.BoolExpr.args[0] &&
-                //     v[3].value.BoolExpr.args[0].BoolExpr.boolop === BoolOp.AND
+                //     v[3].value.BoolExpr.args[0].BoolExpr.boolop === BoolOp.AND_EXPR
                 //       ? v[3].value.BoolExpr.args[0].BoolExpr.args
                 //       : [v[3].value.BoolExpr.args[0]];
                 args: condenseBoolArguments(
                   [boolExpr.args[0], boolExpr.args[1].BoolExpr.args[0]],
-                  BoolOp.AND,
+                  BoolOp.AND_EXPR,
                   false
                 ),
               },
             },
             ...condenseBoolArguments(
               boolExpr.args[1].BoolExpr.args.slice(1),
-              BoolOp.OR,
+              BoolOp.OR_EXPR,
               false
             ),
           ],

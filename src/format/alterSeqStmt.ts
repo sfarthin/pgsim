@@ -8,7 +8,7 @@ export default function alterSeqStmt<T>(
   f: Formatter<T>
 ): T[][] {
   const { keyword, _, identifier, symbol, indent } = f;
-  const name = c.sequence.RangeVar.relname;
+  const name = c.sequence.relname;
   return [
     ...comment(c.codeComment, f),
     [keyword("ALTER"), _, keyword("SEQUENCE"), _, identifier(name)],

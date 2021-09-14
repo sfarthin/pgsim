@@ -32,14 +32,12 @@ export const alterOwnerStmt: Rule<AlterOwnerStmt> = transform(
     endOfStatement, // 13
   ]),
   (v) => ({
-    objectType: 45,
-    object: [{ String: { str: v[5] } }],
+    objectType: "OBJECT_TYPE",
+    object: { List: { items: [{ String: { str: v[5] } }] } },
     newowner: {
-      RoleSpec: {
-        roletype: 0,
-        rolename: v[11].value,
-        location: v[11].pos,
-      },
+      roletype: "ROLESPEC_CSTRING",
+      rolename: v[11].value,
+      location: v[11].pos,
     },
     codeComment: combineComments(
       v[0],

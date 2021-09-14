@@ -4,7 +4,7 @@ import toConstraints, { toTableConstraint } from "./constraint";
 import { Formatter, addToLastLine } from "./util";
 
 export function toType(columnDef: ColumnDef): string {
-  const names = (columnDef.typeName.TypeName.names as any)
+  const names = (columnDef.typeName.names as any)
     .map((s: any) => s.String.str)
     .filter((s: any) => s !== "pg_catalog");
 
@@ -13,12 +13,12 @@ export function toType(columnDef: ColumnDef): string {
   }
 
   const referencesCatalog =
-    columnDef.typeName.TypeName.names[0].String.str === "pg_catalog";
+    columnDef.typeName.names[0].String.str === "pg_catalog";
 
   const name = names[0];
 
   const typeWithParam = (t: string): string => {
-    const val = columnDef.typeName.TypeName.typmods?.[0].A_Const.val;
+    const val = columnDef.typeName.typmods?.[0].A_Const.val;
     const size = (val && "Integer" in val && val.Integer.ival) ?? null;
     if (!size) {
       return `${t}`;
@@ -108,15 +108,15 @@ export function toType(columnDef: ColumnDef): string {
       }
 
     case "bpchar": {
-      const c = columnDef.typeName.TypeName.typmods?.[0].A_Const;
-      const val = columnDef.typeName.TypeName.typmods?.[0].A_Const.val;
+      const c = columnDef.typeName.typmods?.[0].A_Const;
+      const val = columnDef.typeName.typmods?.[0].A_Const.val;
       const size = (val && "Integer" in val && val.Integer.ival) ?? null;
       const param = c?.location === -1 || size === 1 ? "" : `(${size})`;
 
       return `char${param}`;
     }
     case "interval": {
-      const val = columnDef.typeName.TypeName.typmods?.[0].A_Const.val;
+      const val = columnDef.typeName.typmods?.[0].A_Const.val;
       const size = (val && "Integer" in val && val.Integer.ival) ?? null;
 
       if (size === 1032) {
@@ -126,8 +126,8 @@ export function toType(columnDef: ColumnDef): string {
     }
     case "decimal": // variable	user-specified precision, exact	up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
     case "numeric": // variable	user-specified precision, exact	up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
-      const val1 = columnDef.typeName.TypeName.typmods?.[0].A_Const.val;
-      const val2 = columnDef.typeName.TypeName.typmods?.[1]?.A_Const.val;
+      const val1 = columnDef.typeName.typmods?.[0].A_Const.val;
+      const val2 = columnDef.typeName.typmods?.[1]?.A_Const.val;
       const size1 = (val1 && "Integer" in val1 && val1.Integer.ival) ?? null;
       const size2 = (val2 && "Integer" in val2 && val2.Integer.ival) ?? null;
 
@@ -183,8 +183,8 @@ export function toColumn<T>(columnDef: ColumnDef, f: Formatter<T>): T[][] {
 
 export default function <T>(createStmt: CreateStmt, f: Formatter<T>): T[][] {
   const { keyword, symbol, _, identifier, indent } = f;
-  const tableName = createStmt.relation.RangeVar.relname;
-  const schemaname = createStmt.relation.RangeVar.schemaname;
+  const tableName = createStmt.relation.relname;
+  const schemaname = createStmt.relation.schemaname;
 
   const columnDefs = (
     createStmt.tableElts?.map((t) => ("ColumnDef" in t ? t.ColumnDef : null)) ??

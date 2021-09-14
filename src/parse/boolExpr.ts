@@ -21,7 +21,7 @@ export const notBoolExpr: Rule<{
   return {
     value: {
       BoolExpr: {
-        boolop: BoolOp.NOT,
+        boolop: BoolOp.NOT_EXPR,
         args: [v[2].value],
         location: ctx.pos,
       },
@@ -38,7 +38,7 @@ export const boolConnection = (ctx: Context) =>
         value: adjustPrecedence(
           {
             BoolExpr: {
-              boolop: v[1].value === "AND" ? BoolOp.AND : BoolOp.OR,
+              boolop: v[1].value === "AND" ? BoolOp.AND_EXPR : BoolOp.OR_EXPR,
               args: [c1.value, v[3].value],
               location: v[1].start,
             },

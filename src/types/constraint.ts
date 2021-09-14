@@ -3,7 +3,6 @@ import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { String, stringDecoder } from "./constant";
 import { RawValue, rawValueDecoder } from "./rawExpr";
 import { Location, locationDecoder } from "./location";
-import { dispatchByField } from "./dispatch";
 
 export enum ConType {
   NULL = "CONSTR_NULL",
@@ -205,19 +204,16 @@ export type Constraint =
   | ReferenceConstraint
   | CheckConstraint;
 
-export const constraintDecoder: d.Decoder<Constraint> = dispatchByField(
-  "contype",
-  {
-    [ConType.NULL]: nullConstraintDecoder,
-    [ConType.NOT_NULL]: notNullConstraintDecoder,
-    [ConType.DEFAULT]: defaultConstraintDecoder,
-    [ConType.UNIQUE]: uniqueConstraintDecoder,
-    [ConType.PRIMARY_KEY]: primaryKeyConstraintDecoder,
-    [ConType.EXCLUSION]: referenceConstraint,
-    [ConType.FOREIGN_KEY]: foreignKeyConstraint,
-    [ConType.CHECK]: CheckConstraintDecoder,
-  }
-);
+export const constraintDecoder: d.Decoder<Constraint> = d.dispatch("contype", {
+  [ConType.NULL]: nullConstraintDecoder,
+  [ConType.NOT_NULL]: notNullConstraintDecoder,
+  [ConType.DEFAULT]: defaultConstraintDecoder,
+  [ConType.UNIQUE]: uniqueConstraintDecoder,
+  [ConType.PRIMARY_KEY]: primaryKeyConstraintDecoder,
+  [ConType.EXCLUSION]: referenceConstraint,
+  [ConType.FOREIGN_KEY]: foreignKeyConstraint,
+  [ConType.CHECK]: CheckConstraintDecoder,
+});
 
 export function isPrimaryKey(
   constraints: { Constraint: Constraint }[] | void

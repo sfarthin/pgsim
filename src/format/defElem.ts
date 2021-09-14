@@ -4,10 +4,10 @@ import { Formatter } from "./util";
 export default function defElem<T>(defElem: DefElem, f: Formatter<T>): T[] {
   const { identifier, symbol, keyword, _, number } = f;
   if (defElem.defname === "owned_by") {
-    const hasTable = defElem.arg.length === 2;
-    if (hasTable) {
-      const tableName = defElem.arg[0].String.str;
-      const colName = defElem.arg[1].String.str;
+    const list = "List" in defElem.arg ? defElem.arg.List.items : [];
+    if (list.length === 2) {
+      const tableName = list[0].String.str;
+      const colName = list[1].String.str;
       return [
         keyword("OWNED"),
         _,
