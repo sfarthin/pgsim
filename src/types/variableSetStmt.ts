@@ -1,6 +1,5 @@
-import { Decoder, boolean, exact, string, number, optional } from "decoders";
+import * as d from "decoders";
 import { A_Const, aConstDecoder } from "./constant";
-import { tuple1 } from "./tuple1";
 
 export type VariableSetStmt = {
   kind: number;
@@ -10,10 +9,10 @@ export type VariableSetStmt = {
   codeComment?: string;
 };
 
-export const variableSetStmtDecoder: Decoder<VariableSetStmt> = exact({
-  kind: number,
-  name: string,
-  args: optional(tuple1(exact({ A_Const: aConstDecoder }))),
-  is_local: optional(boolean),
-  codeComment: optional(string),
+export const variableSetStmtDecoder: d.Decoder<VariableSetStmt> = d.exact({
+  kind: d.number,
+  name: d.string,
+  args: d.optional(d.tuple1(d.exact({ A_Const: aConstDecoder }))),
+  is_local: d.optional(d.boolean),
+  codeComment: d.optional(d.string),
 });

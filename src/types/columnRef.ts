@@ -1,5 +1,4 @@
-import { exact, Decoder, either4, tuple2 } from "decoders";
-import { tuple1 } from "./tuple1";
+import * as d from "decoders";
 import { String, stringDecoder, A_Star, starDecoder } from "./constant";
 import { Location, locationDecoder } from "./location";
 
@@ -12,12 +11,12 @@ export type ColumnRef = {
   location: Location;
 };
 
-export const columnRefDecoder: Decoder<ColumnRef> = exact({
-  fields: either4(
-    tuple1(starDecoder),
-    tuple1(stringDecoder),
-    tuple2(stringDecoder, stringDecoder),
-    tuple2(stringDecoder, starDecoder)
+export const columnRefDecoder: d.Decoder<ColumnRef> = d.exact({
+  fields: d.either4(
+    d.tuple1(starDecoder),
+    d.tuple1(stringDecoder),
+    d.tuple2(stringDecoder, stringDecoder),
+    d.tuple2(stringDecoder, starDecoder)
   ),
   location: locationDecoder,
 });

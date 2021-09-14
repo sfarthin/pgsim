@@ -1,4 +1,4 @@
-import { optional, exact, string, Decoder, array } from "decoders";
+import * as d from "decoders";
 import { String, stringDecoder } from "./constant";
 
 export type Alias = {
@@ -22,7 +22,7 @@ export type Alias = {
   colnames?: { String: String }[];
 };
 
-export const aliasDecoder: Decoder<Alias> = exact({
-  aliasname: string,
-  colnames: optional(array(stringDecoder)),
+export const aliasDecoder: d.Decoder<Alias> = d.exact({
+  aliasname: d.string,
+  colnames: d.optional(d.array(stringDecoder)),
 });

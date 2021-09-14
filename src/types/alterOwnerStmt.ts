@@ -1,5 +1,4 @@
 import * as d from "decoders";
-import { tuple1 } from "./tuple1";
 import { String, stringDecoder } from "../types/constant";
 
 export type AlterOwnerStmt = {
@@ -18,7 +17,7 @@ export type AlterOwnerStmt = {
 // export const alterOwnerStmtDecoder =
 export const alterOwnerStmtDecoder: d.Decoder<AlterOwnerStmt> = d.exact({
   objectType: d.number,
-  object: tuple1(stringDecoder),
+  object: d.tuple1(stringDecoder),
   newowner: d.exact({
     RoleSpec: d.exact({
       roletype: d.number,

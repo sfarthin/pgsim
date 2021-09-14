@@ -1,16 +1,6 @@
-import {
-  exact,
-  Decoder,
-  constant,
-  string,
-  boolean,
-  optional,
-  array,
-  either5,
-} from "decoders";
+import * as d from "decoders";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { String, stringDecoder } from "./constant";
-import { tuple1 } from "./tuple1";
 import { RawValue, rawValueDecoder } from "./rawExpr";
 import { Location, locationDecoder } from "./location";
 import { dispatchByField } from "./dispatch";
@@ -35,8 +25,8 @@ export type NullConstraint = {
   location: Location;
 };
 
-export const nullConstraintDecoder: Decoder<NullConstraint> = exact({
-  contype: constant(ConType.NULL) as Decoder<ConType.NULL>,
+export const nullConstraintDecoder: d.Decoder<NullConstraint> = d.exact({
+  contype: d.constant(ConType.NULL),
   location: locationDecoder,
 });
 
@@ -50,12 +40,12 @@ export type PrimaryKeyConstraint = {
   keys?: { String: String }[];
 };
 
-export const primaryKeyConstraintDecoder: Decoder<PrimaryKeyConstraint> = exact(
+export const primaryKeyConstraintDecoder: d.Decoder<PrimaryKeyConstraint> = d.exact(
   {
-    contype: constant(ConType.PRIMARY_KEY) as Decoder<ConType.PRIMARY_KEY>,
+    contype: d.constant(ConType.PRIMARY_KEY),
     location: locationDecoder,
-    conname: optional(string),
-    keys: optional(array(stringDecoder)),
+    conname: d.optional(d.string),
+    keys: d.optional(d.array(stringDecoder)),
   }
 );
 
@@ -67,8 +57,8 @@ export type NotNullConstraint = {
   location: Location;
 };
 
-export const notNullConstraintDecoder: Decoder<NotNullConstraint> = exact({
-  contype: constant(ConType.NOT_NULL) as Decoder<ConType.NOT_NULL>,
+export const notNullConstraintDecoder: d.Decoder<NotNullConstraint> = d.exact({
+  contype: d.constant(ConType.NOT_NULL) as d.Decoder<ConType.NOT_NULL>,
   location: locationDecoder,
 });
 
@@ -81,8 +71,8 @@ export type DefaultConstraint = {
   raw_expr: RawValue;
 };
 
-export const defaultConstraintDecoder: Decoder<DefaultConstraint> = exact({
-  contype: constant(ConType.DEFAULT) as Decoder<ConType.DEFAULT>,
+export const defaultConstraintDecoder: d.Decoder<DefaultConstraint> = d.exact({
+  contype: d.constant(ConType.DEFAULT) as d.Decoder<ConType.DEFAULT>,
   location: locationDecoder,
   raw_expr: (blob) => rawValueDecoder(blob),
 });
@@ -98,11 +88,11 @@ export type UniqueConstraint = {
   keys?: { String: String }[];
 };
 
-export const uniqueConstraintDecoder = exact({
-  contype: constant(ConType.UNIQUE) as Decoder<ConType.UNIQUE>,
+export const uniqueConstraintDecoder = d.exact({
+  contype: d.constant(ConType.UNIQUE) as d.Decoder<ConType.UNIQUE>,
   location: locationDecoder,
-  conname: optional(string),
-  keys: optional(tuple1(stringDecoder)),
+  conname: d.optional(d.string),
+  keys: d.optional(d.tuple1(stringDecoder)),
 });
 
 /**
@@ -125,27 +115,27 @@ export type ForeignKeyConstraint = {
   codeComment?: string;
 };
 
-const actionDecoders = either5(
-  constant("r") as Decoder<"r">,
-  constant("c") as Decoder<"c">,
-  constant("n") as Decoder<"n">,
-  constant("a") as Decoder<"a">,
-  constant("d") as Decoder<"d">
+const actionDecoders = d.either5(
+  d.constant("r"),
+  d.constant("c"),
+  d.constant("n"),
+  d.constant("a"),
+  d.constant("d")
 );
 
-export const foreignKeyConstraint: Decoder<ForeignKeyConstraint> = exact({
-  contype: constant(ConType.FOREIGN_KEY) as Decoder<ConType.FOREIGN_KEY>,
+export const foreignKeyConstraint: d.Decoder<ForeignKeyConstraint> = d.exact({
+  contype: d.constant(ConType.FOREIGN_KEY),
   location: locationDecoder,
-  fk_upd_action: optional(actionDecoders),
-  fk_del_action: optional(actionDecoders),
-  fk_matchtype: string,
-  initially_valid: boolean,
-  pktable: exact({
+  fk_upd_action: d.optional(actionDecoders),
+  fk_del_action: d.optional(actionDecoders),
+  fk_matchtype: d.string,
+  initially_valid: d.boolean,
+  pktable: d.exact({
     RangeVar: rangeVarDecoder,
   }),
-  pk_attrs: optional(array(stringDecoder)),
-  conname: optional(string),
-  fk_attrs: optional(array(stringDecoder)),
+  pk_attrs: d.optional(d.array(stringDecoder)),
+  conname: d.optional(d.string),
+  fk_attrs: d.optional(d.array(stringDecoder)),
 });
 
 /**
@@ -168,19 +158,19 @@ export type ReferenceConstraint = {
   codeComment?: string;
 };
 
-export const referenceConstraint: Decoder<ReferenceConstraint> = exact({
-  contype: constant(ConType.REFERENCE) as Decoder<ConType.REFERENCE>,
+export const referenceConstraint: d.Decoder<ReferenceConstraint> = d.exact({
+  contype: d.constant(ConType.REFERENCE),
   location: locationDecoder,
-  fk_upd_action: string,
-  fk_del_action: string,
-  fk_matchtype: string,
-  initially_valid: boolean,
-  pktable: exact({
+  fk_upd_action: d.string,
+  fk_del_action: d.string,
+  fk_matchtype: d.string,
+  initially_valid: d.boolean,
+  pktable: d.exact({
     RangeVar: rangeVarDecoder,
   }),
-  pk_attrs: optional(array(stringDecoder)),
-  conname: optional(string),
-  fk_attrs: optional(array(stringDecoder)),
+  pk_attrs: d.optional(d.array(stringDecoder)),
+  conname: d.optional(d.string),
+  fk_attrs: d.optional(d.array(stringDecoder)),
 });
 
 /**
@@ -196,13 +186,13 @@ export type CheckConstraint = {
   initially_valid?: boolean;
 };
 
-export const CheckConstraintDecoder: Decoder<CheckConstraint> = exact({
-  contype: constant(ConType.CHECK) as Decoder<ConType.CHECK>,
-  conname: string,
+export const CheckConstraintDecoder: d.Decoder<CheckConstraint> = d.exact({
+  contype: d.constant(ConType.CHECK),
+  conname: d.string,
   location: locationDecoder,
   raw_expr: rawValueDecoder,
-  skip_validation: optional(boolean),
-  initially_valid: optional(boolean),
+  skip_validation: d.optional(d.boolean),
+  initially_valid: d.optional(d.boolean),
 });
 
 export type Constraint =
@@ -215,7 +205,7 @@ export type Constraint =
   | ReferenceConstraint
   | CheckConstraint;
 
-export const constraintDecoder: Decoder<Constraint> = dispatchByField(
+export const constraintDecoder: d.Decoder<Constraint> = dispatchByField(
   "contype",
   {
     [ConType.NULL]: nullConstraintDecoder,

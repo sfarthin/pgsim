@@ -1,6 +1,5 @@
 import * as d from "decoders";
 import { stringDecoder, A_Const, aConstDecoder } from "./constant";
-import { tuple1, tuple2 } from "./tuple1";
 import { Location, locationDecoder } from "./location";
 
 // https://www.postgresql.org/docs/9.5/datatype.html
@@ -333,14 +332,18 @@ export type TypeName = {
 };
 
 export const typeNameDecoder: d.Decoder<TypeName> = d.exact({
-  names: d.either(tuple1(stringDecoder), tuple2(stringDecoder)) as d.Decoder<
-    TypeName["names"]
-  >,
+  names: d.either(
+    d.tuple1(stringDecoder),
+    d.tuple2(stringDecoder, stringDecoder)
+  ) as d.Decoder<TypeName["names"]>,
   typemod: d.number,
   typmods: d.optional(
     d.either(
-      tuple1(d.exact({ A_Const: aConstDecoder })),
-      tuple2(d.exact({ A_Const: aConstDecoder }))
+      d.tuple1(d.exact({ A_Const: aConstDecoder })),
+      d.tuple2(
+        d.exact({ A_Const: aConstDecoder }),
+        d.exact({ A_Const: aConstDecoder })
+      )
     )
   ),
   location: locationDecoder,

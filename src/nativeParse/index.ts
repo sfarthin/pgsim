@@ -1,20 +1,20 @@
-import { optional, array, string, guard, exact, unknown } from "decoders";
+import * as d from "decoders";
 import { stmtDecoder, Stmt } from "../types";
 // @ts-expect-error
 import { parse as pgParse } from "pg-query-native-latest";
 import { toLineAndColumn } from "../parse/error";
 import { NEWLINE } from "../format/util";
 
-export const parserResultDecoder = exact({
+export const parserResultDecoder = d.exact({
   // This is unknown because Error messages are hard to read if we do this here, we validate each query seperately
-  query: array(unknown),
-  stderr: optional(string),
-  error: optional(unknown),
+  query: d.array(d.unknown),
+  stderr: d.optional(d.string),
+  error: d.optional(d.unknown),
 });
 
 export default function parse(sql: string, filename: string): Stmt[] {
   const unsafeResult = pgParse(sql);
-  const { query: queries, stderr, error } = guard(parserResultDecoder)(
+  const { query: queries, stderr, error } = d.guard(parserResultDecoder)(
     unsafeResult
   );
 
@@ -30,8 +30,9 @@ export default function parse(sql: string, filename: string): Stmt[] {
 
   return queries.map((s: any) => {
     try {
-      return guard(stmtDecoder)(s);
-    } catch (e) {
+      return d.guard(stmtDecoder)(s);
+    } catch (_e) {
+      const e = _e as { message: string };
       const startAst = s.RawStmt.stmt_location ?? 0;
       const endAst = s.RawStmt.stmt_len ?? 99999;
       const originalSql = sql.substring(startAst, startAst + endAst);

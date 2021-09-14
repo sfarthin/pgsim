@@ -1,13 +1,4 @@
-import { tuple1 } from "./tuple1";
-import {
-  number,
-  Decoder,
-  exact,
-  constant,
-  either,
-  boolean,
-  optional,
-} from "decoders";
+import * as d from "decoders";
 import { String, stringDecoder } from "./constant";
 import { TypeName, typeNameDecoder } from "./typeName";
 
@@ -15,6 +6,7 @@ export enum RemoveType {
   SEQUENCE = 33,
   TABLE = 37,
   TYPE = 45,
+  VIEW = 47,
 }
 
 export type DropStmtSequence = {
@@ -24,6 +16,26 @@ export type DropStmtSequence = {
   codeComment?: string;
   missing_ok?: boolean;
 };
+const dropStmtSequenceDecoder: d.Decoder<DropStmtSequence> = d.exact({
+  objects: d.tuple1(d.tuple1(stringDecoder)),
+  removeType: d.constant(RemoveType.SEQUENCE),
+  behavior: d.number,
+  missing_ok: d.optional(d.boolean),
+});
+
+export type DropStmtView = {
+  objects: [[{ String: String }]];
+  removeType: RemoveType.VIEW;
+  behavior: number;
+  codeComment?: string;
+  missing_ok?: boolean;
+};
+const dropStmtViewDecoder: d.Decoder<DropStmtView> = d.exact({
+  objects: d.tuple1(d.tuple1(stringDecoder)),
+  removeType: d.constant(RemoveType.VIEW),
+  behavior: d.number,
+  missing_ok: d.optional(d.boolean),
+});
 
 export type DropStmtTable = {
   objects: [[{ String: String }]];
@@ -32,6 +44,12 @@ export type DropStmtTable = {
   codeComment?: string;
   missing_ok?: boolean;
 };
+const dropStmtTableDecoder: d.Decoder<DropStmtTable> = d.exact({
+  objects: d.tuple1(d.tuple1(stringDecoder)),
+  removeType: d.constant(RemoveType.TABLE),
+  behavior: d.number,
+  missing_ok: d.optional(d.boolean),
+});
 
 export type DropStmtType = {
   objects: [{ TypeName: TypeName }];
@@ -40,23 +58,22 @@ export type DropStmtType = {
   codeComment?: string;
   missing_ok?: boolean;
 };
+const dropStmtTypeDecoder: d.Decoder<DropStmtType> = d.exact({
+  objects: d.tuple1(d.exact({ TypeName: typeNameDecoder })),
+  removeType: d.constant(RemoveType.TYPE),
+  behavior: d.number,
+  missing_ok: d.optional(d.boolean),
+});
 
-export type DropStmt = DropStmtSequence | DropStmtType | DropStmtTable;
+export type DropStmt =
+  | DropStmtSequence
+  | DropStmtType
+  | DropStmtTable
+  | DropStmtView;
 
-export const dropStmtDecoder: Decoder<DropStmt> = either(
-  exact({
-    objects: tuple1(tuple1(stringDecoder)),
-    removeType: either(
-      constant(RemoveType.SEQUENCE) as Decoder<RemoveType.SEQUENCE>,
-      constant(RemoveType.TABLE) as Decoder<RemoveType.TABLE>
-    ),
-    behavior: number,
-    missing_ok: optional(boolean),
-  }),
-  exact({
-    objects: tuple1(exact({ TypeName: typeNameDecoder })),
-    removeType: constant(RemoveType.TYPE) as Decoder<RemoveType.TYPE>,
-    behavior: number,
-    missing_ok: optional(boolean),
-  })
+export const dropStmtDecoder: d.Decoder<DropStmt> = d.either4(
+  dropStmtSequenceDecoder,
+  dropStmtTypeDecoder,
+  dropStmtViewDecoder,
+  dropStmtTableDecoder
 );

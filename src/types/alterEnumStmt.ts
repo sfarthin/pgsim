@@ -1,5 +1,4 @@
 import * as d from "decoders";
-import { tuple1 } from "./tuple1";
 
 export type AlterEnumStmt =
   | {
@@ -31,14 +30,14 @@ export type AlterEnumStmt =
 
 export const alterEnumStmtDecoder: d.Decoder<AlterEnumStmt> = d.either(
   d.exact({
-    typeName: tuple1(d.exact({ String: d.exact({ str: d.string }) })),
+    typeName: d.tuple1(d.exact({ String: d.exact({ str: d.string }) })),
     newVal: d.string,
     newValIsAfter: d.optional(d.boolean),
     newValNeighbor: d.optional(d.string),
     skipIfNewValExists: d.optional(d.boolean),
   }),
   d.exact({
-    typeName: tuple1(d.exact({ String: d.exact({ str: d.string }) })),
+    typeName: d.tuple1(d.exact({ String: d.exact({ str: d.string }) })),
     newVal: d.string,
     oldVal: d.string,
   })

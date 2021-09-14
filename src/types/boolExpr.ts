@@ -1,5 +1,4 @@
 import * as d from "decoders";
-import { tuple1 } from "decoders/tuple";
 import { Location, locationDecoder } from "./location";
 import { RawValue, rawValueDecoder } from "./rawExpr";
 
@@ -24,7 +23,7 @@ export type BoolExpr =
 export const boolExprDecoder: d.Decoder<BoolExpr> = d.either(
   d.exact({
     boolop: d.constant(BoolOp.NOT) as d.Decoder<BoolOp.NOT>,
-    args: tuple1((blob) => rawValueDecoder(blob)),
+    args: d.tuple1((blob) => rawValueDecoder(blob)),
     location: locationDecoder,
   }),
   d.exact({
