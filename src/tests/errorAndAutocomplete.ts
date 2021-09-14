@@ -1,7 +1,7 @@
 import { json as assertNoDiff } from "assert-no-diff";
 import c from "ansi-colors";
 import parse from "../parse";
-import nParse from "../nativeParse";
+import nParse from "./nativeParse";
 import { join, basename } from "path";
 import { lstatSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import { NEWLINE } from "../format/util";
@@ -54,7 +54,7 @@ export default function errorAndAutocomplete(
     try {
       nParse(brokenStatementSql, filename);
     } catch (e) {
-      nativeError = e;
+      nativeError = e as Error;
     }
     if (!nativeError) {
       throw new Error(
@@ -71,7 +71,7 @@ export default function errorAndAutocomplete(
     try {
       parse(brokenStatementSql, filename);
     } catch (e) {
-      error = e;
+      error = e as Error & { result: FailResult };
     }
     if (!error) {
       throw new Error(

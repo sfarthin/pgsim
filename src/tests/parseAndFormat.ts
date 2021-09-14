@@ -1,6 +1,6 @@
 import parse, { parseComments } from "../parse";
 import { toLineAndColumn, findNextToken } from "../parse/error";
-import nParse from "../nativeParse";
+import nParse from "./nativeParse";
 import format from "../format";
 import { Stmt } from "../types";
 import { join, basename } from "path";
@@ -174,7 +174,8 @@ export default function parseAndFormat(
   let formattedAst;
   try {
     formattedAst = parse(formattedSql, basename(filename));
-  } catch (e) {
+  } catch (_e) {
+    const e = _e as Error;
     console.log(formattedSql);
     e.name = `Format provided invalid SQL`;
     throw e;
