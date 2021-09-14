@@ -62,3 +62,14 @@ FROM
 	bar
 WHERE
 	foo.bar_id = bar.id;
+
+SELECT
+	*
+FROM
+	foo,
+	bar
+WHERE
+	foo.table_schema = bar.table_schema AND
+	foo.table_name = bar.table_name AND
+	foo.constraint_name = bar.constraint_name AND
+	foo.constraint_type = 'PRIMARY KEY';

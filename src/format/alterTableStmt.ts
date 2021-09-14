@@ -4,6 +4,7 @@ import { rawValue } from "./rawExpr";
 import { toType } from "./createStmt";
 import toConstraints from "./constraint";
 import { Formatter } from "./util";
+import rangeVar from "./rangeVar";
 
 function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
   const { keyword, _, identifier, number } = f;
@@ -49,8 +50,7 @@ export default function alterSeqStmt<T>(
   c: AlterTableStmt,
   f: Formatter<T>
 ): T[][] {
-  const { indent, keyword, _, identifier, symbol } = f;
-  const name = c.relation.RangeVar.relname;
+  const { indent, keyword, _, symbol } = f;
 
   return [
     ...comment(c.codeComment, f),
@@ -61,7 +61,7 @@ export default function alterSeqStmt<T>(
       ...(c.missing_ok ? [_, keyword("IF"), _, keyword("EXISTS")] : []),
       ...(!c.relation.RangeVar.inh ? [_, keyword("ONLY")] : []),
       _,
-      identifier(name),
+      ...rangeVar(c.relation.RangeVar, f),
     ],
     ...indent(
       c.cmds

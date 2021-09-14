@@ -12,6 +12,7 @@ true;
 
 select 1 as Foo;
 select 1 as "Foo";
+SELECT foo FROM "public"."foo";
 
 -- one-off
 SELECT pg_catalog.set_config('search_path', '', false);

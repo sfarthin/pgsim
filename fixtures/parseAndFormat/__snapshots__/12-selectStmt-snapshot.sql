@@ -24,6 +24,11 @@ SELECT
 SELECT
 	1 AS "Foo";
 
+SELECT
+	foo
+FROM
+	public.foo;
+
 -- one-off
 SELECT
 	pg_catalog.set_config('search_path', '', FALSE);

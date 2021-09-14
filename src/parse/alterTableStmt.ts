@@ -34,7 +34,7 @@ export const alterTableStmt: Rule<AlterTableStmt> = transform(
     transform(
       sequence([optional(sequence([identifier, PERIOD])), identifier]),
       (v, ctx) => ({
-        ...(v[0] ? { schemaname: v[0][0] } : {}),
+        ...(v[0]?.[0] ? { schemaname: v[0][0] } : {}),
         relname: v[1],
         relpersistence: "p" as const,
         location: ctx.pos,

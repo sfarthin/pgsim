@@ -1,7 +1,7 @@
 ALTER TABLE ONLY accounts
 	ALTER id SET DEFAULT 1;
 
-ALTER TABLE accounts
+ALTER TABLE public.accounts
 	ALTER id SET DEFAULT '1';
 
 ALTER TABLE IF EXISTS accounts

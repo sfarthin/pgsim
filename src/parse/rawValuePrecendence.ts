@@ -102,7 +102,7 @@ export function adjustPrecedence(
                 location: aExpr.location,
               },
             },
-            aExpr.rexpr.BoolExpr.args[1],
+            ...aExpr.rexpr.BoolExpr.args.slice(1),
             //   { hasParens: false }
             // ),
           ],
