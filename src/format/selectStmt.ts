@@ -50,16 +50,19 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
         [keyword("FROM")],
         ...indent(
           c.fromClause.flatMap((v, i) => {
+            const commaSepatation =
+              i === (c.fromClause?.length ?? 0) - 1 ? [] : [symbol(",")];
+
             if ("RangeVar" in v) {
               return [
                 ...comment(c.codeComments?.fromClause?.[i], f),
-                rangeVar(v.RangeVar, f),
+                rangeVar(v.RangeVar, f).concat(commaSepatation),
               ];
             }
             if ("JoinExpr" in v) {
               return [
                 ...comment(c.codeComments?.fromClause?.[i], f),
-                ...joinExpr(v.JoinExpr, f),
+                ...joinExpr(v.JoinExpr, f).concat(commaSepatation),
               ];
             }
             return [];

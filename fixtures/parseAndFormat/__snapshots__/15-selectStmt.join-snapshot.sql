@@ -54,3 +54,11 @@ FROM
 		ON (
 			1 = 1
 		);
+
+SELECT
+	*
+FROM
+	foo,
+	bar
+WHERE
+	foo.bar_id = bar.id;

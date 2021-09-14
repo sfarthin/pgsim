@@ -74,12 +74,26 @@ const where = transform(
   })
 );
 
-const fromClause = oneToMany(or([joinExpr, rangeVar]));
+const fromClause = transform(
+  sequence([
+    or([joinExpr, rangeVar]),
+    zeroToMany(sequence([COMMA, __, or([joinExpr, rangeVar])])),
+  ]),
+  (v) => {
+    return {
+      value: [v[0].value, ...v[1].map((n) => n[2].value)],
+      codeComments: [
+        v[0].codeComment,
+        ...v[1].flatMap((n) => [n[1], n[2].codeComment]),
+      ],
+    };
+  }
+);
 
 const from = transform(
   sequence([FROM, __, fromClause, __, optional(where)]),
   (v) => {
-    let f = v[2].map((r) => r.codeComment);
+    let f = v[2].codeComments;
 
     // Extends codeComment in first case.
     f = [combineComments(v[1], f[0]), ...f.slice(1)];
@@ -88,7 +102,7 @@ const from = transform(
     f = [...f.slice(0, -1), combineComments(v[3], f[f.length - 1])];
 
     return {
-      fromClause: v[2].map((r) => r.value),
+      fromClause: v[2].value,
       ...v[4],
       codeComments: {
         whereClause: v[4]?.codeComments.whereClause,

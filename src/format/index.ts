@@ -97,7 +97,8 @@ export default function format(_stmts: Stmt[] | string, opts?: Opts): string {
     .map((stmt) => {
       try {
         return f.concat(formatStmt(stmt, f, opts));
-      } catch (e) {
+      } catch (_e) {
+        const e = _e as { name?: string; message?: string };
         const errorType = e.name === "Error" ? "" : `(${e.name})`;
         if (opts?.filename && opts?.sql) {
           // Lets skip over any comments
