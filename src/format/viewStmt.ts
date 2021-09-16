@@ -13,7 +13,7 @@ export default function viewStmt<T>(c: ViewStmt, f: Formatter<T>): T[][] {
       _,
       keyword("VIEW"),
       _,
-      identifier(c.view.RangeVar.relname),
+      identifier(c.view.relname),
       _,
       keyword("AS"),
       _,

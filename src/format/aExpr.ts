@@ -2,6 +2,7 @@ import { AExpr, AExprKind, RawValue } from "../types";
 import { rawValue } from "./rawExpr";
 import { Formatter, join } from "./util";
 import { getPrecedence } from "../parse/aExpr";
+import { list } from "./list";
 
 function doesSecondConditionNeedParens(c: AExpr) {
   if (!c.lexpr || !c.rexpr) {
@@ -82,7 +83,8 @@ export default function aExpr<T>(
     }
   } else {
     const condition = rawValue(c.lexpr, f);
-    const rexpr = [...c.rexpr.map((r) => rawValue(r, f)).flat()];
+    const rexpr = list(c.rexpr.List, (r) => rawValue(r, f)).flat();
+
     const rexprWithCommas = rexpr.map((l, i) =>
       i === rexpr.length - 1 ? l : l.concat(symbol(","))
     );

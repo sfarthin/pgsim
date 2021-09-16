@@ -32,12 +32,10 @@ export const viewStmt: Rule<ViewStmt> = transform(
   ]),
   (v) => ({
     view: {
-      RangeVar: {
-        relname: v[5].value,
-        relpersistence: "p",
-        location: v[5].pos,
-        inh: true,
-      },
+      relname: v[5].value,
+      relpersistence: "p",
+      location: v[5].pos,
+      inh: true,
     },
     query: {
       SelectStmt: {
@@ -52,7 +50,7 @@ export const viewStmt: Rule<ViewStmt> = transform(
         ),
       },
     },
-    withCheckOption: 0,
+    withCheckOption: "NO_CHECK_OPTION",
     codeComment: combineComments(v[0], v[2], v[4], v[6]),
   })
 );

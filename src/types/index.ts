@@ -50,6 +50,7 @@ export * from "./variableSetStmt";
 export * from "./viewStmt";
 export * from "./rowExpr";
 export * from "./renameStmt";
+export * from "./list";
 
 export type Stmt = {
   stmt_len?: number;

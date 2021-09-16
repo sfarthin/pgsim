@@ -9,10 +9,10 @@ export enum JoinType {
    * The canonical kinds of joins according to the SQL JOIN syntax. Only
    * these codes can appear in parser output (e.g., JoinExpr nodes).
    */
-  JOIN_INNER = 0 /* matching tuple pairs only */,
-  JOIN_LEFT = 1 /* pairs + unmatched LHS tuples */,
-  JOIN_FULL = 2 /* pairs + unmatched LHS + unmatched RHS */,
-  JOIN_RIGHT = 3 /* pairs + unmatched RHS tuples */,
+  JOIN_INNER = "JOIN_INNER" /* matching tuple pairs only */,
+  JOIN_LEFT = "JOIN_LEFT" /* pairs + unmatched LHS tuples */,
+  JOIN_FULL = "JOIN_FULL" /* pairs + unmatched LHS + unmatched RHS */,
+  JOIN_RIGHT = "JOIN_RIGHT" /* pairs + unmatched RHS tuples */,
 }
 
 export type JoinExpr = {

@@ -3,15 +3,15 @@ import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { SelectStmt, selectStmtDecoder } from "./selectStmt";
 
 export type ViewStmt = {
-  view: { RangeVar: RangeVar };
+  view: RangeVar;
   query: { SelectStmt: SelectStmt };
-  withCheckOption: number;
+  withCheckOption: "NO_CHECK_OPTION";
   codeComment?: string;
 };
 
 export const viewStmtDecoder = d.exact({
-  view: d.exact({ RangeVar: rangeVarDecoder }),
+  view: rangeVarDecoder,
   query: d.exact({ SelectStmt: selectStmtDecoder }),
-  withCheckOption: d.number,
+  withCheckOption: d.constant("NO_CHECK_OPTION"),
   codeComment: d.optional(d.string),
 });

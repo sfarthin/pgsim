@@ -30,7 +30,7 @@ export const rowExpr: Rule<{
       value: {
         RowExpr: {
           args: [v[2].value, ...args],
-          row_format: 2,
+          row_format: "COERCE_IMPLICIT_CAST",
           location: v[0].start,
         },
       },

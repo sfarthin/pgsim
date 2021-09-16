@@ -214,7 +214,7 @@ export const aExprIn = (ctx: Context) =>
             },
           ],
           lexpr: c1.value as RawValue, // TODO ... this currently allows "(1 AND 1) = 'foo'". Fix in the future.
-          rexpr: v[3].value.RowExpr.args,
+          rexpr: { List: { items: v[3].value.RowExpr.args } },
           location: v[1].start,
         },
       },

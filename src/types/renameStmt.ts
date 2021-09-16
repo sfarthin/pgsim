@@ -1,31 +1,32 @@
 import * as d from "decoders";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { Location, locationDecoder } from "./location";
+import { DropBehavior, dropBehaviorDecoder } from "./dropBehavior";
 
-// enum RenameType {
-//   Column = 6,
-// }
+export enum RenameType {
+  OBJECT_COLUMN = "OBJECT_COLUMN",
+}
+
+export enum RelationType {
+  OBJECT_TABLE = "OBJECT_TABLE",
+}
 
 export type RenameStmt = {
-  renameType: number;
-  relationType: number;
-  relation: {
-    RangeVar: RangeVar;
-  };
+  renameType: RenameType.OBJECT_COLUMN;
+  relationType: RelationType.OBJECT_TABLE;
+  relation: RangeVar;
   subname: string;
   newname: string;
-  behavior: 0;
+  behavior: DropBehavior;
   codeComment?: string;
 };
 
 export const renameStmtDecoder: d.Decoder<RenameStmt> = d.exact({
-  renameType: d.number,
-  relationType: d.number,
-  relation: d.exact({
-    RangeVar: rangeVarDecoder,
-  }),
+  renameType: d.constant(RenameType.OBJECT_COLUMN),
+  relationType: d.constant(RelationType.OBJECT_TABLE),
+  relation: rangeVarDecoder,
   subname: d.string,
   newname: d.string,
-  behavior: d.constant(0),
+  behavior: dropBehaviorDecoder,
   codeComment: d.optional(d.string),
 });

@@ -15,7 +15,7 @@ import {
   _,
   endOfStatement,
 } from "./util";
-import { RenameStmt } from "../types/renameStmt";
+import { RenameStmt, RenameType, RelationType } from "../types";
 import { rangeVar } from "./rangeVar";
 
 export const renameStmt: Rule<RenameStmt> = transform(
@@ -39,13 +39,13 @@ export const renameStmt: Rule<RenameStmt> = transform(
     endOfStatement,
   ]),
   (v, ctx) => {
-    return {
-      renameType: 6,
-      relationType: 37,
-      relation: v[5].value,
+    const result: RenameStmt = {
+      renameType: RenameType.OBJECT_COLUMN,
+      relationType: RelationType.OBJECT_TABLE,
+      relation: v[5].value.RangeVar,
       subname: v[11],
       newname: v[15],
-      behavior: 0,
+      behavior: "DROP_RESTRICT",
       codeComment: combineComments(
         v[0],
         v[2],
@@ -59,5 +59,7 @@ export const renameStmt: Rule<RenameStmt> = transform(
         v[16]
       ),
     };
+
+    return result;
   }
 );

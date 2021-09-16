@@ -13,7 +13,7 @@ export default function <T>(c: RenameStmt, f: Formatter<T>): T[][] {
       _,
       keyword("TABLE"),
       _,
-      ...rangeVar(c.relation.RangeVar, f),
+      ...rangeVar(c.relation, f),
       _,
       keyword("RENAME"),
       _,

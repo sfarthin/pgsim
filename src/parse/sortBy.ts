@@ -38,7 +38,7 @@ export const sortBy: Rule<{ SortBy: SortBy }[]> = transform(
     ),
   ]),
   (v) => {
-    const firstSort = {
+    const firstSort: SortBy = {
       codeComment: combineComments(v[0], v[2], v[4], v[5].codeComment, v[6]),
       location: -1,
       sortby_dir: v[7]
@@ -46,11 +46,11 @@ export const sortBy: Rule<{ SortBy: SortBy }[]> = transform(
           ? SortByDir.SORTBY_ASC
           : SortByDir.SORTBY_DESC
         : SortByDir.SORTBY_DEFAULT,
-      sortby_nulls: 0,
+      sortby_nulls: "SORTBY_NULLS_DEFAULT",
       node: v[5].value,
     };
 
-    const restOfSorts = v[8].map((s) => ({
+    const restOfSorts: { SortBy: SortBy }[] = v[8].map((s) => ({
       SortBy: {
         codeComment: combineComments(s[0], s[2], s[3].codeComment, s[4]),
         location: -1,
@@ -59,7 +59,7 @@ export const sortBy: Rule<{ SortBy: SortBy }[]> = transform(
             ? SortByDir.SORTBY_ASC
             : SortByDir.SORTBY_DESC
           : SortByDir.SORTBY_DEFAULT,
-        sortby_nulls: 0,
+        sortby_nulls: "SORTBY_NULLS_DEFAULT",
         node: s[3].value,
       },
     }));
