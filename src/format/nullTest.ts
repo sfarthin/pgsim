@@ -1,9 +1,9 @@
 import { NullTest } from "../types";
 import { rawValue } from "./rawExpr";
-import { Formatter, join } from "./util";
+import { Formatter } from "./util";
 
 export default function rowExpr<T>(c: NullTest, f: Formatter<T>): T[] {
-  const { symbol, _, keyword } = f;
+  const { _, keyword } = f;
 
   return [
     ...rawValue(c.arg, f).flat(),

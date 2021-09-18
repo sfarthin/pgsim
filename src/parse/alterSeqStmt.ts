@@ -11,7 +11,7 @@ import {
   _,
   commentsOnSameLine,
 } from "./util";
-import { AlterSeqStmt, RangeVar } from "../types";
+import { AlterSeqStmt } from "../types";
 import { defElemList } from "./defElem";
 
 export const alterSeqStmt: Rule<AlterSeqStmt> = transform(

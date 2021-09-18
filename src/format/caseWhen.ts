@@ -3,7 +3,7 @@ import { Formatter } from "./util";
 import { rawValue } from "./rawExpr";
 
 export default function caseWhen<T>(c: CaseWhen, f: Formatter<T>): T[][] {
-  const { symbol, _, keyword, indent } = f;
+  const { keyword, indent } = f;
 
   return [
     [keyword("WHEN")],

@@ -12,17 +12,7 @@ export const parserResultDecoder = d.exact({
 
 export default function parse(sql: string, filename: string): Stmt[] {
   const unsafeResult = parseQuerySync(sql);
-  const { version, stmts } = d.guard(parserResultDecoder)(unsafeResult);
-
-  // if (stderr || error) {
-  //   if (error) {
-  //     throw new Error(
-  //       `${sql}${NEWLINE}${NEWLINE}${filename}: ${String(error)}`
-  //     );
-  //   } else {
-  //     throw new Error(stderr || "");
-  //   }
-  // }
+  const { stmts } = d.guard(parserResultDecoder)(unsafeResult);
 
   return stmts.map((s: any) => {
     try {

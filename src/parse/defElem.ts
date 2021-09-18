@@ -63,7 +63,7 @@ export const defElem: Rule<DefElem> = or([
     location: ctx.pos,
     codeComment: v[1],
   })),
-  transform(CYCLE, (v, ctx) => ({
+  transform(CYCLE, (_v, ctx) => ({
     defname: "cycle",
     defaction: "DEFELEM_UNSPEC",
     arg: { Integer: { ival: 1 } },

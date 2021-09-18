@@ -13,6 +13,7 @@ import { AlterOwnerStmt, alterOwnerStmtDecoder } from "./alterOwnerStmt";
 import { IndexStmt, indexStmtDecoder } from "./indexStmt";
 import { ViewStmt, viewStmtDecoder } from "./viewStmt";
 import { RenameStmt, renameStmtDecoder } from "./renameStmt";
+import { UpdateStmt, updateStmtDecoder } from "./updateStmt";
 import dispatch from "./dispatch";
 
 export * from "./aExpr";
@@ -37,20 +38,22 @@ export * from "./funcCall";
 export * from "./indexStmt";
 export * from "./InsertStmt";
 export * from "./joinExpr";
+export * from "./list";
 export * from "./nullTest";
-export * from "./rangeVar";
 export * from "./rangeSubselect";
+export * from "./rangeVar";
 export * from "./rawExpr";
+export * from "./renameStmt";
+export * from "./resTarget";
+export * from "./rowExpr";
 export * from "./selectStmt";
-export * from "./subLink";
 export * from "./sortBy";
+export * from "./subLink";
 export * from "./typeCast";
 export * from "./typeName";
+export * from "./updateStmt";
 export * from "./variableSetStmt";
 export * from "./viewStmt";
-export * from "./rowExpr";
-export * from "./renameStmt";
-export * from "./list";
 
 export type Stmt = {
   stmt_len?: number;
@@ -69,7 +72,8 @@ export type Stmt = {
     | { IndexStmt: IndexStmt }
     | { SelectStmt: SelectStmt }
     | { ViewStmt: ViewStmt }
-    | { RenameStmt: RenameStmt };
+    | { RenameStmt: RenameStmt }
+    | { UpdateStmt: UpdateStmt };
 
   // | { RenameStmt: Record<string, unknown> }
   // | { CompositeTypeStmt: Record<string, unknown> }
@@ -156,13 +160,13 @@ export const stmtDecoder: d.Decoder<Stmt> = d.exact({
     SelectStmt: selectStmtDecoder,
     ViewStmt: viewStmtDecoder,
     RenameStmt: renameStmtDecoder,
+    UpdateStmt: updateStmtDecoder,
 
     // RenameStmt: pojo,
     // CompositeTypeStmt: pojo,
 
     // InsertStmt: insertStmtDecoder,
 
-    // UpdateStmt: pojo,
     // DropStmt: pojo,
     // DefineStmt: pojo,
     // CreateFunctionStmt: pojo,

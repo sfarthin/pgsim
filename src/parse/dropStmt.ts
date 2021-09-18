@@ -22,7 +22,6 @@ import {
 import {
   RemoveType,
   DropStmt,
-  String,
   TypeName,
   DropStmtSequence,
   DropStmtTable,

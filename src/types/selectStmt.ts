@@ -1,22 +1,10 @@
 import * as d from "decoders";
-import { Location, locationDecoder } from "./location";
 import { rawValueDecoder, RawValue } from "./rawExpr";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { SortBy, sortByDecoder } from "./sortBy";
 import { JoinExpr, joinExprDecoder } from "./joinExpr";
 import { ColumnRef, columnRefDecoder } from "./columnRef";
-
-export type ResTarget = {
-  name?: string;
-  val: RawValue;
-  location: Location;
-};
-
-export const resTargetDecoder: d.Decoder<ResTarget> = d.exact({
-  name: d.optional(d.string),
-  val: (blob) => rawValueDecoder(blob),
-  location: locationDecoder,
-});
+import { ResTarget, resTargetDecoder } from "./resTarget";
 
 export type SelectStmt = {
   op: "SETOP_NONE";

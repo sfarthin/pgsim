@@ -12,7 +12,7 @@ import {
 import { aConst } from "./aConst";
 import { typeCast } from "./typeCast";
 import { funcCall } from "./funcCall";
-import { RawValue, AExprKind, AExpr } from "../types";
+import { RawValue } from "../types";
 import { columnRef } from "./columnRef";
 import { notBoolExpr, boolConnection } from "./boolExpr";
 import { nullTestConnection } from "./nullTest";

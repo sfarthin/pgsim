@@ -300,7 +300,7 @@ const notNullConstraint: Rule<{
 const nullConstraint: Rule<{
   codeComment: string;
   value: NullConstraint;
-}> = transform(NULL, (v, ctx) => ({
+}> = transform(NULL, (_v, ctx) => ({
   codeComment: "",
   value: { contype: ConType.NULL, location: ctx.pos },
 }));

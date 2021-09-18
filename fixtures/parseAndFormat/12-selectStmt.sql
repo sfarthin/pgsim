@@ -9,6 +9,7 @@ SELECT
 false, 
 -- bar
 true;
+SELECT true = true;
 
 select 1 as Foo;
 select 1 as "Foo";

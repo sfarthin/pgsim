@@ -12,7 +12,7 @@ import {
   _,
   __,
 } from "./util";
-import { CreateSeqStmt, RangeVar } from "../types";
+import { CreateSeqStmt } from "../types";
 import { defElemList } from "./defElem";
 
 export const createSeqStmt: Rule<CreateSeqStmt> = transform(

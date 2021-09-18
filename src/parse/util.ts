@@ -205,15 +205,15 @@ export function zeroToMany<T>(rule: Rule<T>) {
   return multiply(rule, 0, null);
 }
 
-export function oneToMany<T, R>(rule: Rule<T>) {
+export function oneToMany<T>(rule: Rule<T>) {
   return multiply(rule, 1, null);
 }
 
-export function zeroToOne<T, R>(rule: Rule<T>) {
+export function zeroToOne<T>(rule: Rule<T>) {
   return multiply(rule, 0, 1);
 }
 
-export function zeroToTen<T, R>(rule: Rule<T>) {
+export function zeroToTen<T>(rule: Rule<T>) {
   return multiply(rule, 0, 10);
 }
 
@@ -1038,7 +1038,27 @@ export function or<A, B, C, D, E, F, G, H, I, J, K, L, M, N>(
   ]
 ): Rule<A | B | C | D | E | F | G | H | I | J | K | L | M | N>;
 
-export function or<T>(rules: Rule<any>[]): Rule<any> {
+export function or<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(
+  rules: [
+    Rule<A>,
+    Rule<B>,
+    Rule<C>,
+    Rule<D>,
+    Rule<E>,
+    Rule<F>,
+    Rule<G>,
+    Rule<H>,
+    Rule<I>,
+    Rule<J>,
+    Rule<K>,
+    Rule<L>,
+    Rule<M>,
+    Rule<N>,
+    Rule<O>
+  ]
+): Rule<A | B | C | D | E | F | G | H | I | J | K | L | M | N | O>;
+
+export function or(rules: Rule<any>[]): Rule<any> {
   return (ctx: Context) => {
     // TODO optomize
     const results = rules.map((r) => r(ctx));

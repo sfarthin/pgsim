@@ -29,7 +29,7 @@ const caseWhen: Rule<{
     __,
     (ctx) => rawValue(ctx),
   ]),
-  (v, ctx) => {
+  (v) => {
     return {
       value: {
         CaseWhen: {

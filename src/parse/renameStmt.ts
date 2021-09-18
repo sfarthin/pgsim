@@ -38,7 +38,7 @@ export const renameStmt: Rule<RenameStmt> = transform(
     or([identifier, transform(quotedString, (v) => v.value)]), // 15
     endOfStatement,
   ]),
-  (v, ctx) => {
+  (v) => {
     const result: RenameStmt = {
       renameType: RenameType.OBJECT_COLUMN,
       relationType: RelationType.OBJECT_TABLE,

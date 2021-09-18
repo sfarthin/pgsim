@@ -19,6 +19,9 @@ SELECT
 	TRUE;
 
 SELECT
+	TRUE = TRUE;
+
+SELECT
 	1 AS foo;
 
 SELECT

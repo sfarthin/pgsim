@@ -33,7 +33,7 @@ export const columnRef: Rule<{
 
     throw new Error("Unexpected column ref");
   }),
-  transform(STAR, (value, ctx) => {
+  transform(STAR, (_value, ctx) => {
     return {
       value: {
         ColumnRef: {

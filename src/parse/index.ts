@@ -29,6 +29,7 @@ import { selectStmt } from "./selectStmt";
 import { viewStmt } from "./viewStmt";
 import { codeComments } from "./codeComments";
 import { renameStmt } from "./renameStmt";
+import { updateStmt } from "./updateStmt";
 
 const CommentStatement = transform(
   sequence([
@@ -59,6 +60,7 @@ const stmts: Rule<Stmt[]> = transform(
           transform(selectStmt, (v) => ({ SelectStmt: v })),
           transform(viewStmt, (v) => ({ ViewStmt: v })),
           transform(renameStmt, (v) => ({ RenameStmt: v })),
+          transform(updateStmt, (v) => ({ UpdateStmt: v })),
 
           // Standalone comments
           CommentStatement,

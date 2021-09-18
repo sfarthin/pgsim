@@ -1,6 +1,5 @@
 import * as d from "decoders";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
-import { Location, locationDecoder } from "./location";
 import { DropBehavior, dropBehaviorDecoder } from "./dropBehavior";
 
 export enum RenameType {

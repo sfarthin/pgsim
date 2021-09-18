@@ -4,12 +4,10 @@ import {
   identifier,
   Rule,
   sequence,
-  optional,
   or,
   AS,
   __,
   combineComments,
-  PERIOD,
   LPAREN,
   RPAREN,
 } from "./util";
@@ -24,7 +22,7 @@ export const rangeSubselect: Rule<{
 
     or([sequence([__, AS, __, identifier]), sequence([__, identifier])]),
   ]),
-  (v, ctx) => {
+  (v) => {
     const codeComment = combineComments(
       ...(v[1] && v[1].length === 4
         ? [v[1][0], v[1][2]]
