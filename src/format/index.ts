@@ -11,6 +11,7 @@ import viewStmt from "./viewStmt";
 import selectStmt from "./selectStmt";
 import renameStmt from "./renameStmt";
 import comment from "./comment";
+import updateStmt from "./updateStmt";
 import { Stmt, StatementType } from "../types";
 import {
   toLineAndColumn,
@@ -80,6 +81,8 @@ function formatStmt<T>(stmt: Stmt, f: Formatter<T>, opts?: Opts): T[][] {
     return viewStmt(s.ViewStmt, f);
   } else if ("RenameStmt" in s) {
     return renameStmt(s.RenameStmt, f);
+  } else if ("UpdateStmt" in s) {
+    return updateStmt(s.UpdateStmt, f);
   }
 
   throw new Error(`Cannot format ${Object.keys(s)}`);

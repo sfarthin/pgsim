@@ -108,3 +108,11 @@ create table buckets.foo (
 create table public.foo (
     b int
 );
+
+CREATE TABLE 
+    IF NOT EXISTS 
+    "cancellations" 
+    (
+        "id"  SERIAL , 
+        PRIMARY KEY ("id")
+    );

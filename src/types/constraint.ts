@@ -41,6 +41,7 @@ export type PrimaryKeyConstraint = {
   location: Location;
   conname?: string;
   keys?: { String: String }[];
+  codeComment?: string;
 };
 
 export const primaryKeyConstraintDecoder: d.Decoder<PrimaryKeyConstraint> = d.exact(

@@ -254,6 +254,8 @@ const foreignKeyConstraint: Rule<{
     })),
     __,
     optional(sequence([LPAREN, __, identifier, __, RPAREN])),
+    __,
+    optional(referentialActions),
   ]),
   (value, ctx) => {
     const pktable = value[2];
@@ -263,13 +265,16 @@ const foreignKeyConstraint: Rule<{
         value[1],
         value[3],
         value[4]?.[1],
-        value[4]?.[3]
+        value[4]?.[3],
+        value[5],
+        value[6]?.codeComment
       ),
       value: {
         contype: ConType.FOREIGN_KEY,
         fk_del_action: "a",
         fk_matchtype: "s",
         fk_upd_action: "a",
+        ...value[6]?.value,
         initially_valid: true,
         ...(column
           ? {
@@ -452,6 +457,8 @@ const foreignKeyTableConstraint: Rule<ForeignKeyConstraint> = transform(
     transform(identifier, (v, ctx) => ({ value: v, pos: ctx.pos })),
     __,
     optional(sequence([LPAREN, commaSeperatedIdentifiers, RPAREN])),
+    __,
+    optional(referentialActions),
   ]),
   (v, ctx) => {
     return {
@@ -473,12 +480,19 @@ const foreignKeyTableConstraint: Rule<ForeignKeyConstraint> = transform(
   }
 );
 
-// // ForeignKeyTableConstraint = c1:FOREIGN_KEY csi:CommaSeperatedIdentifiersInParens c2:REFERENCES otherTable:Identifier csi2:CommaSeperatedIdentifiersInParens? {
-//   return {
-//     Constraint: {
-//         codeComment: combineComments(c1.comment, csi.comment, c2.comment)
-//     }
-// }
-// }
+const primaryKeyTableConstraint: Rule<PrimaryKeyConstraint> = transform(
+  sequence([PRIMARY, __, KEY, __, LPAREN, commaSeperatedIdentifiers, RPAREN]),
+  (v, ctx) => {
+    return {
+      contype: ConType.PRIMARY_KEY,
+      keys: v[5].values.map((k) => ({ String: { str: k } })),
+      location: ctx.pos,
+      codeComment: combineComments(v[1], v[3], v[5].codeComment),
+    };
+  }
+);
 
-export const tableConstraint = or([foreignKeyTableConstraint]);
+export const tableConstraint = or([
+  foreignKeyTableConstraint,
+  primaryKeyTableConstraint,
+]);

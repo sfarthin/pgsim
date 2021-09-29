@@ -112,6 +112,7 @@ export const createStmt: Rule<CreateStmt> = transform(
       value[0],
       value[2],
       value[4],
+      value[5]?.codeComment,
       value[6],
       value[8],
       "codeComment" in value[9] ? value[9].codeComment : null,

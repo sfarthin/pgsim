@@ -1415,28 +1415,10 @@ export const COMMA = constant(",");
 export const STAR = constant("*");
 export const MINUS = constant("-");
 
-export const ifNotExists: Rule<string> = (ctx: Context) => {
-  const rule = transform(sequence([IF, __, NOT, __, EXISTS]), (v) =>
-    combineComments(v[1], v[3])
-  );
-
-  const result = rule(ctx);
-
-  if (result.type === ResultType.Fail) {
-    return {
-      ...result,
-      expected: [
-        {
-          type: "keyword",
-          value: "IF NOT EXISTS",
-          pos: ctx.pos,
-        },
-      ],
-    };
-  }
-
-  return result;
-};
+export const ifNotExists: Rule<{ codeComment: string }> = transform(
+  sequence([IF, __, NOT, __, EXISTS]),
+  (v) => ({ codeComment: combineComments(v[1], v[3]) })
+);
 
 export const identifier: Rule<string> = (ctx: Context) => {
   const result = or([

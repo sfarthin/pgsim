@@ -72,7 +72,7 @@ export const alterEnumStmtAdd: Rule<AlterEnumStmt> = transform(
         v[6],
         v[8],
         v[10],
-        v[11],
+        v[11]?.codeComment,
         v[12],
         v[14],
         v[15]?.codeComment,

@@ -203,6 +203,9 @@ export default function <T>(createStmt: CreateStmt, f: Formatter<T>): T[][] {
       keyword("CREATE"),
       _,
       keyword("TABLE"),
+      ...(createStmt.if_not_exists
+        ? [_, keyword("IF"), _, keyword("NOT"), _, keyword("EXISTS")]
+        : []),
       _,
       ...(schemaname ? [identifier(schemaname), symbol(".")] : []),
       identifier(tableName),

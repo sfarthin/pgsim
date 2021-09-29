@@ -149,6 +149,21 @@ export function toTableConstraint<T>(
 ): T[] {
   const { keyword, _, symbol, identifier } = f;
   switch (constraint.contype) {
+    case ConType.PRIMARY_KEY:
+      return [
+        keyword("PRIMARY"),
+        _,
+        keyword("KEY"),
+        _,
+        symbol("("),
+        ...(constraint.keys
+          ? join(
+              constraint.keys.map((v) => [identifier(v.String.str)]),
+              [symbol(","), _]
+            )
+          : []),
+        symbol(")"),
+      ];
     case ConType.FOREIGN_KEY:
       return [
         keyword("FOREIGN"),

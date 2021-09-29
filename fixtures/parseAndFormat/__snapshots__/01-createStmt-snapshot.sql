@@ -123,3 +123,8 @@ CREATE TABLE buckets.foo (
 CREATE TABLE public.foo (
 	b INTEGER
 );
+
+CREATE TABLE IF NOT EXISTS cancellations (
+	id SERIAL,
+	PRIMARY KEY (id)
+);
