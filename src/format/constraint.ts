@@ -59,7 +59,7 @@ export function toConstraint<T>(
         : [];
 
       let actions: T[] = [];
-      if (constraint.fk_upd_action) {
+      if (constraint.fk_upd_action && constraint.fk_upd_action != "a") {
         actions = [
           ...actions,
           _,
@@ -71,7 +71,7 @@ export function toConstraint<T>(
         ];
       }
 
-      if (constraint.fk_del_action) {
+      if (constraint.fk_del_action && constraint.fk_del_action != "a") {
         actions = [
           ...actions,
           _,
@@ -105,6 +105,7 @@ export function toConstraint<T>(
           _,
           table,
           ...(columns.length ? [_, symbol("("), ...columns, symbol(")")] : []),
+          ...actions,
         ];
       }
 

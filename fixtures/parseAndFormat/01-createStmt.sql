@@ -111,8 +111,9 @@ create table public.foo (
 
 CREATE TABLE 
     IF NOT EXISTS 
-    "cancellations" 
+    foobar 
     (
         "id"  SERIAL , 
+        "subscription_id" INTEGER NOT NULL REFERENCES "subscriptions" ("id") ON DELETE CASCADE ON UPDATE CASCADE,
         PRIMARY KEY ("id")
     );

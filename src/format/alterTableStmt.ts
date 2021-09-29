@@ -11,6 +11,20 @@ function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
   switch (c.subtype) {
     case AlterTableCmdSubType.AT_DropColumn:
       return [keyword("DROP"), _, identifier(c.name ?? "")];
+    case AlterTableCmdSubType.AT_DropNotNull:
+      return [
+        keyword("ALTER"),
+        _,
+        keyword("COLUMN"),
+        _,
+        identifier(c.name),
+        _,
+        keyword("DROP"),
+        _,
+        keyword("NOT"),
+        _,
+        keyword("NULL"),
+      ];
     case AlterTableCmdSubType.AT_ColumnDefault:
       return [
         keyword("ALTER"),
