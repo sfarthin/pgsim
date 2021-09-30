@@ -26,17 +26,30 @@ function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
         keyword("NULL"),
       ];
     case AlterTableCmdSubType.AT_ColumnDefault:
-      return [
-        keyword("ALTER"),
-        _,
-        identifier(c.name),
-        _,
-        keyword("SET"),
-        _,
-        keyword("DEFAULT"),
-        _,
-        ...(c.def ? rawValue(c.def, f).flat() : [number(1)]),
-      ];
+      if (c.def) {
+        return [
+          keyword("ALTER"),
+          _,
+          identifier(c.name),
+          _,
+          keyword("SET"),
+          _,
+          keyword("DEFAULT"),
+          _,
+          ...rawValue(c.def, f).flat(),
+        ];
+      } else {
+        return [
+          keyword("ALTER"),
+          _,
+          identifier(c.name),
+          _,
+          keyword("DROP"),
+          _,
+          keyword("DEFAULT"),
+        ];
+      }
+
     case AlterTableCmdSubType.AT_AddConstraint:
       return [keyword("ADD"), ...toConstraints([c.def.Constraint], f, true)];
     case AlterTableCmdSubType.AT_AddColumn: {

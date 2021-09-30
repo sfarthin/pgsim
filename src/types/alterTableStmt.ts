@@ -353,24 +353,16 @@ export const alterTableAttachPartitionDecoder: d.Decoder<AlterTableAttachPartiti
 /**
  * SET_DEFAULT
  */
-
-export type AlterTableSetDefault = {
-  subtype: AlterTableCmdSubType.AT_ColumnDefault;
-  name: string;
-  def?: RawValue;
-  behavior: DropBehavior;
-  codeComment?: string;
-};
-
-export const alterTableSetDefaultDecoder: d.Decoder<AlterTableSetDefault> = d.exact(
-  {
-    subtype: d.constant(AlterTableCmdSubType.AT_ColumnDefault),
-    name: d.string,
-    def: (blob) => rawValueDecoder(blob),
-    behavior: dropBehaviorDecoder,
-    codeComment: d.optional(d.string),
-  }
-);
+export const alterTableSetDefaultDecoder = d.exact({
+  subtype: d.constant(AlterTableCmdSubType.AT_ColumnDefault),
+  name: d.string,
+  def: d.optional((blob) => rawValueDecoder(blob)),
+  behavior: dropBehaviorDecoder,
+  codeComment: d.optional(d.string),
+});
+export type AlterTableSetDefault = d.DecoderType<
+  typeof alterTableSetDefaultDecoder
+>;
 
 /**
  * DROP_NOT_NULL
@@ -441,6 +433,7 @@ export const alterTableCmdDecoder: d.Decoder<AlterTableCmd> = d.dispatch(
     [AlterTableCmdSubType.AT_AddColumn]: alterTableAddColumnDecoder,
     [AlterTableCmdSubType.AT_DropColumn]: alterTableDropColumnDecoder,
     [AlterTableCmdSubType.AT_AddConstraint]: alterTableAddConstraintDecoder,
+    [AlterTableCmdSubType.AT_DropConstraint]: alterTableDropConstraintDecoder,
     [AlterTableCmdSubType.AT_DropColumn]: alterTableDropColumnDecoder,
     [AlterTableCmdSubType.AT_EnableRowSecurity]: alterTableRowSecurityDecoder,
     [AlterTableCmdSubType.AT_AddInherit]: alterTableInheritDecoder,

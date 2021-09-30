@@ -195,10 +195,35 @@ const alterTableDropNotNull: Rule<AlterTableDropNotNull> = transform(
   }
 );
 
+const alterTableDropConstraint: Rule<AlterTableSetDefault> = transform(
+  sequence([
+    __,
+    ALTER,
+    __,
+    optional(COLUMN),
+    __,
+    identifier, // 5
+    __,
+    DROP,
+    __,
+    DEFAULT,
+    __,
+  ]),
+  (v) => {
+    return {
+      subtype: AlterTableCmdSubType.AT_ColumnDefault,
+      name: v[5],
+      behavior: "DROP_RESTRICT",
+      codeComment: combineComments(v[0], v[2], v[4], v[6], v[8], v[10]),
+    };
+  }
+);
+
 export const alterTableCmd: Rule<AlterTableCmd> = or([
   alterTableAddConstraint,
   alterTableSetDefault,
   alterTableAddColumn,
   alterTableDropColumn,
   alterTableDropNotNull,
+  alterTableDropConstraint,
 ]);
