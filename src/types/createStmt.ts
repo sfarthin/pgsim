@@ -2,28 +2,19 @@ import * as d from "decoders";
 import { Constraint, constraintDecoder } from "./constraint";
 import { TypeName, typeNameDecoder } from "./typeName";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
-import { Location, locationDecoder } from "./location";
+import { locationDecoder } from "./location";
 import dispatch from "./dispatch";
 
-export type ColumnDef = {
-  colname: string;
-  typeName: TypeName;
-  constraints?: Array<{ Constraint: Constraint }>;
-  is_local: boolean;
-  collClause?: unknown;
-  location: Location;
-  codeComment?: string;
-};
-
-export const columnDefDecoder: d.Decoder<ColumnDef> = d.exact({
-  colname: d.string,
+export const columnDefDecoder = d.exact({
+  colname: d.optional(d.string),
   typeName: typeNameDecoder,
   constraints: d.optional(d.array(d.exact({ Constraint: constraintDecoder }))),
-  is_local: d.boolean,
-  collClause: d.unknown,
+  is_local: d.optional(d.boolean),
+  collClause: d.optional(d.unknown),
   location: locationDecoder,
   codeComment: d.optional(d.string),
 });
+export type ColumnDef = d.DecoderType<typeof columnDefDecoder>;
 
 export type CreateStmt = {
   relation: RangeVar;

@@ -1,7 +1,7 @@
 import { AlterTableCmd, AlterTableStmt, AlterTableCmdSubType } from "../types";
 import comment from "./comment";
 import { rawValue } from "./rawExpr";
-import { toType } from "./createStmt";
+import { toType } from "./columnDef";
 import toConstraints from "./constraint";
 import { Formatter } from "./util";
 import rangeVar from "./rangeVar";
@@ -9,6 +9,18 @@ import rangeVar from "./rangeVar";
 function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
   const { keyword, _, identifier, number } = f;
   switch (c.subtype) {
+    case AlterTableCmdSubType.AT_AlterColumnType:
+      return [
+        keyword("ALTER"),
+        _,
+        keyword("COLUMN"),
+        _,
+        identifier(c.name),
+        _,
+        keyword("TYPE"),
+        _,
+        keyword(toType(c.def.ColumnDef)),
+      ];
     case AlterTableCmdSubType.AT_DropColumn:
       return [keyword("DROP"), _, identifier(c.name ?? "")];
     case AlterTableCmdSubType.AT_DropNotNull:
@@ -53,6 +65,10 @@ function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
     case AlterTableCmdSubType.AT_AddConstraint:
       return [keyword("ADD"), ...toConstraints([c.def.Constraint], f, true)];
     case AlterTableCmdSubType.AT_AddColumn: {
+      if (!c.def.ColumnDef.colname) {
+        throw new Error("Expected column name");
+      }
+
       const colname = c.def.ColumnDef.colname.match(/^[a-zA-Z][a-zA-Z0-9]*$/)
         ? c.def.ColumnDef.colname
         : JSON.stringify(c.def.ColumnDef.colname);

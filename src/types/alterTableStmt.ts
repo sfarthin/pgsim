@@ -169,23 +169,18 @@ export const alterTableDropConstraintDecoder: d.Decoder<AlterTableDropConstraint
  * Alter Column Type
  */
 
-export type AlterTableColumnType = {
-  subtype: AlterTableCmdSubType.AT_AlterColumnType;
-  name: string;
-  def?: unknown;
-  behavior: DropBehavior;
-  codeComment?: string;
-};
-
-export const alterTableColumnDecoder: d.Decoder<AlterTableColumnType> = d.exact(
-  {
-    subtype: d.constant(AlterTableCmdSubType.AT_AlterColumnType),
-    name: d.string,
-    def: d.unknown,
-    behavior: dropBehaviorDecoder,
-    codeComment: d.optional(d.string),
-  }
-);
+export const alterTableColumnDecoder = d.exact({
+  subtype: d.constant(AlterTableCmdSubType.AT_AlterColumnType),
+  name: d.string,
+  def: d.exact({
+    ColumnDef: columnDefDecoder,
+  }),
+  behavior: dropBehaviorDecoder,
+  codeComment: d.optional(d.string),
+});
+export type AlterTableColumnType = d.DecoderType<
+  typeof alterTableColumnDecoder
+>;
 
 /**
  * Row Security

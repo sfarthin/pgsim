@@ -6,6 +6,7 @@ import {
   AlterTableDropColumn,
   AlterTableAddConstraint,
   AlterTableDropNotNull,
+  AlterTableColumnType,
 } from "../types";
 import { rawValue } from "./rawExpr";
 import {
@@ -31,6 +32,7 @@ import {
   CASCADE,
   DROP,
   NULL,
+  TYPE,
 } from "./util";
 import { typeName } from "./typeName";
 import { constraint } from "./constraint";
@@ -219,6 +221,36 @@ const alterTableDropConstraint: Rule<AlterTableSetDefault> = transform(
   }
 );
 
+const alterTableColumnType: Rule<AlterTableColumnType> = transform(
+  sequence([
+    __,
+    ALTER,
+    __,
+    optional(COLUMN),
+    __,
+    transform(identifier, (v, ctx) => ({ value: v, pos: ctx.pos })), // 5
+    __,
+    TYPE,
+    __,
+    transform(typeName, (v, ctx) => ({ ...v, pos: ctx.pos })),
+    __,
+  ]),
+  (v) => {
+    return {
+      subtype: AlterTableCmdSubType.AT_AlterColumnType,
+      name: v[5].value,
+      def: {
+        ColumnDef: {
+          typeName: v[9].value,
+          location: v[5].pos,
+        },
+      },
+      behavior: "DROP_RESTRICT",
+      codeComment: combineComments(v[0], v[2], v[4], v[6], v[8], v[10]),
+    };
+  }
+);
+
 export const alterTableCmd: Rule<AlterTableCmd> = or([
   alterTableAddConstraint,
   alterTableSetDefault,
@@ -226,4 +258,5 @@ export const alterTableCmd: Rule<AlterTableCmd> = or([
   alterTableDropColumn,
   alterTableDropNotNull,
   alterTableDropConstraint,
+  alterTableColumnType,
 ]);
