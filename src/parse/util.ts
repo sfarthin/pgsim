@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TypeNameKeyword } from "src/types";
 import { NEWLINE } from "../format/util";
+import { stmts } from "./index";
 /**
  * Types
  */
@@ -1504,7 +1505,7 @@ export const quotedString = transform(
 
 export const endOfStatement = transform(
   or([
-    endOfInput,
+    transform(sequence([zeroToMany(whitespace), endOfInput]), (v) => v[1]),
     // Lets also eagerly goble up semicolons
     oneToMany(
       sequence([
@@ -1515,6 +1516,9 @@ export const endOfStatement = transform(
         zeroToMany(whitespace),
       ])
     ),
+    // If we see there is a valid statement aferward, we can infer that
+    // this statement is done
+    lookAhead((ctx) => stmts(ctx)),
   ]),
   (v, context) => {
     if (v && v.length > 0) {

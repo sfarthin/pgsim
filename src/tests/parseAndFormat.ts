@@ -126,9 +126,19 @@ export default function parseAndFormat(
   try {
     realAst = nParse(sql, basename(filename));
   } catch (e) {
-    console.error(e);
     // Lets see the parse error too.
-    parse(sql, basename(filename), realAst);
+    try {
+      parse(sql, basename(filename), realAst);
+    } catch (errorWithOurParser) {
+      console.error(e);
+      throw errorWithOurParser;
+    }
+
+    console.log(
+      `${c.red(
+        "\nOur parser finished successfully, but the native parser errored out"
+      )}: ${c.green(basename(filename))}\n`
+    );
     throw e;
   }
 
@@ -138,24 +148,26 @@ export default function parseAndFormat(
   const comments = parseComments(sql);
 
   const astNoComments = removeComments(ast);
-  const actualAstNoComments = removeComments(realAst);
-  for (const key in astNoComments) {
-    const start = astNoComments[key].stmt_location ?? 0;
-    const end = astNoComments[key].stmt_len ?? 99999;
-    const rawSql = sql.substring(start, start + end);
+  if (realAst) {
+    const actualAstNoComments = removeComments(realAst);
+    for (const key in astNoComments) {
+      const start = astNoComments[key].stmt_location ?? 0;
+      const end = astNoComments[key].stmt_len ?? 99999;
+      const rawSql = sql.substring(start, start + end);
 
-    const nextToken = findNextToken(sql, start);
-    const { line } = toLineAndColumn(sql, nextToken.start);
+      const nextToken = findNextToken(sql, start);
+      const { line } = toLineAndColumn(sql, nextToken.start);
 
-    assertNoDiff(
-      actualAstNoComments[key],
-      astNoComments[key],
-      `AST does not match native parser, ${c.cyan(
-        `${basename(filename)}:${line + 1}`
-      )} (Statement ${Number(key) + 1} of ${
-        astNoComments.length
-      })${NEWLINE}${NEWLINE} ${c.bgRed(rawSql.trim())}`
-    );
+      assertNoDiff(
+        actualAstNoComments[key],
+        astNoComments[key],
+        `AST does not match native parser, ${c.cyan(
+          `${basename(filename)}:${line + 1}`
+        )} (Statement ${Number(key) + 1} of ${
+          astNoComments.length
+        })${NEWLINE}${NEWLINE} ${c.bgRed(rawSql.trim())}`
+      );
+    }
   }
 
   // It is easy to forget a comment in our parser, this ensures no comment fall through cracks.

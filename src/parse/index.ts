@@ -42,7 +42,7 @@ const CommentStatement = transform(
   }
 );
 
-const stmts: Rule<Stmt[]> = transform(
+export const stmts: Rule<Stmt[]> = transform(
   sequence([
     oneToMany(
       transform(
