@@ -7,6 +7,7 @@ import {
   AlterTableAddConstraint,
   AlterTableDropNotNull,
   AlterTableColumnType,
+  AlterTableDropConstraint,
 } from "../types";
 import { rawValue } from "./rawExpr";
 import {
@@ -33,59 +34,49 @@ import {
   DROP,
   NULL,
   TYPE,
+  CONSTRAINT,
 } from "./util";
 import { typeName } from "./typeName";
 import { constraint } from "./constraint";
 
 const alterTableAddConstraint: Rule<AlterTableAddConstraint> = transform(
-  sequence([__, ADD, __, constraint, __]),
+  sequence([ADD, __, constraint]),
   (v) => {
     return {
       subtype: AlterTableCmdSubType.AT_AddConstraint,
       def: {
-        Constraint: v[3].value,
+        Constraint: v[2].value,
       },
       behavior: "DROP_RESTRICT",
-      codeComment: combineComments(v[0], v[2], v[3].codeComment, v[4]),
+      codeComment: combineComments(v[1], v[2].codeComment),
     };
   }
 );
 
 const alterTableDropColumn: Rule<AlterTableDropColumn> = transform(
   sequence([
-    __,
     DROP,
     __,
     optional(COLUMN),
     __,
-    optional(sequence([IF, __, EXISTS])), // 5
+    optional(sequence([IF, __, EXISTS])), // 4
     __,
     identifier,
     __,
     optional(or([RESTRICT, CASCADE])),
-    __,
   ]),
   (v) => {
     return {
       subtype: AlterTableCmdSubType.AT_DropColumn,
-      behavior: v[9]?.value === "RESTRICT" ? "DROP_RESTRICT" : "DROP_RESTRICT",
-      name: v[7],
-      codeComment: combineComments(
-        v[0],
-        v[2],
-        v[4],
-        v[5]?.[1],
-        v[6],
-        v[8],
-        v[10]
-      ),
+      behavior: v[8]?.value === "RESTRICT" ? "DROP_RESTRICT" : "DROP_RESTRICT",
+      name: v[6],
+      codeComment: combineComments(v[1], v[3], v[4]?.[1], v[5], v[7]),
     };
   }
 );
 
 const alterTableAddColumn: Rule<AlterTableAddColumn> = transform(
   sequence([
-    __,
     ADD,
     __,
     optional(COLUMN),
@@ -95,12 +86,11 @@ const alterTableAddColumn: Rule<AlterTableAddColumn> = transform(
     transform(identifier, (value, ctx) => ({ value, pos: ctx.pos })),
     __,
     typeName,
-    __, // 10
+    __, // 9
     optional(oneToMany(sequence([__, constraint, __]))),
-    __,
   ]),
   (v) => {
-    const listOfConstraints = v[11]?.map((e) => ({
+    const listOfConstraints = v[10]?.map((e) => ({
       Constraint: e[1].value,
     }));
 
@@ -108,28 +98,26 @@ const alterTableAddColumn: Rule<AlterTableAddColumn> = transform(
       subtype: AlterTableCmdSubType.AT_AddColumn,
       def: {
         ColumnDef: {
-          colname: v[7].value,
-          typeName: v[9].value,
+          colname: v[6].value,
+          typeName: v[8].value,
           ...(listOfConstraints ? { constraints: listOfConstraints } : {}),
           is_local: true,
-          location: v[7].pos,
+          location: v[6].pos,
           codeComment: "",
         },
       },
       behavior: "DROP_RESTRICT",
       codeComment: combineComments(
-        v[0],
-        v[2],
-        v[4],
-        v[5]?.[1],
-        v[5]?.[3],
-        v[6],
-        v[8],
-        v[9].codeComment,
-        v[10],
-        ...(v[11]?.map((k) => combineComments(k[0], k[1].codeComment, k[2])) ??
-          []),
-        v[12]
+        v[1],
+        v[3],
+        v[4]?.[1],
+        v[4]?.[3],
+        v[5],
+        v[7],
+        v[8].codeComment,
+        v[9],
+        ...(v[10]?.map((k) => combineComments(k[0], k[1].codeComment, k[2])) ??
+          [])
       ),
     };
   }
@@ -137,35 +125,31 @@ const alterTableAddColumn: Rule<AlterTableAddColumn> = transform(
 
 const alterTableSetDefault: Rule<AlterTableSetDefault> = transform(
   sequence([
-    __,
     ALTER,
     __,
     optional(COLUMN),
     __,
-    identifier, // 5
+    identifier, // 4
     __,
     SET,
     __,
     DEFAULT,
-    __, // 10
+    __, // 9
     (ctx) => rawValue(ctx),
-    __,
   ]),
   (v) => {
     return {
       subtype: AlterTableCmdSubType.AT_ColumnDefault,
-      name: v[5],
-      def: v[11].value,
+      name: v[4],
+      def: v[10].value,
       behavior: "DROP_RESTRICT",
       codeComment: combineComments(
-        v[0],
-        v[2],
-        v[4],
-        v[6],
-        v[8],
-        v[10],
-        v[11].codeComment,
-        v[12]
+        v[1],
+        v[3],
+        v[5],
+        v[7],
+        v[9],
+        v[10].codeComment
       ),
     };
   }
@@ -173,90 +157,103 @@ const alterTableSetDefault: Rule<AlterTableSetDefault> = transform(
 
 const alterTableDropNotNull: Rule<AlterTableDropNotNull> = transform(
   sequence([
-    __,
     ALTER,
     __,
     optional(COLUMN),
     __,
-    identifier, // 5
+    identifier, // 4
     __,
     DROP,
     __,
     NOT,
-    __, // 10
+    __, // 9
     NULL,
-    __,
   ]),
   (v) => {
     return {
       subtype: AlterTableCmdSubType.AT_DropNotNull,
-      name: v[5],
+      name: v[4],
       behavior: "DROP_RESTRICT",
-      codeComment: combineComments(v[0], v[2], v[4], v[6], v[8], v[10], v[12]),
+      codeComment: combineComments(v[1], v[3], v[5], v[7], v[9]),
     };
   }
 );
 
-const alterTableDropConstraint: Rule<AlterTableSetDefault> = transform(
+const alterTableDropDefault: Rule<AlterTableSetDefault> = transform(
   sequence([
-    __,
     ALTER,
     __,
     optional(COLUMN),
     __,
-    identifier, // 5
+    identifier, // 4
     __,
     DROP,
     __,
     DEFAULT,
-    __,
   ]),
   (v) => {
     return {
       subtype: AlterTableCmdSubType.AT_ColumnDefault,
-      name: v[5],
+      name: v[4],
       behavior: "DROP_RESTRICT",
-      codeComment: combineComments(v[0], v[2], v[4], v[6], v[8], v[10]),
+      codeComment: combineComments(v[1], v[3], v[5], v[7]),
+    };
+  }
+);
+
+const alterTableDropConstraint: Rule<AlterTableDropConstraint> = transform(
+  sequence([
+    DROP,
+    __,
+    CONSTRAINT,
+    __,
+    identifier, // 4
+  ]),
+  (v) => {
+    return {
+      subtype: AlterTableCmdSubType.AT_DropConstraint,
+      name: v[4],
+      behavior: "DROP_RESTRICT",
+      codeComment: combineComments(v[1], v[3]),
     };
   }
 );
 
 const alterTableColumnType: Rule<AlterTableColumnType> = transform(
   sequence([
-    __,
     ALTER,
     __,
     optional(COLUMN),
     __,
-    transform(identifier, (v, ctx) => ({ value: v, pos: ctx.pos })), // 5
+    transform(identifier, (v, ctx) => ({ value: v, pos: ctx.pos })), // 4
     __,
     TYPE,
     __,
     transform(typeName, (v, ctx) => ({ ...v, pos: ctx.pos })),
-    __,
   ]),
   (v) => {
     return {
       subtype: AlterTableCmdSubType.AT_AlterColumnType,
-      name: v[5].value,
+      name: v[4].value,
       def: {
         ColumnDef: {
-          typeName: v[9].value,
-          location: v[5].pos,
+          typeName: v[8].value,
+          location: v[4].pos,
         },
       },
       behavior: "DROP_RESTRICT",
-      codeComment: combineComments(v[0], v[2], v[4], v[6], v[8], v[10]),
+      codeComment: combineComments(v[1], v[3], v[5], v[7]),
     };
   }
 );
 
 export const alterTableCmd: Rule<AlterTableCmd> = or([
+  alterTableDropConstraint,
   alterTableAddConstraint,
   alterTableSetDefault,
   alterTableAddColumn,
   alterTableDropColumn,
   alterTableDropNotNull,
-  alterTableDropConstraint,
+  alterTableDropDefault,
   alterTableColumnType,
 ]);

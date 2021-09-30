@@ -40,20 +40,32 @@ export const alterTableStmt: Rule<AlterTableStmt> = transform(
         location: ctx.pos,
       })
     ),
-    alterTableCmd, // 10
-    zeroToMany(sequence([COMMA, alterTableCmd])),
+    __, // 10
+    alterTableCmd, // 11
+    zeroToMany(sequence([__, COMMA, __, alterTableCmd])),
     endOfStatement,
   ]),
   (v) => {
-    const alterCmds = v[11].map((i) => i[1]);
+    const alterCmds = [v[11]].concat(v[12].map((i) => i[3]));
+
+    /**
+     * Lets add the comments to the alterCmd level
+     */
+    alterCmds[0].codeComment = combineComments(v[10], alterCmds[0].codeComment);
+    for (let index = 0; index < v[12].length; index++) {
+      alterCmds[index + 1].codeComment = combineComments(
+        v[12][index][0],
+        v[12][index][2],
+        alterCmds[index + 1].codeComment
+      );
+    }
+
     return {
       relation: {
         ...v[9],
         ...(!v[7] ? { inh: true } : {}),
       },
-      cmds: [v[10]]
-        .concat(alterCmds)
-        .map((AlterTableCmd) => ({ AlterTableCmd })),
+      cmds: alterCmds.map((AlterTableCmd) => ({ AlterTableCmd })),
       relkind: "OBJECT_TABLE",
       ...(v[5] ? { missing_ok: true } : {}),
       codeComment: combineComments(
@@ -63,7 +75,7 @@ export const alterTableStmt: Rule<AlterTableStmt> = transform(
         v[5]?.[1],
         v[6],
         v[8],
-        v[12]
+        v[13]
       ),
     };
   }

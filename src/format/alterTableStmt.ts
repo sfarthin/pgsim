@@ -5,31 +5,40 @@ import { toType } from "./columnDef";
 import toConstraints from "./constraint";
 import { Formatter } from "./util";
 import rangeVar from "./rangeVar";
+import identifier from "./identifier";
 
 function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
-  const { keyword, _, identifier, number } = f;
+  const { keyword, _ } = f;
   switch (c.subtype) {
+    case AlterTableCmdSubType.AT_DropConstraint:
+      return [
+        keyword("DROP"),
+        _,
+        keyword("CONSTRAINT"),
+        _,
+        identifier(c.name, f),
+      ];
     case AlterTableCmdSubType.AT_AlterColumnType:
       return [
         keyword("ALTER"),
         _,
         keyword("COLUMN"),
         _,
-        identifier(c.name),
+        identifier(c.name, f),
         _,
         keyword("TYPE"),
         _,
         keyword(toType(c.def.ColumnDef)),
       ];
     case AlterTableCmdSubType.AT_DropColumn:
-      return [keyword("DROP"), _, identifier(c.name ?? "")];
+      return [keyword("DROP"), _, identifier(c.name ?? "", f)];
     case AlterTableCmdSubType.AT_DropNotNull:
       return [
         keyword("ALTER"),
         _,
         keyword("COLUMN"),
         _,
-        identifier(c.name),
+        identifier(c.name, f),
         _,
         keyword("DROP"),
         _,
@@ -42,7 +51,7 @@ function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
         return [
           keyword("ALTER"),
           _,
-          identifier(c.name),
+          identifier(c.name, f),
           _,
           keyword("SET"),
           _,
@@ -54,7 +63,7 @@ function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
         return [
           keyword("ALTER"),
           _,
-          identifier(c.name),
+          identifier(c.name, f),
           _,
           keyword("DROP"),
           _,
@@ -79,7 +88,7 @@ function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
       return [
         keyword("ADD"),
         _,
-        identifier(colname),
+        identifier(colname, f),
         _,
         keyword(toType(c.def.ColumnDef).toUpperCase()),
         ...toConstraints(constraints, f, true),

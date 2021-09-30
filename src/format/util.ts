@@ -17,6 +17,7 @@ export type Formatter<T> = {
   _: T;
   indent: <R extends T[] | T[][]>(line: R) => R;
   empty: T;
+  length: (text: T[][]) => number;
 
   concat: (t: T[][]) => T;
 };
@@ -52,6 +53,7 @@ export const textFormatter: Formatter<string> = {
     return t;
   },
   empty: "",
+  length: (i) => i.map((j) => j.join("")).join("").length,
 };
 
 export const join = <T>(lines: T[][], joinToken: T[]): T[] =>

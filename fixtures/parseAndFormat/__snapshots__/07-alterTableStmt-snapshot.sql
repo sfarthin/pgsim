@@ -94,3 +94,10 @@ ALTER TABLE foobar2
 
 ALTER TABLE foozbar
 	ALTER COLUMN name TYPE VARCHAR(1024);
+
+ALTER TABLE foo
+	DROP CONSTRAINT my_bar_constraint;
+
+ALTER TABLE foobar
+	DROP CONSTRAINT my_constraint,
+	ADD CONSTRAINT my_other_constraint FOREIGN KEY (field) REFERENCES mytable (id) ON UPDATE CASCADE ON DELETE RESTRICT;

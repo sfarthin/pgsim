@@ -148,22 +148,15 @@ export const alterTableAddConstraintDecoder: d.Decoder<AlterTableAddConstraint> 
 /**
  * Drop Constraint
  */
-
-export type AlterTableDropConstraint = {
-  subtype: AlterTableCmdSubType.AT_DropConstraint;
-  name: string;
-  behavior: DropBehavior;
-  codeComment?: string;
-};
-
-export const alterTableDropConstraintDecoder: d.Decoder<AlterTableDropConstraint> = d.exact(
-  {
-    subtype: d.constant(AlterTableCmdSubType.AT_DropConstraint),
-    name: d.string,
-    behavior: dropBehaviorDecoder,
-    codeComment: d.optional(d.string),
-  }
-);
+export const alterTableDropConstraintDecoder = d.exact({
+  subtype: d.constant(AlterTableCmdSubType.AT_DropConstraint),
+  name: d.string,
+  behavior: dropBehaviorDecoder,
+  codeComment: d.optional(d.string),
+});
+export type AlterTableDropConstraint = d.DecoderType<
+  typeof alterTableDropConstraintDecoder
+>;
 
 /**
  * Alter Column Type
