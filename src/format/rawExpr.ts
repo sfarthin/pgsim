@@ -10,35 +10,31 @@ import sublink from "./sublink";
 import caseExpr from "./caseExpr";
 import nullTest from "./nullTest";
 import aIndirection from "./aIndirection";
-import { Formatter } from "./util";
+import { Block } from "./util";
 
-export function rawValue<T>(
-  c: RawValue,
-  f: Formatter<T>,
-  includeParens?: boolean
-): T[][] {
+export function rawValue(c: RawValue, includeParens?: boolean): Block {
   if ("TypeCast" in c) {
-    return [typeCast(c.TypeCast, f)];
+    return [typeCast(c.TypeCast)];
   } else if ("A_Const" in c) {
-    return [aConst(c.A_Const, f)];
+    return [aConst(c.A_Const)];
   } else if ("FuncCall" in c) {
-    return [funcCall(c.FuncCall, f)];
+    return [funcCall(c.FuncCall)];
   } else if ("ColumnRef" in c) {
-    return [columnRef(c.ColumnRef, f)];
+    return [columnRef(c.ColumnRef)];
   } else if ("RowExpr" in c) {
-    return [rowExpr(c.RowExpr, f)];
+    return [rowExpr(c.RowExpr)];
   } else if ("NullTest" in c) {
-    return [nullTest(c.NullTest, f)];
+    return [nullTest(c.NullTest)];
   } else if ("A_Expr" in c) {
-    return aExpr(c.A_Expr, f, includeParens);
+    return aExpr(c.A_Expr, includeParens);
   } else if ("BoolExpr" in c) {
-    return boolExpr(c.BoolExpr, f, includeParens);
+    return boolExpr(c.BoolExpr, includeParens);
   } else if ("SubLink" in c) {
-    return sublink(c.SubLink, f);
+    return sublink(c.SubLink);
   } else if ("CaseExpr" in c) {
-    return caseExpr(c.CaseExpr, f);
+    return caseExpr(c.CaseExpr);
   } else if ("A_Indirection" in c) {
-    return aIndirection(c.A_Indirection, f);
+    return aIndirection(c.A_Indirection);
   }
 
   throw new Error(`RawValue not handled: ${Object.keys(c)[0]}`);

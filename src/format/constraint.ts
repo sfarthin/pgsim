@@ -1,6 +1,6 @@
 import { Constraint, ConType } from "../types";
 import { rawValue } from "./rawExpr";
-import { Formatter, join } from "./util";
+import { join, keyword, _, identifier, symbol, Line } from "./util";
 
 function referentialActionOption(v: "r" | "c" | "n" | "a" | "d") {
   switch (v) {
@@ -17,12 +17,10 @@ function referentialActionOption(v: "r" | "c" | "n" | "a" | "d") {
   }
 }
 
-export function toConstraint<T>(
+export function toConstraint(
   constraint: Constraint,
-  f: Formatter<T>,
   fromAlterStmt?: boolean
-): T[] {
-  const { keyword, _, identifier, symbol } = f;
+): Line {
   const con =
     "conname" in constraint && constraint.conname
       ? [keyword("CONSTRAINT"), _, identifier(constraint.conname), _]
@@ -58,7 +56,7 @@ export function toConstraint<T>(
           )
         : [];
 
-      let actions: T[] = [];
+      let actions: Line = [];
       if (constraint.fk_upd_action && constraint.fk_upd_action != "a") {
         actions = [
           ...actions,
@@ -116,7 +114,7 @@ export function toConstraint<T>(
         ...con,
         keyword("DEFAULT"),
         _,
-        ...rawValue(constraint.raw_expr, f).flat(),
+        ...rawValue(constraint.raw_expr).flat(),
       ];
     case ConType.NOT_NULL:
       return [...con, keyword("NOT"), _, keyword("NULL")];
@@ -129,26 +127,20 @@ export function toConstraint<T>(
   }
 }
 
-export default function <T>(
+export default function (
   constraints: Constraint[],
-  f: Formatter<T>,
   fromAlterStmt?: boolean
-): T[] {
-  const { _ } = f;
+): Line {
   if (constraints.length) {
     return constraints.reduce(
-      (acc, c) => [...acc, _, ...toConstraint(c, f, fromAlterStmt)],
-      [] as T[]
+      (acc, c) => [...acc, _, ...toConstraint(c, fromAlterStmt)],
+      [] as Line
     );
   }
   return [];
 }
 
-export function toTableConstraint<T>(
-  constraint: Constraint,
-  f: Formatter<T>
-): T[] {
-  const { keyword, _, symbol, identifier } = f;
+export function toTableConstraint(constraint: Constraint): Line {
   switch (constraint.contype) {
     case ConType.PRIMARY_KEY:
       return [

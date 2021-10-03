@@ -1,29 +1,26 @@
 import { RenameStmt } from "../types";
 import rangeVar from "./rangeVar";
-import { Formatter } from "./util";
-import comment from "./comment";
+import { comment, keyword, stringLiteral, symbol, Block, _ } from "./util";
 
-export default function <T>(c: RenameStmt, f: Formatter<T>): T[][] {
-  const { keyword, _, literal, symbol } = f;
-
+export default function (c: RenameStmt): Block {
   return [
-    ...comment(c.codeComment, f),
+    ...comment(c.codeComment),
     [
       keyword("ALTER"),
       _,
       keyword("TABLE"),
       _,
-      ...rangeVar(c.relation, f),
+      ...rangeVar(c.relation),
       _,
       keyword("RENAME"),
       _,
       keyword("COLUMN"),
       _,
-      literal(`'${c.subname}'`),
+      stringLiteral(c.subname),
       _,
       keyword("TO"),
       _,
-      literal(`'${c.newname}'`),
+      stringLiteral(c.newname),
       symbol(";"),
     ],
   ];

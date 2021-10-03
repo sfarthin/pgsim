@@ -4,7 +4,7 @@ import parse from "../parse";
 import nParse from "./nativeParse";
 import { join, basename } from "path";
 import { lstatSync, readdirSync, readFileSync, writeFileSync } from "fs";
-import { NEWLINE } from "../format/util";
+import { NEWLINE } from "../format/print";
 import { FailResult } from "../parse/util";
 import { getFriendlyErrorMessage, findNextToken } from "../parse/error";
 

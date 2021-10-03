@@ -1,12 +1,9 @@
 import { IndexStmt } from "../types";
-import comment from "./comment";
-import { Formatter, join } from "./util";
+import { Block, join, comment, keyword, identifier, _, symbol } from "./util";
 
-export default function <T>(c: IndexStmt, f: Formatter<T>): T[][] {
-  const { keyword, identifier, _, symbol } = f;
-
+export default function (c: IndexStmt): Block {
   return [
-    ...comment(c.codeComment, f),
+    ...comment(c.codeComment),
     // Lets fit this on one line.
     [
       keyword("CREATE"),

@@ -10,129 +10,81 @@ import alterTableStmt from "./alterTableStmt";
 import viewStmt from "./viewStmt";
 import selectStmt from "./selectStmt";
 import renameStmt from "./renameStmt";
-import comment from "./comment";
+
 import updateStmt from "./updateStmt";
-import { Stmt, StatementType } from "../types";
-import {
-  toLineAndColumn,
-  getSnippetWithLineNumbers,
-  findNextToken,
-} from "../parse/error";
+import { Stmt } from "../types";
 import indexStmt from "./indexStmt";
 import parse from "../parse";
-import c from "ansi-colors";
-import { NEWLINE, textFormatter, Formatter } from "./util";
+import { toSingleLineIfPossible, comment, Block } from "./util";
+import {
+  plaintext,
+  PrintOptions,
+  createFriendlyStmtError,
+  FormatDetailsForError,
+} from "./print";
 
-type Opts = {
-  ignore?: StatementType[];
-  ignoreAllExcept?: StatementType[];
-  sql?: string; // <-- Original sql before formatting. useful when there is an error.
-  filename?: string;
-};
-
-// const schemaStatements: StatementType[] = [
-//   "CreateStmt",
-//   "AlterTableStmt",
-//   "CreateSeqStmt",
-//   "VariableSetStmt",
-//   "CreateEnumStmt",
-//   "AlterSeqStmt",
-//   "IndexStmt",
-//   "CommentStmt",
-// ];
-
-function formatStmt<T>(stmt: Stmt, f: Formatter<T>, opts?: Opts): T[][] {
+function formatStmt(stmt: Stmt): Block {
   const s = stmt.stmt;
-  const statementType = Object.keys(s)[0] as StatementType;
-
-  if (opts?.ignore && opts.ignore.includes(statementType)) {
-    return comment(`-- Ignoring ${statementType} statements`, f);
-  }
-
-  if (opts?.ignoreAllExcept && !opts.ignoreAllExcept.includes(statementType)) {
-    return comment(`-- Ignoring ${statementType} statements`, f);
-  }
 
   if ("CreateStmt" in s) {
-    return createStmt(s.CreateStmt, f);
+    return createStmt(s.CreateStmt);
   } else if ("DropStmt" in s) {
-    return dropStmt(s.DropStmt, f);
+    return dropStmt(s.DropStmt);
   } else if ("VariableSetStmt" in s) {
-    return variableSetStmt(s.VariableSetStmt, f);
+    return variableSetStmt(s.VariableSetStmt);
   } else if ("CreateEnumStmt" in s) {
-    return createEnumStmt(s.CreateEnumStmt, f);
+    return createEnumStmt(s.CreateEnumStmt);
   } else if ("CreateSeqStmt" in s) {
-    return createSeqStmt(s.CreateSeqStmt, f);
+    return createSeqStmt(s.CreateSeqStmt);
   } else if ("AlterSeqStmt" in s) {
-    return alterSeqStmt(s.AlterSeqStmt, f);
+    return alterSeqStmt(s.AlterSeqStmt);
   } else if ("AlterEnumStmt" in s) {
-    return alterEnumStmt(s.AlterEnumStmt, f);
+    return alterEnumStmt(s.AlterEnumStmt);
   } else if ("AlterOwnerStmt" in s) {
-    return alterOwnerStmt(s.AlterOwnerStmt, f);
+    return alterOwnerStmt(s.AlterOwnerStmt);
   } else if ("IndexStmt" in s) {
-    return indexStmt(s.IndexStmt, f);
+    return indexStmt(s.IndexStmt);
   } else if ("AlterTableStmt" in s) {
-    return alterTableStmt(s.AlterTableStmt, f);
+    return alterTableStmt(s.AlterTableStmt);
   } else if ("Comment" in s) {
-    return comment(s.Comment, f);
+    return comment(s.Comment);
   } else if ("SelectStmt" in s) {
-    return selectStmt(s.SelectStmt, f);
+    return selectStmt(s.SelectStmt);
   } else if ("ViewStmt" in s) {
-    return viewStmt(s.ViewStmt, f);
+    return viewStmt(s.ViewStmt);
   } else if ("RenameStmt" in s) {
-    return renameStmt(s.RenameStmt, f);
+    return renameStmt(s.RenameStmt);
   } else if ("UpdateStmt" in s) {
-    return updateStmt(s.UpdateStmt, f);
+    return updateStmt(s.UpdateStmt);
   }
 
   throw new Error(`Cannot format ${Object.keys(s)}`);
 }
 
-export default function format(_stmts: Stmt[] | string, opts?: Opts): string {
+export default function format(
+  _stmts: Stmt[] | string,
+  opts?: Partial<PrintOptions> & Partial<FormatDetailsForError>
+): string {
+  // Parses a string or uses existing AST
   const stmts = typeof _stmts === "string" ? parse(_stmts) : _stmts;
-  const f = textFormatter;
 
-  if (stmts.length === 0) {
-    return "";
-  }
-
-  return stmts
-    .map((stmt) => {
-      try {
-        return f.concat(formatStmt(stmt, f, opts));
-      } catch (_e) {
-        const e = _e as { name?: string; message?: string };
-        const errorType = e.name === "Error" ? "" : `(${e.name})`;
-        if (opts?.filename && opts?.sql) {
-          // Lets skip over any comments
-          const { start: pos } = findNextToken(
-            opts.sql,
-            stmt.stmt_location ?? 0
-          );
-
-          const { line, column } = toLineAndColumn(opts.sql, pos);
-
-          e.name = `Problem formatting${errorType} ${c.cyan(
-            opts.filename
-          )}(${c.cyan(String(line + 1))},${c.cyan(String(column + 1))})`;
-
-          e.message = `${
-            e.message
-          }${NEWLINE}${NEWLINE}${getSnippetWithLineNumbers({
-            str: opts.sql,
-            start: pos,
-            end: (stmt.stmt_location ?? 0) + (stmt.stmt_len ?? 20),
-          })}${NEWLINE}`;
-        } else {
-          e.name = `Problem formatting${errorType}`;
-          e.message = `${e.message}${NEWLINE}${NEWLINE}${JSON.stringify(
-            stmt,
-            null,
-            2
-          )}`;
-        }
-        throw e;
+  const codeBlock = stmts.flatMap((stmt, i) => {
+    try {
+      const formattedStmt = toSingleLineIfPossible(formatStmt(stmt));
+      if (i === 0) {
+        return formattedStmt;
+      } else {
+        // Lets add a newline between statements.
+        return [[], ...formattedStmt];
       }
-    })
-    .join(`${NEWLINE}${NEWLINE}`);
+    } catch (e) {
+      throw createFriendlyStmtError(
+        stmt,
+        e as { name?: string; message?: string },
+        opts
+      );
+    }
+  });
+
+  return plaintext(codeBlock, { colors: false, lineNumbers: true, ...opts });
 }

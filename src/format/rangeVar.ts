@@ -1,14 +1,11 @@
 import { RangeVar } from "../types";
-import { Formatter } from "./util";
-import identifier from "./identifier";
+import { identifier, symbol, keyword, _, Line } from "./util";
 
-export default function rangeVar<T>(c: RangeVar, f: Formatter<T>): T[] {
-  const { keyword, _, symbol } = f;
-
+export default function rangeVar(c: RangeVar): Line {
   return [
     ...(c.schemaname
-      ? [identifier(c.schemaname, f), symbol("."), identifier(c.relname, f)]
-      : [identifier(c.relname, f)]),
-    ...(c.alias ? [_, keyword("AS"), _, identifier(c.alias.aliasname, f)] : []),
+      ? [identifier(c.schemaname), symbol("."), identifier(c.relname)]
+      : [identifier(c.relname)]),
+    ...(c.alias ? [_, keyword("AS"), _, identifier(c.alias.aliasname)] : []),
   ];
 }

@@ -1,15 +1,10 @@
 import { BoolExpr, BoolOp } from "../types";
 import { rawValue } from "./rawExpr";
-import { addToLastLine, Formatter } from "./util";
+import { addToLastLine, symbol, _, keyword, indent, Block } from "./util";
 
-export default function <T>(
-  c: BoolExpr,
-  f: Formatter<T>,
-  includeParens?: boolean
-): T[][] {
-  const { symbol, _, keyword, indent } = f;
+export default function (c: BoolExpr, includeParens?: boolean): Block {
   if (c.boolop === BoolOp.NOT_EXPR) {
-    const condition = rawValue(c.args[0], f);
+    const condition = rawValue(c.args[0]);
 
     if (condition.length === 1) {
       return [[keyword("NOT"), _, ...condition[0]]];
@@ -25,7 +20,7 @@ export default function <T>(
   );
 
   const args = c.args.flatMap((a, i) => {
-    const condition = rawValue(a, f, shouldIncludeParensInNestedCondition);
+    const condition = rawValue(a, shouldIncludeParensInNestedCondition);
     const middle =
       i !== c.args.length - 1
         ? addToLastLine(condition, [_, keyword(OP)])

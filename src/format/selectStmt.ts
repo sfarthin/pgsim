@@ -1,31 +1,36 @@
 import sortBy from "./sortBy";
 import { SelectStmt } from "../types/selectStmt";
-import comment from "./comment";
 import { rawValue } from "./rawExpr";
-import { Formatter, addToLastLine } from "./util";
 import rangeVar from "./rangeVar";
 import joinExpr from "./joinExpr";
 import columnRef from "./columnRef";
-import identifier from "./identifier";
+import {
+  identifier,
+  keyword,
+  indent,
+  symbol,
+  _,
+  comment,
+  addToLastLine,
+  Block,
+} from "./util";
 
-function toTargetList<T>(c: SelectStmt, f: Formatter<T>): T[][] {
-  const { keyword, indent, symbol, _ } = f;
-
+function toTargetList(c: SelectStmt): Block {
   const targetList = c.targetList.flatMap((v, i) => {
     if (!v.ResTarget?.val) {
       return [];
     }
 
     // Lets add AS part if needed
-    const target = addToLastLine(rawValue(v.ResTarget?.val, f), [
+    const target = addToLastLine(rawValue(v.ResTarget?.val), [
       ...(v.ResTarget?.name
-        ? [_, keyword("AS"), _, identifier(v.ResTarget.name, f)]
+        ? [_, keyword("AS"), _, identifier(v.ResTarget.name)]
         : []),
     ]);
 
     return v.ResTarget?.val
       ? [
-          ...comment(c.codeComments?.targetList?.[i], f),
+          ...comment(c.codeComments?.targetList?.[i]),
           ...(i !== c.targetList.length - 1
             ? addToLastLine(target, [symbol(",")])
             : target),
@@ -34,16 +39,14 @@ function toTargetList<T>(c: SelectStmt, f: Formatter<T>): T[][] {
   });
 
   return [
-    ...comment(c.codeComment, f),
+    ...comment(c.codeComment),
     [keyword("SELECT")],
     ...indent(targetList),
   ];
 }
 
-export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
-  const { keyword, indent, symbol, _ } = f;
-
-  const select = toTargetList(c, f);
+export function innerSelect(c: SelectStmt): Block {
+  const select = toTargetList(c);
 
   const from = c.fromClause
     ? [
@@ -55,14 +58,14 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
 
             if ("RangeVar" in v) {
               return [
-                ...comment(c.codeComments?.fromClause?.[i], f),
-                rangeVar(v.RangeVar, f).concat(commaSepatation),
+                ...comment(c.codeComments?.fromClause?.[i]),
+                rangeVar(v.RangeVar).concat(commaSepatation),
               ];
             }
             if ("JoinExpr" in v) {
               return [
-                ...comment(c.codeComments?.fromClause?.[i], f),
-                ...joinExpr(v.JoinExpr, f).concat(commaSepatation),
+                ...comment(c.codeComments?.fromClause?.[i]),
+                ...joinExpr(v.JoinExpr).concat(commaSepatation),
               ];
             }
             return [];
@@ -75,8 +78,8 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
     ? [
         [keyword("WHERE")],
         ...indent([
-          ...comment(c.codeComments?.whereClause?.[0], f),
-          ...rawValue(c.whereClause, f),
+          ...comment(c.codeComments?.whereClause?.[0]),
+          ...rawValue(c.whereClause),
         ]),
       ]
     : [];
@@ -86,9 +89,9 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
         [keyword("GROUP"), _, keyword("BY")],
         ...indent(
           c.groupClause.flatMap((r, i) => [
-            ...comment(c.codeComments?.groupClause?.[i], f),
+            ...comment(c.codeComments?.groupClause?.[i]),
             [
-              ...columnRef(r.ColumnRef, f),
+              ...columnRef(r.ColumnRef),
               ...(i === (c.groupClause?.length ?? 0) - 1 ? [] : [symbol(",")]),
             ],
           ])
@@ -102,11 +105,10 @@ export function innerSelect<T>(c: SelectStmt, f: Formatter<T>): T[][] {
     ...from,
     ...where,
     ...groupBy,
-    ...(c.sortClause ? sortBy(c.sortClause, f) : []),
+    ...(c.sortClause ? sortBy(c.sortClause) : []),
   ];
 }
 
-export default function <T>(c: SelectStmt, f: Formatter<T>): T[][] {
-  const { symbol } = f;
-  return addToLastLine(innerSelect(c, f), [symbol(";")]);
+export default function (c: SelectStmt): Block {
+  return addToLastLine(innerSelect(c), [symbol(";")]);
 }

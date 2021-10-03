@@ -1,17 +1,12 @@
 import { CreateSeqStmt } from "../types";
-import comment from "./comment";
 import defElem from "./defElem";
-import { Formatter } from "./util";
+import { keyword, _, identifier, symbol, indent, comment, Block } from "./util";
 
-export default function createSeqStmt<T>(
-  c: CreateSeqStmt,
-  f: Formatter<T>
-): T[][] {
-  const { keyword, _, identifier, symbol, indent } = f;
+export default function createSeqStmt(c: CreateSeqStmt): Block {
   const name = c.sequence.relname;
 
   return [
-    ...comment(c.codeComment, f),
+    ...comment(c.codeComment),
     [
       keyword("CREATE"),
       _,
@@ -32,16 +27,16 @@ export default function createSeqStmt<T>(
           c.options.reduce(
             (acc, e, i) => [
               ...acc,
-              ...comment(e.DefElem.codeComment, f),
+              ...comment(e.DefElem.codeComment),
               [
-                ...defElem(e.DefElem, f),
+                ...defElem(e.DefElem),
                 // If this is the last defElem, use semicolon
                 ...(c.options && c.options.length - 1 === i
                   ? [symbol(";")]
                   : []),
               ],
             ],
-            [] as T[][]
+            [] as Block
           )
         )
       : []),

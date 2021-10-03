@@ -1,16 +1,14 @@
 import { UpdateStmt } from "../types";
-import { Formatter } from "./util";
-import comment from "./comment";
+import { symbol, identifier, keyword, indent, _, comment, Block } from "./util";
+
 import rangeVar from "./rangeVar";
 import { rawValue } from "./rawExpr";
 
-export default function <T>(c: UpdateStmt, f: Formatter<T>): T[][] {
-  const { symbol, identifier, keyword, indent, _ } = f;
-
+export default function (c: UpdateStmt): Block {
   return [
-    ...comment(c.codeComment, f),
+    ...comment(c.codeComment),
     [keyword("UPDATE")],
-    ...indent([rangeVar(c.relation, f)]),
+    ...indent([rangeVar(c.relation)]),
     [keyword("SET")],
     ...indent(
       c.targetList.map((t, i) => {
@@ -23,7 +21,7 @@ export default function <T>(c: UpdateStmt, f: Formatter<T>): T[][] {
           _,
           symbol("="),
           _,
-          ...rawValue(t.ResTarget.val, f).flat(),
+          ...rawValue(t.ResTarget.val).flat(),
           ...(i < c.targetList.length - 1 ? [symbol(",")] : [symbol(";")]),
         ];
       })

@@ -1,13 +1,11 @@
 import { ViewStmt } from "../types";
 import { innerSelect } from "./selectStmt";
-import comment from "./comment";
-import { Formatter } from "./util";
 
-export default function viewStmt<T>(c: ViewStmt, f: Formatter<T>): T[][] {
-  const { keyword, _, identifier, symbol, indent } = f;
+import { Block, keyword, _, comment, identifier, symbol, indent } from "./util";
 
+export default function viewStmt(c: ViewStmt): Block {
   return [
-    ...comment(c.codeComment, f),
+    ...comment(c.codeComment),
     [
       keyword("CREATE"),
       _,
@@ -19,7 +17,7 @@ export default function viewStmt<T>(c: ViewStmt, f: Formatter<T>): T[][] {
       _,
       symbol("("),
     ],
-    ...indent(innerSelect(c.query.SelectStmt, f)),
+    ...indent(innerSelect(c.query.SelectStmt)),
     [symbol(")"), symbol(";")],
   ];
 }

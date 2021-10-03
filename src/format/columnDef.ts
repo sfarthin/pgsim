@@ -1,8 +1,9 @@
 import { ColumnDef } from "../types";
-import comment from "./comment";
-import toConstraints from "./constraint";
-import { Formatter } from "./util";
 
+import toConstraints from "./constraint";
+import { comment, identifier, keyword, _, Block } from "./util";
+
+// TODO Seperate params as symbols
 export function toType(columnDef: ColumnDef): string {
   const names = (columnDef.typeName.names as any)
     .map((s: any) => s.String.str)
@@ -162,29 +163,20 @@ export function toType(columnDef: ColumnDef): string {
   }
 }
 
-export default function toColumn<T>(
-  columnDef: ColumnDef,
-  f: Formatter<T>
-): T[][] {
-  const { identifier, keyword, _ } = f;
-
+export default function toColumn(columnDef: ColumnDef): Block {
   if (!columnDef.colname) {
     throw new Error("Expected column name");
   }
 
-  const colname = columnDef.colname.match(/^[a-zA-Z][a-zA-Z0-9]*$/)
-    ? columnDef.colname
-    : JSON.stringify(columnDef.colname);
-
   const constraints = columnDef.constraints?.map((c) => c.Constraint) ?? [];
 
   return [
-    ...comment(columnDef.codeComment, f),
+    ...comment(columnDef.codeComment),
     [
-      identifier(colname),
+      identifier(columnDef.colname),
       _,
       keyword(toType(columnDef)),
-      ...toConstraints(constraints, f),
+      ...toConstraints(constraints),
     ],
   ];
 }

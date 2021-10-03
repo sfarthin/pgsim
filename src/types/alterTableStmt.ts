@@ -1,7 +1,7 @@
 import * as d from "decoders";
 import { ColumnDef, columnDefDecoder } from "./createStmt";
 import { Constraint, constraintDecoder } from "./constraint";
-import { rawValueDecoder, RawValue } from "./rawExpr";
+import { rawValueDecoder } from "./rawExpr";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { String } from "./constant";
 import { DropBehavior, dropBehaviorDecoder } from "./dropBehavior";

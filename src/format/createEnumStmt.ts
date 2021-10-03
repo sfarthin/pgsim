@@ -1,14 +1,18 @@
 import { CreateEnumStmt } from "../types";
-import comment from "./comment";
-import { Formatter } from "./util";
+import {
+  keyword,
+  _,
+  identifier,
+  symbol,
+  indent,
+  stringLiteral,
+  comment,
+  Block,
+} from "./util";
 
-export default function variableSetStmt<T>(
-  createEnumStmt: CreateEnumStmt,
-  f: Formatter<T>
-): T[][] {
-  const { keyword, _, identifier, symbol, indent, literal } = f;
+export default function variableSetStmt(createEnumStmt: CreateEnumStmt): Block {
   return [
-    ...comment(createEnumStmt.codeComment, f),
+    ...comment(createEnumStmt.codeComment),
     [
       keyword("CREATE"),
       _,
@@ -26,14 +30,14 @@ export default function variableSetStmt<T>(
       createEnumStmt.vals.reduce(
         (acc, s, i) => [
           ...acc,
-          ...comment(s.codeComment, f),
+          ...comment(s.codeComment),
           [
-            literal(`'${s.String.str}'`),
+            stringLiteral(s.String.str),
             // All rows have commas except the last row.
             ...(createEnumStmt.vals.length - 1 === i ? [] : [symbol(",")]),
           ],
         ],
-        [] as T[][]
+        [] as Block
       )
     ),
     [symbol(")"), symbol(";")],

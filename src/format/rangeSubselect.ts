@@ -1,14 +1,11 @@
 import { RangeSubselect } from "../types";
-import { Formatter } from "./util";
+import { Block, identifier, keyword, _, symbol, indent } from "./util";
 import { innerSelect } from "./selectStmt";
-import identifier from "./identifier";
 
-export default function <T>(c: RangeSubselect, f: Formatter<T>): T[][] {
-  const { keyword, _, symbol, indent } = f;
-
+export default function (c: RangeSubselect): Block {
   return [
     [symbol("(")],
-    ...indent(innerSelect(c.subquery.SelectStmt, f)),
-    [symbol(")"), _, keyword("AS"), _, identifier(c.alias.aliasname, f)],
+    ...indent(innerSelect(c.subquery.SelectStmt)),
+    [symbol(")"), _, keyword("AS"), _, identifier(c.alias.aliasname)],
   ];
 }

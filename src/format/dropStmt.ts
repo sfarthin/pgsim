@@ -1,12 +1,10 @@
 import { DropStmt, RemoveType } from "../types";
-import comment from "./comment";
-import { Formatter } from "./util";
+import { comment, Block, keyword, _, identifier, symbol } from "./util";
 
-export default function <T>(c: DropStmt, f: Formatter<T>): T[][] {
-  const { _, symbol, identifier, keyword } = f;
+export default function (c: DropStmt): Block {
   if (c.removeType === RemoveType.OBJECT_TYPE) {
     return [
-      ...comment(c.codeComment, f),
+      ...comment(c.codeComment),
       [
         keyword("DROP"),
         _,
@@ -26,7 +24,7 @@ export default function <T>(c: DropStmt, f: Formatter<T>): T[][] {
     c.removeType === RemoveType.OBJECT_VIEW
   ) {
     return [
-      ...comment(c.codeComment, f),
+      ...comment(c.codeComment),
       [
         keyword("DROP"),
         _,

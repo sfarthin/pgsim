@@ -1,96 +1,152 @@
-import { Stmt } from "../types";
+import { NEWLINE } from "./print";
 
-export const NEWLINE = "\n";
-export const TAB = "\t";
+const MAX_INTELIGABLE_LINE = 40;
 
-export type Formatter<T> = {
-  // basic tokens
-  keyword: (s: string) => T;
-  literal: (s: string | number | boolean) => T;
-  codeComment: (s: string) => T;
-  symbol: (s: string) => T;
-  identifier: (s: string) => T;
-  number: (s: number) => T;
-
-  stmt: (s: T, stmt: Stmt) => T;
-
-  _: T;
-  indent: <R extends T[] | T[][]>(line: R) => R;
-  empty: T;
-  length: (text: T[][]) => number;
-
-  concat: (t: T[][]) => T;
-};
-
-export const textFormatter: Formatter<string> = {
-  keyword: (s) => s.toUpperCase(),
-  literal: (s) => `${s}`,
-  codeComment: (s) => s,
-  symbol: (s) => s,
-  identifier: (s) => s,
-  number: (s) => `${s}`,
-
-  concat: (t) => {
-    try {
-      return t.map((r) => r.join("")).join(NEWLINE);
-    } catch (e) {
-      console.error(t);
-      throw e;
+export type Node =
+  | { type: "keyword"; text: string } // <-- We can be more specific than "string", reconcile with parser
+  // Our formatter only does "sql" type, but when parsing we may come accross the "c" type
+  | { type: "comment"; text: string; style: "c" | "sql" }
+  | {
+      type: "symbol";
+      text: string; // <-- We can be more specific than "string", reconcile with parser
     }
-  },
-  stmt: (s) => s,
+  | { type: "identifier"; text: string }
+  | { type: "numberLiteral"; text: string }
+  | { type: "booleanLiteral"; text: "TRUE" | "FALSE" }
+  | { type: "stringLiteral"; text: string }
+  | { type: "tab" }
+  | { type: "space" };
 
-  _: " ",
-  // @ts-expect-error
-  indent: (t) => {
-    if (Array.isArray(t[0])) {
-      return (t as string[][]).map((r) => [TAB, ...r]);
-    }
-    if (t.length) {
-      return [TAB, ...(t as string[])];
-    }
+// spaces and newlines are encoded as a 2-dimensial array;
+export type Line = Node[];
+export type Block = Line[];
+export type NodeType = Node["type"];
 
-    return t;
-  },
-  empty: "",
-  length: (i) => i.map((j) => j.join("")).join("").length,
-};
+export type PartiallyParsedLine = (Node | { type: "unknown"; text: string })[];
+export type PartiallyParsedBlock = PartiallyParsedLine[];
 
-export const join = <T>(lines: T[][], joinToken: T[]): T[] =>
+export const join = (lines: Block, joinToken: Line): Line =>
   lines.reduce(
     (acc, v, index) =>
       index === lines.length - 1
         ? [...acc, ...v]
         : [...acc, ...v, ...joinToken],
-    [] as T[]
+    [] as Line
   );
 
-export const flatten = <T>(lines: T[][]) =>
-  lines.reduce((acc, line) => [...acc, ...line], [] as T[]);
-
-export const addToLastLine = <T>(lines: T[][], addition: T[]) => {
+export const addToLastLine = (lines: Block, addition: Line) => {
   return [...lines.slice(0, -1), [...lines[lines.length - 1], ...addition]];
 };
 
-// type Node =
-//   | { type: "keyword"; value: string }
-//   | { type: "literal"; value: string }
-//   | { type: "codeComment"; value: string }
-//   | { type: "symbol"; value: string }
-//   | { type: "identifier"; value: string }
-//   | { type: "space" }
-//   | { type: "newline" };
+export function length(node: Node): number {
+  switch (node.type) {
+    case "tab":
+      return 1;
+    case "space":
+      return 1;
+    default:
+      return node.text.length;
+  }
+}
 
-// export const keyword = (value: string): Node => ({ type: "keyword", value });
+export function lengthOfBlock(block: Block): number {
+  return block.reduce(
+    (acc, line) =>
+      acc + line.reduce((subAcc, node) => subAcc + length(node), 0),
+    0
+  );
+}
 
-// export const symbol = (value: string): Node => ({ type: "symbol", value });
+export function doesContainType(block: Block, type: NodeType): boolean {
+  return block.some((line) => line.some((node) => node.type === type));
+}
 
-// export const endOfStatement = symbol(";");
+export function toSingleLineIfPossible(block: Block): Block {
+  // if (
+  //   lengthOfBlock(block) < MAX_INTELIGABLE_LINE &&
+  //   // Comments have to have newlines, since they all use the "--" style
+  //   !doesContainType(block, "comment")
+  // ) {
+  //   return [block.flat()];
+  // }
 
-// export const _ = { type: "space" };
+  return block;
+}
 
-// export const newline = { type: "newline" };
+export function indent(t: Node): Node;
+export function indent(t: Block): Block;
+export function indent(t: Line): Line;
+export function indent(t: any): any {
+  // Block
+  if (Array.isArray(t) && Array.isArray(t[0])) {
+    return (t as Block).map((r) => [{ type: "tab" }, ...r]);
+  }
 
-// const concat;
+  // Line
+  if (Array.isArray(t)) {
+    return [{ type: "tab" }, ...t];
+  }
 
-// export const statement = (...l: Node[]) => [...l, endOfStatement, newline];
+  // Node
+  return t;
+}
+
+const NEEDS_TO_BE_QUOTED = /[^a-z0-9_]/;
+export function identifier(c: string): Node {
+  return {
+    type: "identifier",
+    text: NEEDS_TO_BE_QUOTED.test(c) ? `"${c}"` : c,
+  };
+}
+
+export function symbol(c: string): Node {
+  return { type: "symbol", text: c };
+}
+
+export function keyword(c: string): Node {
+  return { type: "keyword", text: c.toUpperCase() };
+}
+
+export const _: Node = { type: "space" };
+export const TRUE: Node = { type: "booleanLiteral", text: "TRUE" };
+export const FALSE: Node = { type: "booleanLiteral", text: "FALSE" };
+export const NULL: Node = { type: "stringLiteral", text: "NULL" };
+
+// We always use sql style comments so we don't have to handle "*/" within comments
+// and so we can easilly comment/uncomment.
+export function comment(s: string | undefined): Block {
+  if (!s) {
+    return [];
+  }
+
+  return s
+    .split(NEWLINE)
+    .filter(Boolean)
+    .map((line) => [{ type: "comment", text: `-- ${line}`, style: "sql" }]);
+}
+
+// export function literal(s: string | number | boolean): Node {
+//   if (typeof s === "string") {
+//     return { type: "stringLiteral", text: s };
+//   }
+//   if (typeof s === "number") {
+//     return { type: "numberLiteral", text: `${s}` };
+//   }
+//   if (typeof s === "boolean") {
+//     return { type: "booleanLiteral", text: s ? "TRUE" : "FALSE" };
+//   }
+
+//   throw new Error(`Not a literal: ${s}`);
+// }
+
+export function stringLiteral(s: string): Node {
+  return { type: "stringLiteral", text: `'${s}'` };
+}
+
+export function integerLiteral(s: number): Node {
+  return { type: "numberLiteral", text: `${s}` };
+}
+
+export function floatLiteral(s: string): Node {
+  return { type: "numberLiteral", text: s };
+}

@@ -1,13 +1,10 @@
 import { VariableSetStmt } from "../types";
 import aConst from "./aConst";
-import comment from "./comment";
-import { Formatter } from "./util";
+import { keyword, _, identifier, symbol, Block, comment } from "./util";
 
-export default function variableSetStmt<T>(
-  variableSetStmt: VariableSetStmt,
-  f: Formatter<T>
-): T[][] {
-  const { keyword, _, identifier, symbol } = f;
+export default function variableSetStmt(
+  variableSetStmt: VariableSetStmt
+): Block {
   const c = variableSetStmt.args?.[0].A_Const;
 
   if (!c) {
@@ -15,7 +12,7 @@ export default function variableSetStmt<T>(
   }
 
   return [
-    ...comment(variableSetStmt.codeComment, f),
+    ...comment(variableSetStmt.codeComment),
     // Always on one line.
     [
       keyword("SET"),
@@ -24,7 +21,7 @@ export default function variableSetStmt<T>(
       _,
       symbol("="),
       _,
-      ...aConst(c, f),
+      ...aConst(c),
       symbol(";"),
     ],
   ];

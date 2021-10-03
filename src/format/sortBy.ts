@@ -1,19 +1,16 @@
-import { Formatter } from "./util";
+import { keyword, _, symbol, indent, comment, Block } from "./util";
 import { SortBy, SortByDir } from "../types/sortBy";
 import { rawValue } from "./rawExpr";
-import comment from "./comment";
 
-export default function <T>(c: { SortBy: SortBy }[], f: Formatter<T>): T[][] {
-  const { keyword, _, symbol, indent } = f;
-
+export default function (c: { SortBy: SortBy }[]): Block {
   return [
     [keyword("ORDER"), _, keyword("BY")],
     ...indent(
       c.flatMap((s, i) => {
         return [
-          ...comment(s.SortBy.codeComment, f),
+          ...comment(s.SortBy.codeComment),
           [
-            ...rawValue(s.SortBy.node, f).flat(),
+            ...rawValue(s.SortBy.node).flat(),
             ...(s.SortBy.sortby_dir === SortByDir.SORTBY_ASC
               ? [_, keyword("ASC")]
               : s.SortBy.sortby_dir === SortByDir.SORTBY_DESC

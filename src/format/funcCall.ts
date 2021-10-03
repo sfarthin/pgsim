@@ -1,9 +1,8 @@
 import { FuncCall } from "../types";
 import { rawValue } from "./rawExpr";
-import { Formatter, join } from "./util";
+import { Line, join, identifier, symbol, _ } from "./util";
 
-export default function funcCall<T>(c: FuncCall, f: Formatter<T>): T[] {
-  const { symbol, identifier, _ } = f;
+export default function funcCall(c: FuncCall): Line {
   return [
     ...(c.funcname.length === 2
       ? [
@@ -18,7 +17,7 @@ export default function funcCall<T>(c: FuncCall, f: Formatter<T>): T[] {
 
     // foo, goo, etc
     ...(c.args
-      ? join(c.args.map((p) => rawValue(p, f)).flat(), [symbol(","), _])
+      ? join(c.args.map((p) => rawValue(p)).flat(), [symbol(","), _])
       : []),
     symbol(")"),
   ];

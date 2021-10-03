@@ -1,9 +1,8 @@
 import { TypeCast } from "../types/TypeCast";
 import { rawValue } from "./rawExpr";
-import { Formatter } from "./util";
+import { Line, TRUE, FALSE, symbol, identifier } from "./util";
 
-export default function <T>(c: TypeCast, f: Formatter<T>): T[] {
-  const { literal, symbol, identifier } = f;
+export default function (c: TypeCast): Line {
   const toBoolean = c.typeName.names?.[1]?.String.str === "bool";
   const strKeyword =
     c.arg &&
@@ -15,17 +14,17 @@ export default function <T>(c: TypeCast, f: Formatter<T>): T[] {
 
   if (toBoolean) {
     if (strKeyword === "t") {
-      return [literal("TRUE")];
+      return [TRUE];
     }
 
     if (strKeyword === "f") {
-      return [literal("FALSE")];
+      return [FALSE];
     }
   }
 
   if (c.arg) {
     return [
-      ...rawValue(c.arg, f).flat(),
+      ...rawValue(c.arg).flat(),
       symbol("::"),
       identifier(
         c.typeName.names.length === 1

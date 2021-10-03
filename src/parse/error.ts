@@ -9,7 +9,7 @@ import {
 } from "./util";
 import { Stmt } from "../types";
 import c from "ansi-colors";
-import { NEWLINE } from "../format/util";
+import { NEWLINE } from "../format/print";
 
 const indent = ({
   lines,

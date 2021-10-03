@@ -1,8 +1,7 @@
 import { DefElem } from "../types";
-import { Formatter } from "./util";
+import { identifier, symbol, keyword, _, Line, integerLiteral } from "./util";
 
-export default function defElem<T>(defElem: DefElem, f: Formatter<T>): T[] {
-  const { identifier, symbol, keyword, _, number } = f;
+export default function defElem(defElem: DefElem): Line {
   if (defElem.defname === "owned_by") {
     const list = "List" in defElem.arg ? defElem.arg.List.items : [];
     if (list.length === 2) {
@@ -26,10 +25,9 @@ export default function defElem<T>(defElem: DefElem, f: Formatter<T>): T[] {
     const value = defElem.arg?.Integer.ival;
     const fieldName = defElem.defname.toUpperCase();
     if (value) {
-      return [keyword(fieldName), _, number(value)];
-      `${fieldName} ${value}`;
+      return [keyword(fieldName), _, integerLiteral(value)];
     } else {
-      return [keyword("NO"), _, identifier(fieldName)];
+      return [keyword("NO"), _, keyword(fieldName)];
     }
   }
 
@@ -47,7 +45,7 @@ export default function defElem<T>(defElem: DefElem, f: Formatter<T>): T[] {
     if (!value) {
       throw new Error("Expectect argument");
     }
-    return [keyword("START"), _, keyword("WITH"), _, number(value)];
+    return [keyword("START"), _, keyword("WITH"), _, integerLiteral(value)];
   }
 
   if (defElem.defname === "increment") {
@@ -55,7 +53,7 @@ export default function defElem<T>(defElem: DefElem, f: Formatter<T>): T[] {
     if (!value) {
       throw new Error("Expectect argument");
     }
-    return [keyword("INCREMENT"), _, keyword("BY"), _, number(value)];
+    return [keyword("INCREMENT"), _, keyword("BY"), _, integerLiteral(value)];
   }
 
   return [];

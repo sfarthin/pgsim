@@ -1,6 +1,6 @@
 import { AExpr, AExprKind } from "../types";
 import { rawValue } from "./rawExpr";
-import { Formatter } from "./util";
+import { _, keyword, symbol, indent, Block } from "./util";
 import { getPrecedence } from "../parse/aExpr";
 import { list } from "./list";
 
@@ -15,13 +15,7 @@ function doesSecondConditionNeedParens(c: AExpr) {
   return false;
 }
 
-function wrapParens<T>(
-  a: T[][],
-  f: Formatter<T>,
-  includeParens?: boolean
-): T[][] {
-  const { symbol } = f;
-
+function wrapParens(a: Block, includeParens?: boolean): Block {
   if (!includeParens) {
     return a;
   }
@@ -37,18 +31,13 @@ function wrapParens<T>(
   ];
 }
 
-export default function aExpr<T>(
-  c: AExpr,
-  f: Formatter<T>,
-  includeParens?: boolean
-): T[][] {
-  const { _, keyword, symbol, indent } = f;
+export default function aExpr(c: AExpr, includeParens?: boolean): Block {
   if (c.kind === AExprKind.AEXPR_OP) {
-    const firstCondition = c.lexpr ? rawValue(c.lexpr, f) : null;
+    const firstCondition = c.lexpr ? rawValue(c.lexpr) : null;
     const secondCondition = c.rexpr
       ? doesSecondConditionNeedParens(c)
-        ? rawValue(c.rexpr, f, true)
-        : rawValue(c.rexpr, f)
+        ? rawValue(c.rexpr, true)
+        : rawValue(c.rexpr)
       : null;
     const hasTwoParams = firstCondition && secondCondition;
 
@@ -67,7 +56,6 @@ export default function aExpr<T>(
             ...(secondCondition ? secondCondition[0] : []),
           ],
         ],
-        f,
         includeParens
       );
     } else {
@@ -77,13 +65,12 @@ export default function aExpr<T>(
           [_, symbol(c.name[0].String.str), _],
           ...(secondCondition ? secondCondition : []),
         ],
-        f,
         includeParens
       );
     }
   } else {
-    const condition = rawValue(c.lexpr, f);
-    const rexpr = list(c.rexpr.List, (r) => rawValue(r, f)).flat();
+    const condition = rawValue(c.lexpr);
+    const rexpr = list(c.rexpr.List, (r) => rawValue(r)).flat();
 
     const rexprWithCommas = rexpr.map((l, i) =>
       i === rexpr.length - 1 ? l : l.concat(symbol(","))

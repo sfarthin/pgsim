@@ -2,7 +2,7 @@ import * as d from "decoders";
 import { stmtDecoder, Stmt } from "../types";
 import { parseQuerySync } from "libpg-query";
 import { toLineAndColumn } from "../parse/error";
-import { NEWLINE } from "../format/util";
+import { NEWLINE } from "../format/print";
 
 export const parserResultDecoder = d.exact({
   version: d.number,

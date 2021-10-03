@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TypeNameKeyword } from "src/types";
-import { NEWLINE } from "../format/util";
+import { NEWLINE } from "../format/print";
 import { stmts } from "./index";
 /**
  * Types

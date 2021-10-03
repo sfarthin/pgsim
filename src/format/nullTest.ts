@@ -1,12 +1,10 @@
 import { NullTest } from "../types";
 import { rawValue } from "./rawExpr";
-import { Formatter } from "./util";
+import { _, keyword, Line } from "./util";
 
-export default function rowExpr<T>(c: NullTest, f: Formatter<T>): T[] {
-  const { _, keyword } = f;
-
+export default function rowExpr(c: NullTest): Line {
   return [
-    ...rawValue(c.arg, f).flat(),
+    ...rawValue(c.arg).flat(),
     _,
     keyword("IS"),
     _,

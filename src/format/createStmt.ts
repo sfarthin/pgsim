@@ -1,11 +1,18 @@
 import { CreateStmt, ColumnDef, Constraint } from "../types";
-import comment from "./comment";
 import { toTableConstraint } from "./constraint";
-import { Formatter, addToLastLine } from "./util";
+import {
+  Block,
+  addToLastLine,
+  comment,
+  keyword,
+  symbol,
+  _,
+  identifier,
+  indent,
+} from "./util";
 import columnDef from "./columnDef";
 
-export default function <T>(createStmt: CreateStmt, f: Formatter<T>): T[][] {
-  const { keyword, symbol, _, identifier, indent } = f;
+export default function (createStmt: CreateStmt): Block {
   const tableName = createStmt.relation.relname;
   const schemaname = createStmt.relation.schemaname;
 
@@ -21,7 +28,7 @@ export default function <T>(createStmt: CreateStmt, f: Formatter<T>): T[][] {
   ).filter((c) => !!c) as Constraint[];
 
   return [
-    ...comment(createStmt.codeComment, f),
+    ...comment(createStmt.codeComment),
     [
       keyword("CREATE"),
       _,
@@ -40,15 +47,15 @@ export default function <T>(createStmt: CreateStmt, f: Formatter<T>): T[][] {
         (acc, d, i) => [
           ...acc,
           ...(i === columnDefs.length - 1 && !constraints.length
-            ? columnDef(d, f)
-            : addToLastLine(columnDef(d, f), [symbol(",")])),
+            ? columnDef(d)
+            : addToLastLine(columnDef(d), [symbol(",")])),
         ],
-        [] as T[][]
+        [] as Block
       ),
 
       ...constraints.reduce(
-        (acc, d) => [...acc, toTableConstraint(d, f)],
-        [] as T[][]
+        (acc, d) => [...acc, toTableConstraint(d)],
+        [] as Block
       ),
     ]),
     [symbol(")"), symbol(";")],

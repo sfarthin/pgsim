@@ -1,44 +1,44 @@
 import { AlterTableCmd, AlterTableStmt, AlterTableCmdSubType } from "../types";
-import comment from "./comment";
 import { rawValue } from "./rawExpr";
 import { toType } from "./columnDef";
 import toConstraints from "./constraint";
-import { Formatter } from "./util";
+import {
+  keyword,
+  _,
+  comment,
+  identifier,
+  Line,
+  indent,
+  symbol,
+  Block,
+} from "./util";
 import rangeVar from "./rangeVar";
-import identifier from "./identifier";
 
-function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
-  const { keyword, _ } = f;
+function alterTableCmd(c: AlterTableCmd): Line {
   switch (c.subtype) {
     case AlterTableCmdSubType.AT_DropConstraint:
-      return [
-        keyword("DROP"),
-        _,
-        keyword("CONSTRAINT"),
-        _,
-        identifier(c.name, f),
-      ];
+      return [keyword("DROP"), _, keyword("CONSTRAINT"), _, identifier(c.name)];
     case AlterTableCmdSubType.AT_AlterColumnType:
       return [
         keyword("ALTER"),
         _,
         keyword("COLUMN"),
         _,
-        identifier(c.name, f),
+        identifier(c.name),
         _,
         keyword("TYPE"),
         _,
         keyword(toType(c.def.ColumnDef)),
       ];
     case AlterTableCmdSubType.AT_DropColumn:
-      return [keyword("DROP"), _, identifier(c.name ?? "", f)];
+      return [keyword("DROP"), _, identifier(c.name ?? "")];
     case AlterTableCmdSubType.AT_DropNotNull:
       return [
         keyword("ALTER"),
         _,
         keyword("COLUMN"),
         _,
-        identifier(c.name, f),
+        identifier(c.name),
         _,
         keyword("DROP"),
         _,
@@ -51,19 +51,19 @@ function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
         return [
           keyword("ALTER"),
           _,
-          identifier(c.name, f),
+          identifier(c.name),
           _,
           keyword("SET"),
           _,
           keyword("DEFAULT"),
           _,
-          ...rawValue(c.def, f).flat(),
+          ...rawValue(c.def).flat(),
         ];
       } else {
         return [
           keyword("ALTER"),
           _,
-          identifier(c.name, f),
+          identifier(c.name),
           _,
           keyword("DROP"),
           _,
@@ -72,15 +72,11 @@ function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
       }
 
     case AlterTableCmdSubType.AT_AddConstraint:
-      return [keyword("ADD"), ...toConstraints([c.def.Constraint], f, true)];
+      return [keyword("ADD"), ...toConstraints([c.def.Constraint], true)];
     case AlterTableCmdSubType.AT_AddColumn: {
       if (!c.def.ColumnDef.colname) {
         throw new Error("Expected column name");
       }
-
-      const colname = c.def.ColumnDef.colname.match(/^[a-zA-Z][a-zA-Z0-9]*$/)
-        ? c.def.ColumnDef.colname
-        : JSON.stringify(c.def.ColumnDef.colname);
 
       const constraints =
         c.def.ColumnDef.constraints?.map((c) => c.Constraint) ?? [];
@@ -88,24 +84,19 @@ function alterTableCmd<T>(c: AlterTableCmd, f: Formatter<T>): T[] {
       return [
         keyword("ADD"),
         _,
-        identifier(colname, f),
+        identifier(c.def.ColumnDef.colname),
         _,
         keyword(toType(c.def.ColumnDef).toUpperCase()),
-        ...toConstraints(constraints, f, true),
+        ...toConstraints(constraints, true),
       ];
     }
   }
   throw new Error(`Cannot handle ${c.subtype}`);
 }
 
-export default function alterSeqStmt<T>(
-  c: AlterTableStmt,
-  f: Formatter<T>
-): T[][] {
-  const { indent, keyword, _, symbol } = f;
-
+export default function alterSeqStmt(c: AlterTableStmt): Block {
   return [
-    ...comment(c.codeComment, f),
+    ...comment(c.codeComment),
     [
       keyword("ALTER"),
       _,
@@ -113,20 +104,20 @@ export default function alterSeqStmt<T>(
       ...(c.missing_ok ? [_, keyword("IF"), _, keyword("EXISTS")] : []),
       ...(!c.relation.inh ? [_, keyword("ONLY")] : []),
       _,
-      ...rangeVar(c.relation, f),
+      ...rangeVar(c.relation),
     ],
     ...indent(
       c.cmds
         ? c.cmds.reduce(
             (acc, e, i) => [
               ...acc,
-              ...comment(e.AlterTableCmd.codeComment, f),
+              ...comment(e.AlterTableCmd.codeComment),
               // addToLastLine(alterTableCmd(e.AlterTableCmd, f), symbol(";")),
               c.cmds.length - 1 === i
-                ? alterTableCmd(e.AlterTableCmd, f).concat(symbol(";"))
-                : alterTableCmd(e.AlterTableCmd, f).concat(symbol(",")),
+                ? alterTableCmd(e.AlterTableCmd).concat(symbol(";"))
+                : alterTableCmd(e.AlterTableCmd).concat(symbol(",")),
             ],
-            [] as T[][]
+            [] as Block
           )
         : []
     ),

@@ -1,13 +1,11 @@
 import { RowExpr } from "../types";
 import { rawValue } from "./rawExpr";
-import { Formatter, join } from "./util";
+import { join, Line, symbol, _ } from "./util";
 
-export default function rowExpr<T>(c: RowExpr, f: Formatter<T>): T[] {
-  const { symbol, _ } = f;
-
+export default function rowExpr(c: RowExpr): Line {
   return [
     symbol("("),
-    ...join(c.args.map((a) => rawValue(a, f)).flat(), [symbol(","), _]),
+    ...join(c.args.map((a) => rawValue(a)).flat(), [symbol(","), _]),
     symbol(")"),
   ];
 }

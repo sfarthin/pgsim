@@ -18,7 +18,8 @@ export const rangeVar: Rule<{
 }> = transform(
   sequence([
     sequence([identifier, optional(sequence([PERIOD, identifier]))]),
-
+    // column [AS alias | alias]
+    // identifier('foo') ... v[3].foo
     optional(
       or([sequence([__, AS, __, identifier]), sequence([__, identifier])])
     ),

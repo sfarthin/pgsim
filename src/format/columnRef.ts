@@ -1,14 +1,13 @@
 import { ColumnRef } from "../types";
-import { Formatter } from "./util";
+import { identifier, symbol, Line } from "./util";
 
-export default function columnRef<T>(c: ColumnRef, f: Formatter<T>): T[] {
-  const { identifier, symbol } = f;
+export default function columnRef(c: ColumnRef): Line {
   if ("A_Star" in c.fields[0]) {
-    return [identifier("*")];
+    return [symbol("*")];
   }
 
   if (c.fields[1] && "A_Star" in c.fields[1] && "String" in c.fields[0]) {
-    return [identifier(c.fields[0].String.str), symbol("."), identifier("*")];
+    return [identifier(c.fields[0].String.str), symbol("."), symbol("*")];
   }
 
   if (c.fields[1] && "String" in c.fields[1] && "String" in c.fields[0]) {

@@ -7,7 +7,7 @@ import { join, basename } from "path";
 import { lstatSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import { json as assertNoDiff } from "assert-no-diff";
 import c from "ansi-colors";
-import { NEWLINE } from "../format/util";
+import { NEWLINE } from "../format/print";
 
 /**
  * By ensuring the native parser is verified by the decoder

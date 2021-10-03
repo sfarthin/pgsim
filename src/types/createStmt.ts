@@ -1,6 +1,6 @@
 import * as d from "decoders";
 import { Constraint, constraintDecoder } from "./constraint";
-import { TypeName, typeNameDecoder } from "./typeName";
+import { typeNameDecoder } from "./typeName";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { locationDecoder } from "./location";
 import dispatch from "./dispatch";

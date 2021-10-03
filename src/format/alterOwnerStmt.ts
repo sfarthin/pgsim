@@ -1,14 +1,9 @@
 import { AlterOwnerStmt } from "../types";
-import comment from "./comment";
-import { Formatter } from "./util";
+import { comment, keyword, _, identifier, symbol, Block } from "./util";
 
-export default function alterOwnerStmt<T>(
-  c: AlterOwnerStmt,
-  f: Formatter<T>
-): T[][] {
-  const { keyword, _, identifier, symbol } = f;
+export default function alterOwnerStmt(c: AlterOwnerStmt): Block {
   return [
-    ...comment(c.codeComment, f),
+    ...comment(c.codeComment),
     [
       keyword("ALTER"),
       _,

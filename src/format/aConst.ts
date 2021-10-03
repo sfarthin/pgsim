@@ -1,20 +1,24 @@
 import { A_Const } from "../types";
-import { Formatter } from "./util";
+import {
+  Line,
+  stringLiteral,
+  floatLiteral,
+  integerLiteral,
+  NULL,
+} from "./util";
 
-export default function aConst<T>(aConst: A_Const, f: Formatter<T>): T[] {
-  const { literal } = f;
-
+export default function aConst(aConst: A_Const): Line {
   if ("String" in aConst.val) {
-    return [literal(`'${aConst.val.String.str}'`)];
+    return [stringLiteral(aConst.val.String.str)];
   }
 
   if ("Float" in aConst.val) {
-    return [literal(aConst.val.Float.str)];
+    return [floatLiteral(aConst.val.Float.str)];
   }
 
   if ("Integer" in aConst.val) {
-    return [literal(`${aConst.val.Integer.ival}`)];
+    return [integerLiteral(aConst.val.Integer.ival)];
   }
 
-  return [literal("NULL")];
+  return [NULL];
 }

@@ -1,30 +1,33 @@
 import { AlterEnumStmt } from "../types";
-import comment from "./comment";
-import { Formatter } from "./util";
+import {
+  keyword,
+  _,
+  identifier,
+  stringLiteral,
+  symbol,
+  comment,
+  Line,
+  Block,
+} from "./util";
 
-const beforeAndAfter = <T>(c: AlterEnumStmt, f: Formatter<T>): T[] => {
-  const { keyword, _, literal } = f;
+const beforeAndAfter = (c: AlterEnumStmt): Line => {
   if (!("oldVal" in c)) {
     if (!c.newValIsAfter && c.newValNeighbor) {
-      return [_, keyword("BEFORE"), _, literal(`'${c.newValNeighbor}'`)];
+      return [_, keyword("BEFORE"), _, stringLiteral(c.newValNeighbor)];
     }
 
     if (c.newValNeighbor) {
-      return [_, keyword("AFTER"), _, literal(`'${c.newValNeighbor}'`)];
+      return [_, keyword("AFTER"), _, stringLiteral(c.newValNeighbor)];
     }
   }
 
   return [];
 };
 
-export default function alterEnumStmt<T>(
-  c: AlterEnumStmt,
-  f: Formatter<T>
-): T[][] {
-  const { keyword, _, identifier, literal, symbol } = f;
+export default function alterEnumStmt(c: AlterEnumStmt): Block {
   if ("oldVal" in c) {
     return [
-      ...comment(c.codeComment, f),
+      ...comment(c.codeComment),
       [
         keyword("ALTER"),
         _,
@@ -36,18 +39,18 @@ export default function alterEnumStmt<T>(
         _,
         keyword("VALUE"),
         _,
-        literal(`'${c.oldVal}'`),
+        stringLiteral(c.oldVal),
         _,
         keyword("TO"),
         _,
-        literal(`'${c.newVal}'`),
+        stringLiteral(c.newVal),
         symbol(";"),
       ],
     ];
   }
 
   return [
-    ...comment(c.codeComment, f),
+    ...comment(c.codeComment),
     [
       keyword("ALTER"),
       _,
@@ -62,8 +65,8 @@ export default function alterEnumStmt<T>(
         ? [_, keyword("IF"), _, keyword("NOT"), _, keyword("EXISTS")]
         : []),
       _,
-      literal(`'${c.newVal}'`),
-      ...beforeAndAfter(c, f),
+      stringLiteral(c.newVal),
+      ...beforeAndAfter(c),
       symbol(";"),
     ],
   ];
