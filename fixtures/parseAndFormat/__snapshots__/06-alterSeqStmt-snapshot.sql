@@ -1,6 +1,5 @@
 -- Hello
-ALTER SEQUENCE foo
-	OWNED BY a.aaa;
+ALTER SEQUENCE foo OWNED BY a.aaa;
 
 ALTER SEQUENCE foo
 	-- increment

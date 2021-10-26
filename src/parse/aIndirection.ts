@@ -11,14 +11,16 @@ import {
 
 export const aIndirectionConnection = (ctx: Context) =>
   rawValuePostfix(
-    sequence([OPEN_BRACKET, __, aConst, __, CLOSE_BRACKET]),
+    sequence([__, OPEN_BRACKET, __, aConst, __, CLOSE_BRACKET, __]),
     (c1, v) => {
       return {
         codeComment: combineComments(
+          v[0],
           c1.codeComment,
-          v[1],
-          v[2].codeComment,
-          v[3]
+          v[2],
+          v[3].codeComment,
+          v[4],
+          v[6]
         ),
         value: {
           A_Indirection: {
@@ -26,7 +28,7 @@ export const aIndirectionConnection = (ctx: Context) =>
             indirection: [
               {
                 A_Indices: {
-                  uidx: v[2].value,
+                  uidx: v[3].value,
                 },
               },
             ],

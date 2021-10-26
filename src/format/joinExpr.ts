@@ -1,11 +1,18 @@
 import { JoinExpr, JoinType } from "../types";
-import { Block, keyword, _, symbol, indent } from "./util";
+import {
+  Block,
+  keyword,
+  _,
+  symbol,
+  indent,
+  toSingleLineIfPossible,
+} from "./util";
 import rangeVar from "./rangeVar";
 import { rawValue } from "./rawExpr";
 import rangeSubselect from "./rangeSubselect";
 
 export default function joinExpr(c: JoinExpr): Block {
-  return [
+  return toSingleLineIfPossible([
     ...("RangeVar" in c.larg
       ? [rangeVar(c.larg.RangeVar)]
       : rangeSubselect(c.larg.RangeSubselect)),
@@ -25,5 +32,5 @@ export default function joinExpr(c: JoinExpr): Block {
       ...indent(rawValue(c.quals)),
       [symbol(")")],
     ]),
-  ];
+  ]);
 }

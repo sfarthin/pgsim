@@ -1,7 +1,6 @@
 -- https://www.postgresql.org/docs/9.1/functions-datetime.html
 
-SELECT
-	'2001-09-28'::date;
+SELECT '2001-09-28'::date;
 
 -- SELECT '2001-09-28'::int4 + '7'::int4;
 -- SELECT date '2001-09-28' + integer '7'; -- date '2001-10-05'

@@ -10,12 +10,7 @@ CREATE VIEW foo AS (
 		1
 );
 
-CREATE VIEW myview AS (
-	SELECT
-		mytable.mycolumn
-	FROM
-		mytable
-);
+CREATE VIEW myview AS (SELECT mytable.mycolumn FROM mytable);
 
 CREATE VIEW myview AS (
 	SELECT

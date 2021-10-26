@@ -36,6 +36,7 @@ export const sortBy: Rule<{ SortBy: SortBy }[]> = transform(
         optional(or([ASC, DESC])), // 5
       ])
     ),
+    __,
   ]),
   (v) => {
     const firstSort: SortBy = {
@@ -63,6 +64,13 @@ export const sortBy: Rule<{ SortBy: SortBy }[]> = transform(
         node: s[3].value,
       },
     }));
+
+    if (restOfSorts.length) {
+      restOfSorts[restOfSorts.length - 1].SortBy.codeComment = combineComments(
+        restOfSorts[restOfSorts.length - 1].SortBy.codeComment,
+        v[9]
+      );
+    }
 
     return [{ SortBy: firstSort }, ...restOfSorts];
   }

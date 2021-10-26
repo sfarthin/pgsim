@@ -7,6 +7,7 @@ import {
   zeroToMany,
   COMMA,
   transform,
+  combineComments,
 } from "./util";
 import { RowExpr } from "../types/rowExpr";
 import { rawValue } from "./rawExpr";
@@ -19,13 +20,12 @@ export const rowExpr: Rule<{
     LPAREN,
     __,
     (ctx) => rawValue(ctx),
-    __,
-    zeroToMany(sequence([COMMA, __, (ctx) => rawValue(ctx)])),
+    zeroToMany(sequence([__, COMMA, __, (ctx) => rawValue(ctx)])),
     __,
     RPAREN,
   ]),
   (v) => {
-    const args = v[4].map((i) => i[2].value);
+    const args = v[3].map((i) => i[3].value);
     return {
       value: {
         RowExpr: {
@@ -34,7 +34,12 @@ export const rowExpr: Rule<{
           location: v[0].start,
         },
       },
-      codeComment: "",
+      codeComment: combineComments(
+        v[1],
+        v[2].codeComment,
+        ...v[3].flatMap((k) => [k[0], k[2]]),
+        v[4]
+      ),
     };
   }
 );

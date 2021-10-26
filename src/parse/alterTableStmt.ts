@@ -43,6 +43,7 @@ export const alterTableStmt: Rule<AlterTableStmt> = transform(
     __, // 10
     alterTableCmd, // 11
     zeroToMany(sequence([__, COMMA, __, alterTableCmd])),
+    __,
     endOfStatement,
   ]),
   (v) => {
@@ -75,7 +76,8 @@ export const alterTableStmt: Rule<AlterTableStmt> = transform(
         v[5]?.[1],
         v[6],
         v[8],
-        v[13]
+        v[13],
+        v[14]
       ),
     };
   }

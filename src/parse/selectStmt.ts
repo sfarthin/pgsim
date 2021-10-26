@@ -32,8 +32,9 @@ const groupBy = transform(
     __,
     BY,
     __,
-    columnRef, // 4
+    columnRef, // 5
     zeroToMany(sequence([__, COMMA, __, columnRef])),
+    __,
   ]),
   (v) => ({
     value: [
@@ -46,6 +47,7 @@ const groupBy = transform(
       groupClause: [
         combineComments(v[0], v[2], v[4]),
         ...v[6].map((r) => combineComments(r[0], r[2])),
+        v[7],
       ],
     },
   })
@@ -64,11 +66,12 @@ const where = transform(
         codeComment,
       })
     ),
+    __,
   ]),
   (v) => ({
     whereClause: v[2].value,
     codeComments: {
-      whereClause: [combineComments(v[1], v[2].codeComment)],
+      whereClause: [combineComments(v[1], v[2].codeComment, v[3])],
     },
   })
 );

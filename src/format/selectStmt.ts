@@ -5,6 +5,7 @@ import rangeVar from "./rangeVar";
 import joinExpr from "./joinExpr";
 import columnRef from "./columnRef";
 import {
+  toSingleLineIfPossible,
   identifier,
   keyword,
   indent,
@@ -41,7 +42,7 @@ function toTargetList(c: SelectStmt): Block {
   return [
     ...comment(c.codeComment),
     [keyword("SELECT")],
-    ...indent(targetList),
+    ...indent(toSingleLineIfPossible(targetList)),
   ];
 }
 
@@ -52,24 +53,26 @@ export function innerSelect(c: SelectStmt): Block {
     ? [
         [keyword("FROM")],
         ...indent(
-          c.fromClause.flatMap((v, i) => {
-            const commaSepatation =
-              i === (c.fromClause?.length ?? 0) - 1 ? [] : [symbol(",")];
+          toSingleLineIfPossible(
+            c.fromClause.flatMap((v, i) => {
+              const commaSepatation =
+                i === (c.fromClause?.length ?? 0) - 1 ? [] : [symbol(",")];
 
-            if ("RangeVar" in v) {
-              return [
-                ...comment(c.codeComments?.fromClause?.[i]),
-                rangeVar(v.RangeVar).concat(commaSepatation),
-              ];
-            }
-            if ("JoinExpr" in v) {
-              return [
-                ...comment(c.codeComments?.fromClause?.[i]),
-                ...joinExpr(v.JoinExpr).concat(commaSepatation),
-              ];
-            }
-            return [];
-          })
+              if ("RangeVar" in v) {
+                return [
+                  ...comment(c.codeComments?.fromClause?.[i]),
+                  rangeVar(v.RangeVar).concat(commaSepatation),
+                ];
+              }
+              if ("JoinExpr" in v) {
+                return [
+                  ...comment(c.codeComments?.fromClause?.[i]),
+                  ...joinExpr(v.JoinExpr).concat(commaSepatation),
+                ];
+              }
+              return [];
+            })
+          )
         ),
       ]
     : [];
@@ -103,9 +106,9 @@ export function innerSelect(c: SelectStmt): Block {
   return [
     ...select,
     ...from,
-    ...where,
-    ...groupBy,
-    ...(c.sortClause ? sortBy(c.sortClause) : []),
+    ...toSingleLineIfPossible(where),
+    ...toSingleLineIfPossible(groupBy),
+    ...toSingleLineIfPossible(c.sortClause ? sortBy(c.sortClause) : []),
   ];
 }
 

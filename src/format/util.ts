@@ -1,6 +1,6 @@
 import { NEWLINE } from "./print";
 
-const MAX_INTELIGABLE_LINE = 40;
+const MAX_INTELIGABLE_LINE = 80;
 
 export type Node =
   | { type: "keyword"; text: string } // <-- We can be more specific than "string", reconcile with parser
@@ -62,13 +62,89 @@ export function doesContainType(block: Block, type: NodeType): boolean {
 }
 
 export function toSingleLineIfPossible(block: Block): Block {
-  // if (
-  //   lengthOfBlock(block) < MAX_INTELIGABLE_LINE &&
-  //   // Comments have to have newlines, since they all use the "--" style
-  //   !doesContainType(block, "comment")
-  // ) {
-  //   return [block.flat()];
-  // }
+  if (block.length === 0) {
+    return block;
+  }
+
+  if (
+    block[0].length === 1 &&
+    block[0][0].type === "comment" &&
+    block.length > 1
+  ) {
+    return [block[0], ...toSingleLineIfPossible(block.slice(1))];
+  }
+
+  if (
+    lengthOfBlock(block) < MAX_INTELIGABLE_LINE &&
+    // Comments have to have newlines, since they all use the "--" style
+    !doesContainType(block, "comment")
+  ) {
+    const unformattedLine = block
+      // Remove newlines
+      .flatMap((line) => line.filter((n) => n.type !== "tab").concat(_))
+      // flatten it out
+      .flat();
+    return [
+      unformattedLine.reduce((acc, n, i) => {
+        if (!acc.length) {
+          return [n];
+        }
+
+        const lastNode = acc[acc.length - 1];
+        const upcomingNodes = unformattedLine.slice(i);
+
+        // If there is only whitespace left on line, trim those.
+        const isOnlyWhitespaceLeftOnLine = !upcomingNodes.some(
+          (n) => n.type !== "space" && n.type !== "tab"
+        );
+        if (isOnlyWhitespaceLeftOnLine) {
+          return acc;
+        }
+
+        // No spaces before certain symbols
+        if (
+          lastNode.type === "space" &&
+          n.type === "symbol" &&
+          [",", "::", ";"].includes(n.text)
+        ) {
+          return [...acc.slice(0, -1), n];
+        }
+
+        // Lets make sure there is no space after an open parens/bracket.
+        if (
+          lastNode.type === "symbol" &&
+          ["[", "("].includes(lastNode.text) &&
+          n.type === "space"
+        ) {
+          return acc;
+        }
+
+        // Lets make sure we don't have spaces before our end parens/bracket
+        if (
+          lastNode.type === "space" &&
+          n.type === "symbol" &&
+          [")", "]"].includes(n.text) // "::", ","
+        ) {
+          return [...acc.slice(0, -1), n];
+        }
+
+        // Lets make sure we don't have duplicate spaces
+        if (
+          (lastNode.type === "space" || lastNode.type === "tab") &&
+          n.type === "space"
+        ) {
+          return acc;
+        }
+
+        // We don't need tabs when we condence to a single line
+        if (n.type === "tab") {
+          return [...acc, { type: "space" }];
+        }
+
+        return [...acc, n];
+      }, [] as Line),
+    ];
+  }
 
   return block;
 }

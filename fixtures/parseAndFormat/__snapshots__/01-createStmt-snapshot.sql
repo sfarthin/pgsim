@@ -110,19 +110,13 @@ CREATE TABLE reference_group_examples (
 	FOREIGN KEY (b, c) REFERENCES other_table (c1, c2)
 );
 
-CREATE TABLE foo (
-	a SOME_CUSTOM_TYPE
-);
+CREATE TABLE foo (a SOME_CUSTOM_TYPE);
 
 -- we can parse the schema
-CREATE TABLE buckets.foo (
-	a INTEGER
-);
+CREATE TABLE buckets.foo (a INTEGER);
 
 -- we can parse the schema, and automatically remove public from schema name.
-CREATE TABLE public.foo (
-	b INTEGER
-);
+CREATE TABLE public.foo (b INTEGER);
 
 CREATE TABLE IF NOT EXISTS foobar (
 	id SERIAL,

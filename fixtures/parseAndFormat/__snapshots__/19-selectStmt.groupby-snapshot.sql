@@ -1,9 +1,4 @@
-SELECT
-	*
-FROM
-	foo
-GROUP BY
-	created_at;
+SELECT * FROM foo GROUP BY created_at;
 
 SELECT
 	*
@@ -23,25 +18,12 @@ GROUP BY
 	-- goo
 	three;
 
-SELECT
-	*
-FROM
-	foo
-	JOIN
-		f
-		ON (
-			TRUE = TRUE
-		)
-GROUP BY
-	a.b,
-	c;
+SELECT * FROM foo JOIN f ON (TRUE = TRUE) GROUP BY a.b, c;
 
 SELECT
 	*
 FROM
-	foo
-WHERE
-	1 = 1
-GROUP BY
-	a.b,
-	c;
+	foo JOIN f ON (TRUE = TRUE AND FALSE = FALSE AND 1 = 1)
+GROUP BY a.b, c;
+
+SELECT * FROM foo WHERE 1 = 1 GROUP BY a.b, c;

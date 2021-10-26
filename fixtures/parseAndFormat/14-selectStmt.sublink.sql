@@ -22,4 +22,4 @@ FROM
     foo
 WHERE 
     -- Double connector
-    subscriptions.transaction_name::text IN ( SELECT foo );
+    subscriptions.transaction_name::text IN ( SELECT foo ) ;

@@ -10,9 +10,9 @@ import sublink from "./sublink";
 import caseExpr from "./caseExpr";
 import nullTest from "./nullTest";
 import aIndirection from "./aIndirection";
-import { Block } from "./util";
+import { Block, toSingleLineIfPossible } from "./util";
 
-export function rawValue(c: RawValue, includeParens?: boolean): Block {
+function _rawValue(c: RawValue, includeParens?: boolean): Block {
   if ("TypeCast" in c) {
     return [typeCast(c.TypeCast)];
   } else if ("A_Const" in c) {
@@ -38,4 +38,8 @@ export function rawValue(c: RawValue, includeParens?: boolean): Block {
   }
 
   throw new Error(`RawValue not handled: ${Object.keys(c)[0]}`);
+}
+
+export function rawValue(c: RawValue, includeParens?: boolean): Block {
+  return toSingleLineIfPossible(_rawValue(c, includeParens));
 }

@@ -48,6 +48,7 @@ export const updateStmt: Rule<UpdateStmt> = transform(
     __,
     resTarget, // 7
     zeroToMany(sequence([__, COMMA, __, resTarget])),
+    __,
     endOfStatement,
   ]),
   (v) => {
@@ -66,7 +67,8 @@ export const updateStmt: Rule<UpdateStmt> = transform(
         v[6],
         v[7].codeComment,
         ...v[8].flatMap((k) => [k[0], k[2], k[3].codeComment]),
-        v[9]
+        v[9],
+        v[10]
       ),
     };
   }
