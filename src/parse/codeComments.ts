@@ -10,6 +10,7 @@ import {
   constant,
   Rule,
   combineComments,
+  toNodes,
 } from "./util";
 
 /**
@@ -21,14 +22,20 @@ export const codeComments: Rule<string> = transform(
       or([
         sqlStyleComment,
         cStyleComment,
-        transform(notConstant("'"), () => ""),
-        transform(
-          sequence([
-            constant("'"),
-            zeroToMany(notConstant("'")),
-            constant("'"),
-          ]),
-          () => ""
+        toNodes(
+          transform(notConstant("'"), () => ""),
+          (text) => [{ type: "unknown", text }]
+        ),
+        toNodes(
+          transform(
+            sequence([
+              constant("'"),
+              zeroToMany(notConstant("'")),
+              constant("'"),
+            ]),
+            () => ""
+          ),
+          (text) => [{ type: "unknown", text }]
         ),
       ])
     ),

@@ -23,7 +23,7 @@ import { ColumnDef, Constraint, CreateStmt } from "../types";
 import { columnDef } from "./columnDef";
 import { tableConstraint } from "./constraint";
 
-// @ts-expect-error
+// @ts-expect-error -- TODO
 const columnDefOrConstraint: Rule<
   | ({ ColumnDef: ColumnDef } | { Constraint: Constraint })[]
   | { codeComment: string }

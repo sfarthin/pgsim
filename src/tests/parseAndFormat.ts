@@ -159,13 +159,17 @@ export default function parseAndFormat(
       const { line } = toLineAndColumn(sql, nextToken.start);
 
       assertNoDiff(
-        actualAstNoComments[key],
         astNoComments[key],
+        actualAstNoComments[key],
         `AST does not match native parser, ${c.cyan(
           `${basename(filename)}:${line + 1}`
         )} (Statement ${Number(key) + 1} of ${
           astNoComments.length
-        })${NEWLINE}${NEWLINE} ${c.bgRed(rawSql.trim())}`
+        })${NEWLINE}${NEWLINE} ${c.bgRed(rawSql.trim())}\n\n${c.red(
+          "Red"
+        )} is the AST result of our parser and ${c.green(
+          "green"
+        )} is the result of the native parser (aka the result we want)`
       );
     }
   }

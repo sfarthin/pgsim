@@ -1,41 +1,42 @@
 import {
   transform,
   oneToMany,
-  constant,
-  sequence,
+  keyword,
   or,
-  NUMERAL,
-  PERIOD,
   quotedString,
   Rule,
+  float,
+  toNodes,
   __,
+  regexChar,
 } from "./util";
 import { A_Const } from "../types";
 
-export const aConstInteger = transform(oneToMany(NUMERAL), (s, ctx) => ({
-  value:
-    BigInt(s.join("")) > BigInt("2147483647")
-      ? {
-          Float: { str: s.join("") },
-        }
-      : {
-          Integer: { ival: Number(s.join("")) },
-        },
-  codeComment: "",
-  location: ctx.pos,
-}));
-
-const aConstFloat = transform(
-  sequence([oneToMany(NUMERAL), PERIOD, oneToMany(NUMERAL)]),
-  (s) => ({
-    value: {
-      Float: { str: `${s[0].join("")}.${s[2].join("")}` },
-    },
-    codeComment: "",
-  })
+export const aConstInteger = toNodes(
+  (ctx) =>
+    transform(oneToMany(regexChar(/[0-9]/)), (s, ctx) => ({
+      value:
+        BigInt(s.join("")) > BigInt("2147483647")
+          ? {
+              Float: { str: s.join("") },
+            }
+          : {
+              Integer: { ival: Number(s.join("")) },
+            },
+      codeComment: "",
+      location: ctx.pos,
+    }))(ctx),
+  (text) => [{ type: "numberLiteral", text }]
 );
 
-const nullKeyword = transform(constant("null"), () => ({
+const aConstFloat = transform(float, (str) => ({
+  value: {
+    Float: { str },
+  },
+  codeComment: "",
+}));
+
+const nullKeyword = transform(keyword("null" as any), () => ({
   value: {
     Null: {},
   },
@@ -44,13 +45,13 @@ const nullKeyword = transform(constant("null"), () => ({
 
 const aConstKeyword = transform(
   or([
-    constant("on"),
-    constant("off"),
-    constant("false"),
-    constant("true"),
-    constant("warning"),
-    constant("content"),
-    constant("heap"),
+    keyword("on" as any),
+    keyword("off" as any),
+    keyword("false" as any),
+    keyword("true" as any),
+    keyword("warning" as any),
+    keyword("content" as any),
+    keyword("heap" as any),
   ]),
   (s) => ({ value: { String: { str: s.value } }, codeComment: "" })
 );

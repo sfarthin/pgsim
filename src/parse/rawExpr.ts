@@ -20,6 +20,7 @@ import {
   aExprDoubleParams,
   aExprSingleParm,
   aExprFactorial,
+  aExprBooleanSpecialCase,
   aExprIn,
 } from "./aExpr";
 import { rowExpr } from "./rowExpr";
@@ -33,13 +34,17 @@ export const rawValue: Rule<{
   codeComment: string;
   hasParens: boolean;
 }> = transform(
+  // Base case
   sequence([
     or([
-      typeCast,
+      // Special cases "true= false", left parm is a column ref and not a boolean
+      aExprBooleanSpecialCase,
+
+      (ctx) => typeCast(ctx),
       aExprSingleParm,
       typeCastLiteral,
-      aConst,
-      funcCall,
+      (ctx) => aConst(ctx),
+      (ctx) => funcCall(ctx),
       columnRef,
       notBoolExpr, // NOT XXX
       caseExpr,
@@ -67,7 +72,7 @@ export const rawValue: Rule<{
   (v) => {
     let node = v[0];
     for (const connector of v[1]) {
-      // @ts-expect-error
+      // @ts-expect-error -- TODO
       node = connector(node);
     }
 

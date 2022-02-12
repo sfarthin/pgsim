@@ -1,10 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TypeNameKeyword } from "src/types";
-import { NEWLINE } from "../format/print";
+import { NEWLINE, TAB } from "../format/print";
+import { Node } from "../format/util";
 import { stmts } from "./index";
 /**
  * Types
  */
+
+type FNode = Node | { type: "newline" };
+type Formatter =
+  | {
+      nodes: FNode[];
+    }
+  | { buffer: string };
 
 export enum ResultType {
   Fail = "___FAIL___",
@@ -27,12 +35,17 @@ export type SuccessResult<R> = {
   // refer to this expected result
   expected: Expected[];
   pos: number;
+
+  // This is kind of like our formatter Nodes, except we have a newline node
+  // rather than a nested array.
+  formatter: Formatter;
 };
 
 export type FailResult = {
   type: ResultType.Fail;
   expected: Expected[];
   pos: number;
+  formatter: Formatter;
 };
 
 export type RuleResult<R> = FailResult | SuccessResult<R>;
@@ -42,7 +55,10 @@ export type Context = {
   startOfNextStatement: number[];
   endOfStatement: number[];
 
+  // original sql
   str: string;
+
+  // position we have parsed so far
   pos: number;
 };
 
@@ -76,6 +92,9 @@ export const placeholder: Rule<null> = (ctx) => ({
   expected: [],
   length: 0,
   pos: ctx.pos,
+  formatter: {
+    nodes: [],
+  },
 });
 
 export const endOfInput: Rule<null> = (ctx) => {
@@ -86,6 +105,9 @@ export const endOfInput: Rule<null> = (ctx) => {
       length: 0, // <-- unlike most rules, this one does not progress the position
       expected: [],
       pos: ctx.pos,
+      formatter: {
+        nodes: [],
+      },
     };
   }
 
@@ -93,6 +115,9 @@ export const endOfInput: Rule<null> = (ctx) => {
     type: ResultType.Fail,
     expected: [{ type: "endOfInput", value: "End of Input", pos: ctx.pos }],
     pos: ctx.pos,
+    formatter: {
+      nodes: [],
+    },
   };
 };
 
@@ -112,6 +137,9 @@ export function constant(
         length: keyword.length,
         expected: [],
         pos: ctx.pos,
+        formatter: {
+          buffer: keyword,
+        },
       };
     }
 
@@ -125,11 +153,17 @@ export function constant(
         },
       ],
       pos: ctx.pos,
+      formatter: {
+        buffer: keyword,
+      },
     };
   };
 
   return rule;
 }
+
+export const symbol = (keyword: string) =>
+  toNodes(constant(keyword), (buffer) => [{ type: "symbol", text: buffer }]);
 
 export function regexChar(r: RegExp): Rule<string> {
   if (r.global) {
@@ -146,12 +180,16 @@ export function regexChar(r: RegExp): Rule<string> {
         length: 1,
         expected: [],
         pos,
+        formatter: {
+          buffer: char,
+        },
       };
     }
     return {
       type: ResultType.Fail,
       expected: [{ type: "regex", value: r.toString(), pos }],
       pos,
+      formatter: { buffer: char },
     };
   };
 
@@ -170,9 +208,20 @@ function multiply<T>(
     const values = [];
     let expected: Expected[] = [];
     let lastPos = pos;
+
+    // It can be one or the other.
+    let nodes: FNode[] = [];
+    let buffer = "";
     while (pos < ctx.str.length && (max === null || values.length < max)) {
       curr = rule({ ...ctx, pos });
       expected = expected.concat(curr.expected).reduce(expectedReducer, []);
+
+      if ("nodes" in curr.formatter) {
+        nodes = [...nodes, ...curr.formatter.nodes];
+      } else {
+        buffer = `${buffer}${curr.formatter.buffer}`;
+      }
+
       if (curr.type === ResultType.Success) {
         pos += curr.length;
         values.push(curr.value);
@@ -182,11 +231,19 @@ function multiply<T>(
       }
     }
 
+    if (nodes.length && buffer.length) {
+      console.log(nodes, buffer);
+      throw new Error(
+        `Invalid expression, expression must be nodes or buffer: ${nodes.length},${buffer.length}`
+      );
+    }
+
     if (values.length < min) {
       return {
         type: ResultType.Fail,
         expected,
         pos: lastPos,
+        formatter: nodes.length ? { nodes } : { buffer },
       };
     }
 
@@ -196,6 +253,7 @@ function multiply<T>(
       length: pos - start,
       expected,
       pos: lastPos,
+      formatter: nodes.length ? { nodes } : { buffer },
     };
   };
 
@@ -218,8 +276,19 @@ export function zeroToTen<T>(rule: Rule<T>) {
   return multiply(rule, 0, 10);
 }
 
-export const whitespace = transform(regexChar(/[ \t\r\n]/), () => null);
-export const whitespaceWithoutNewline = regexChar(/[ \t\r]/);
+export const whitespace = transform(
+  toNodes(regexChar(/[ \t\r\n]/), (str) => [
+    str === " "
+      ? { type: "space" }
+      : str === TAB
+      ? { type: "tab" }
+      : { type: "newline" },
+  ]),
+  () => null
+);
+export const whitespaceWithoutNewline = toNodes(regexChar(/[ \t\r]/), (str) => [
+  str === " " ? { type: "space" } : { type: "tab" },
+]);
 
 export function notConstant(keyword: string): Rule<string> {
   const rule: Rule<string> = (ctx: Context) => {
@@ -235,6 +304,7 @@ export function notConstant(keyword: string): Rule<string> {
         expected: [],
         length: 1,
         pos: ctx.pos,
+        formatter: { buffer: potentialKeyword },
       };
     }
 
@@ -248,6 +318,7 @@ export function notConstant(keyword: string): Rule<string> {
         },
       ],
       pos: ctx.pos,
+      formatter: { buffer: potentialKeyword },
     };
   };
 
@@ -871,14 +942,31 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
     const values = [];
 
     let expected: Expected[] = [];
+    let nodes: FNode[] = [];
+    let buffer = "";
 
     for (const rule of rules) {
       const result = rule({ ...ctx, pos });
 
       expected = expected.concat(result.expected).reduce(expectedReducer, []);
 
+      if ("nodes" in result.formatter) {
+        nodes = [...nodes, ...result.formatter.nodes];
+      } else {
+        buffer = `${buffer}${result.formatter.buffer}`;
+      }
+
+      if (nodes.length && buffer.length) {
+        console.log(nodes, buffer);
+        throw new Error("Buffer and Node mishap");
+      }
+
       if (result.type === ResultType.Fail) {
-        return { ...result, expected };
+        return {
+          ...result,
+          expected,
+          formatter: nodes.length ? { nodes } : { buffer },
+        };
       }
 
       pos = pos + result.length;
@@ -892,6 +980,7 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
       length,
       expected,
       pos,
+      formatter: nodes.length ? { nodes } : { buffer },
     };
   };
 
@@ -911,6 +1000,33 @@ export function transform<T, R>(
       };
     }
     return result;
+  };
+
+  return newRule;
+}
+
+export function toNodes<T>(
+  rule: Rule<T>,
+  func: (buffer: string) => FNode[]
+): Rule<T> {
+  const newRule: Rule<T> = (ctx) => {
+    const result = rule(ctx);
+    if (!("buffer" in result.formatter)) {
+      throw new Error("No buffer");
+    }
+    if (result.type === ResultType.Success) {
+      return {
+        ...result,
+        formatter: { nodes: func(result.formatter.buffer) },
+      };
+    } else {
+      return {
+        ...result,
+        formatter: {
+          nodes: [{ type: "error", text: result.formatter.buffer }],
+        },
+      };
+    }
   };
 
   return newRule;
@@ -1080,6 +1196,7 @@ export function or(rules: Rule<any>[]): Rule<any> {
       type: ResultType.Fail,
       expected,
       pos: expected?.[0]?.pos ?? results[0]?.pos,
+      formatter: results[0].formatter,
     };
   };
 }
@@ -1091,52 +1208,108 @@ export function combineComments(...c: (string | null | undefined)[]) {
     .join(NEWLINE);
 }
 
-const newline = constant(NEWLINE);
-
-const notNewline = notConstant(NEWLINE);
-
-export const cStyleComment = transform(
-  sequence([
-    constant("/*"),
-    zeroToMany(notConstant("*/")),
-    constant("*/"),
-    zeroToOne(newline),
-  ]),
-  (v) =>
-    combineComments(
-      v[1]
-        .join("")
-        .replace(/\n[\s\t ]*\*/gi, NEWLINE)
-        .replace(/^[\s\n\t ]*\*/, "")
-        .replace(/\n$/, "")
-    ).trim() // we can trim individual cStyle comments because they are unlikey to be indented with other comments.
+export const cStyleComment = toNodes(
+  transform(
+    sequence([
+      constant("/*"),
+      zeroToMany(notConstant("*/")),
+      constant("*/"),
+      zeroToOne(constant(NEWLINE)),
+    ]),
+    (v) =>
+      combineComments(
+        v[1]
+          .join("")
+          .replace(/\n[\s\t ]*\*/gi, NEWLINE)
+          .replace(/^[\s\n\t ]*\*/, "")
+          .replace(/\n$/, "")
+      ).trim() // we can trim individual cStyle comments because they are unlikey to be indented with other comments.
+  ),
+  (buffer) =>
+    buffer[buffer.length - 1] === NEWLINE
+      ? [
+          {
+            type: "comment",
+            text: buffer.substring(2, buffer.length - 3),
+            style: "c",
+          },
+          { type: "newline" },
+        ]
+      : [
+          {
+            type: "comment",
+            text: buffer.substring(2, buffer.length - 2),
+            style: "c",
+          },
+        ]
 );
 
-export const cStyleCommentWithoutNewline = transform(
-  sequence([constant("/*"), zeroToMany(notConstant("*/")), constant("*/")]),
-  (v) =>
-    combineComments(
-      v[1]
-        .join("")
-        .replace(/\n[\s\t ]*\*/gi, NEWLINE)
-        .replace(/^[\s\n\t ]*\*/, "")
-        .replace(/\n$/, "")
-    ).trim()
+export const cStyleCommentWithoutNewline = toNodes(
+  transform(
+    sequence([constant("/*"), zeroToMany(notConstant("*/")), constant("*/")]),
+    (v) =>
+      combineComments(
+        v[1]
+          .join("")
+          .replace(/\n[\s\t ]*\*/gi, NEWLINE)
+          .replace(/^[\s\n\t ]*\*/, "")
+          .replace(/\n$/, "")
+      ).trim()
+  ),
+  (buffer) => [
+    {
+      type: "comment",
+      text: buffer.substring(2, buffer.length - 2),
+      style: "c",
+    },
+  ]
 );
 
-export const sqlStyleComment = transform(
-  sequence([
-    constant("--"),
-    zeroToOne(whitespaceWithoutNewline),
-    zeroToMany(notNewline),
-    or([newline, endOfInput]),
-  ]),
-  (v) => combineComments(v[2].join(""))
+export const sqlStyleComment = toNodes(
+  transform(
+    sequence([
+      constant("--"),
+      zeroToOne(regexChar(/[ \t\r]/)),
+      zeroToMany(notConstant(NEWLINE)),
+      or([constant(NEWLINE), endOfInput]),
+    ]),
+    (v) => combineComments(v[2].join(""))
+  ),
+  (buffer) =>
+    buffer[buffer.length - 1] === NEWLINE
+      ? [
+          {
+            type: "comment",
+            text: buffer.substring(2, buffer.length - 1),
+            style: "sql",
+          },
+          { type: "newline" },
+        ]
+      : [
+          {
+            type: "comment",
+            text: buffer.substring(2),
+            style: "sql",
+          },
+        ]
 );
 
-export const sqlStyleCommentWithoutNewline = transform(
-  sequence([constant("--"), zeroToOne(whitespace), zeroToMany(notNewline)]),
-  (v) => combineComments(v[2].join(""))
+export const sqlStyleCommentWithoutNewline = toNodes(
+  transform(
+    sequence([
+      constant("--"),
+      zeroToOne(regexChar(/[ \t\r\n]/)),
+      zeroToMany(notConstant(NEWLINE)),
+    ]),
+    (v) => combineComments(v[2].join(""))
+  ),
+  (buffer) => [
+    {
+      type: "comment",
+      text: buffer.substring(2),
+      style: "sql",
+    },
+  ]
 );
 
 export function lookAhead(rule: Rule<unknown>): Rule<null> {
@@ -1150,6 +1323,7 @@ export function lookAhead(rule: Rule<unknown>): Rule<null> {
         length: 0, // <-- unlike most rules, this one does not progress the position
         expected: [],
         pos: ctx.pos,
+        formatter: curr.formatter,
       };
     }
 
@@ -1196,10 +1370,10 @@ export const lookForWhiteSpaceOrComment = // we want to ensure the next characte
       cStyleComment,
       sqlStyleComment,
       endOfInput,
-      constant(","),
-      constant(";"),
-      constant("("), // <-- in column definition
-      constant(")"),
+      symbol(","),
+      symbol(";"),
+      symbol("("), // <-- in column definition
+      symbol(")"),
     ])
   );
 
@@ -1306,7 +1480,7 @@ export function keyword(
   return (ctx) => {
     const result = transform(
       sequence([
-        constant(str),
+        toNodes(constant(str), (text) => [{ type: "keyword", text }]),
         // we want to ensure the next character is a whitespace
         // or start of a comment, but we do not want to incliude
         // it in the sequence.
@@ -1402,19 +1576,16 @@ export const WITH = keyword("WITH");
 export const WHERE = keyword("WHERE");
 export const WHEN = keyword("WHEN");
 
-export const SEMICOLON = constant(";");
-export const EQUALS = constant("=");
-export const NUMERAL = regexChar(/[0-9]/);
-export const PERIOD = constant(".");
-export const QUOTE = constant("'");
-export const NOT_QUOTE = notConstant("'");
-export const LPAREN = constant("(");
-export const RPAREN = constant(")");
-export const OPEN_BRACKET = constant("[");
-export const CLOSE_BRACKET = constant("]");
-export const COMMA = constant(",");
-export const STAR = constant("*");
-export const MINUS = constant("-");
+export const SEMICOLON = symbol(";");
+export const EQUALS = symbol("=");
+export const PERIOD = symbol(".");
+export const LPAREN = symbol("(");
+export const RPAREN = symbol(")");
+export const OPEN_BRACKET = symbol("[");
+export const CLOSE_BRACKET = symbol("]");
+export const COMMA = symbol(",");
+export const STAR = symbol("*");
+export const MINUS = symbol("-");
 
 export const ifNotExists: Rule<{ codeComment: string }> = transform(
   sequence([IF, __, NOT, __, EXISTS]),
@@ -1422,21 +1593,31 @@ export const ifNotExists: Rule<{ codeComment: string }> = transform(
 );
 
 export const identifier: Rule<string> = (ctx: Context) => {
-  const result = or([
-    transform(
-      sequence([regexChar(/[a-zA-Z_]/), zeroToMany(regexChar(/[a-zA-Z0-9_]/))]),
-      (v) => v[0].concat(v[1].join("")).toLowerCase() // <-- set to lowercase
-    ),
-    transform(
-      sequence([
-        constant('"'),
-        regexChar(/[a-zA-Z_]/),
-        zeroToMany(regexChar(/[a-zA-Z0-9_]/)),
-        constant('"'),
-      ]),
-      (v) => v[1].concat(v[2].join("")) // <-- not set to lowercase
-    ),
-  ])(ctx);
+  const result = toNodes(
+    or([
+      transform(
+        sequence([
+          regexChar(/[a-zA-Z_]/),
+          zeroToMany(regexChar(/[a-zA-Z0-9_]/)),
+        ]),
+        (v) => v[0].concat(v[1].join("")).toLowerCase() // <-- set to lowercase
+      ),
+      transform(
+        sequence([
+          constant('"'),
+          regexChar(/[a-zA-Z_]/),
+          zeroToMany(regexChar(/[a-zA-Z0-9_]/)),
+          constant('"'),
+        ]),
+        (v) => v[1].concat(v[2].join("")) // <-- not set to lowercase
+      ),
+    ]),
+    (text) => [{ type: "identifier", text }]
+  )(ctx);
+
+  if (!("nodes" in result.formatter)) {
+    throw new Error("Lets make TS happy");
+  }
 
   if (result.type === ResultType.Fail) {
     return {
@@ -1450,6 +1631,7 @@ export const identifier: Rule<string> = (ctx: Context) => {
       type: ResultType.Fail,
       expected: [{ type: "identifier", value: "identifier", pos: ctx.pos }],
       pos: ctx.pos,
+      formatter: result.formatter,
     };
   }
 
@@ -1488,15 +1670,35 @@ export const tableIdentifier = transform(
       : [v[1].toLocaleLowerCase()]
 );
 
-export const integer = transform(oneToMany(NUMERAL), (s) => Number(s.join("")));
+export const integer = toNodes(
+  transform(oneToMany(regexChar(/[0-9]/)), (s) => Number(s.join(""))),
+  (text) => [{ type: "numberLiteral", text }]
+);
+
+export const float = toNodes(
+  transform(
+    sequence([
+      oneToMany(regexChar(/[0-9]/)),
+      constant("."),
+      oneToMany(regexChar(/[0-9]/)),
+    ]),
+    (s) => `${s[0].join("")}.${s[2].join("")}`
+  ),
+  (text) => [{ type: "numberLiteral", text }]
+);
 
 /**
  * Common
  */
 
-export const quotedString = transform(
-  sequence([QUOTE, zeroToMany(NOT_QUOTE), QUOTE]),
-  (v, ctx) => ({ value: v[1].join(""), pos: ctx.pos })
+export const quotedString = toNodes(
+  transform(
+    sequence([constant("'"), zeroToMany(notConstant("'")), constant("'")]),
+    (v, ctx) => ({ value: v[1].join(""), pos: ctx.pos })
+  ),
+  (text) => [
+    { type: "stringLiteral", text: text.substring(1, text.length - 1) },
+  ]
 );
 
 /**

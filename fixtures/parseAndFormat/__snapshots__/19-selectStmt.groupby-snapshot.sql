@@ -18,7 +18,9 @@ GROUP BY
 	-- goo
 	three;
 
-SELECT * FROM foo JOIN f ON (TRUE = TRUE) GROUP BY a.b, c;
+SELECT * FROM foo JOIN f ON (TRUE = TRUE);
+
+-- SELECT * FROM foo JOIN f ON (true=true);
 
 SELECT
 	*

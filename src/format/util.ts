@@ -15,7 +15,10 @@ export type Node =
   | { type: "booleanLiteral"; text: "TRUE" | "FALSE" }
   | { type: "stringLiteral"; text: string }
   | { type: "tab" }
-  | { type: "space" };
+  | { type: "space" }
+  // Only used when these is an error.
+  | { type: "error"; text: string }
+  | { type: "unknown"; text: string };
 
 // spaces and newlines are encoded as a 2-dimensial array;
 export type Line = Node[];

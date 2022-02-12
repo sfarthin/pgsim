@@ -3,12 +3,14 @@ import {
   sequence,
   __,
   combineComments,
-  constant,
+  keyword,
+  symbol,
   or,
   Context,
   transform,
   Rule,
   lookForWhiteSpaceOrComment,
+  identifier,
 } from "./util";
 import { RawValue, AExprKind, AExpr } from "../types";
 import { rowExpr } from "./rowExpr";
@@ -50,37 +52,37 @@ export const getPrecedence = (aExpr: AExpr | undefined) => {
 };
 
 const operatorsWithTwoParams = or([
-  constant("="),
-  constant("<>"),
-  constant("!="),
-  constant(">="),
-  constant("<<"),
-  constant(">>"),
-  constant(">"),
-  constant("<="),
-  constant("<"),
-  constant("+"),
-  constant("-"),
-  constant("*"),
+  symbol("="),
+  symbol("<>"),
+  symbol("!="),
+  symbol(">="),
+  symbol("<<"),
+  symbol(">>"),
+  symbol(">"),
+  symbol("<="),
+  symbol("<"),
+  symbol("+"),
+  symbol("-"),
+  symbol("*"),
 
   or([
-    constant("^"),
-    constant("&"),
-    constant("||"),
-    constant("|"),
-    constant("#"),
-    constant("/"),
-    constant("%"),
+    symbol("^"),
+    symbol("&"),
+    symbol("||"),
+    symbol("|"),
+    symbol("#"),
+    symbol("/"),
+    symbol("%"),
   ]),
 ]);
 
 const operatorsWithOneParams = or([
-  constant("|/"),
-  constant("||/"),
-  constant("~"),
-  constant("@"),
-  constant("!!"),
-  constant("-"),
+  symbol("|/"),
+  symbol("||/"),
+  symbol("~"),
+  symbol("@"),
+  symbol("!!"),
+  symbol("-"),
 ]);
 
 export const aExprSingleParm: Rule<{
@@ -172,7 +174,7 @@ export const aExprDoubleParams = (ctx: Context) =>
 
 export const aExprFactorial = (ctx: Context) =>
   rawValuePostfix(
-    sequence([__, constant("!"), lookForWhiteSpaceOrComment]),
+    sequence([__, symbol("!"), lookForWhiteSpaceOrComment]),
     (c1, v) => {
       return {
         codeComment: combineComments(c1.codeComment, v[0]),
@@ -195,28 +197,81 @@ export const aExprFactorial = (ctx: Context) =>
   )(ctx);
 
 export const aExprIn = (ctx: Context) =>
-  connectRawValue(sequence([__, constant("in"), __, rowExpr]), (c1, v) => {
-    return {
-      codeComment: combineComments(
-        c1.codeComment,
-        v[0],
-        v[2],
-        v[3].codeComment
-      ),
-      value: {
-        A_Expr: {
-          kind: AExprKind.AEXPR_IN,
-          name: [
-            {
-              String: {
-                str: "=",
+  connectRawValue(
+    sequence([__, keyword("in" as any), __, rowExpr]),
+    (c1, v) => {
+      return {
+        codeComment: combineComments(
+          c1.codeComment,
+          v[0],
+          v[2],
+          v[3].codeComment
+        ),
+        value: {
+          A_Expr: {
+            kind: AExprKind.AEXPR_IN,
+            name: [
+              {
+                String: {
+                  str: "=",
+                },
+              },
+            ],
+            lexpr: c1.value as RawValue, // TODO ... this currently allows "(1 AND 1) = 'foo'". Fix in the future.
+            rexpr: { List: { items: v[3].value.RowExpr.args } },
+            location: v[1].start,
+          },
+        },
+      };
+    }
+  )(ctx);
+
+// SELECT true= true
+// left param should be a column ref and not a boolean
+export const aExprBooleanSpecialCase = (ctx: Context) => {
+  const rule: Rule<{
+    codeComment: string;
+    value: RawValue;
+  }> = transform(
+    sequence([
+      transform(identifier, (v, ctx) => ({ start: ctx.pos, value: v })),
+      // -- NOTICE THERE IS NO SPACE HERE -- //
+      symbol("="),
+      __,
+      (ctx) => rawValue(ctx),
+    ]),
+    (v, ctx) => {
+      return {
+        value: {
+          A_Expr: {
+            kind: AExprKind.AEXPR_OP,
+            name: [
+              {
+                String: {
+                  str: "=",
+                },
+              },
+            ],
+            lexpr: {
+              ColumnRef: {
+                fields: [
+                  {
+                    String: {
+                      str: v[0].value,
+                    },
+                  },
+                ],
+                location: v[0].start,
               },
             },
-          ],
-          lexpr: c1.value as RawValue, // TODO ... this currently allows "(1 AND 1) = 'foo'". Fix in the future.
-          rexpr: { List: { items: v[3].value.RowExpr.args } },
-          location: v[1].start,
+            rexpr: v[3].value,
+            location: ctx.pos,
+          },
         },
-      },
-    };
-  })(ctx);
+        codeComment: combineComments(v[2], v[3].codeComment),
+      };
+    }
+  );
+
+  return rule(ctx);
+};

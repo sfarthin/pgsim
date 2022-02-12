@@ -11,7 +11,7 @@ import {
   optional,
   combineComments,
   or,
-  constant,
+  keyword,
   STAR,
 } from "./util";
 import { FuncCall } from "../types";
@@ -24,7 +24,7 @@ export const funcCall: Rule<{
 }> = transform(
   sequence([
     or([
-      transform(constant("pg_catalog.set_config"), (v) => v.value),
+      transform(keyword("pg_catalog.set_config" as any), (v) => v.value),
       identifier,
     ]),
     __,

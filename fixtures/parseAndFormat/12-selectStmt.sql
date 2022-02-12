@@ -114,3 +114,7 @@ SELECT (1 and 2);
 SELECT * FROM foo WHERE 0 < (SELECT 1)
 
 ;
+
+-- SELECT true= true; -- This is different from...
+SELECT true = true; -- this... wierd. 
+-- I guess we assume column names are assumed on the left in aExpr.

@@ -9,7 +9,6 @@ import {
   AlterTableColumnType,
   AlterTableDropConstraint,
 } from "../types";
-import { rawValue } from "./rawExpr";
 import {
   sequence,
   transform,
@@ -38,6 +37,7 @@ import {
 } from "./util";
 import { typeName } from "./typeName";
 import { constraint } from "./constraint";
+import { defaultConstraint } from "./constraint";
 
 const alterTableAddConstraint: Rule<AlterTableAddConstraint> = transform(
   sequence([ADD, __, constraint]),
@@ -133,24 +133,15 @@ const alterTableSetDefault: Rule<AlterTableSetDefault> = transform(
     __,
     SET,
     __,
-    DEFAULT,
-    __, // 9
-    (ctx) => rawValue(ctx),
+    defaultConstraint, // 8
   ]),
   (v) => {
     return {
       subtype: AlterTableCmdSubType.AT_ColumnDefault,
       name: v[4],
-      def: v[10].value,
+      def: v[8].value.raw_expr,
       behavior: "DROP_RESTRICT",
-      codeComment: combineComments(
-        v[1],
-        v[3],
-        v[5],
-        v[7],
-        v[9],
-        v[10].codeComment
-      ),
+      codeComment: combineComments(v[1], v[3], v[5], v[7], v[8].codeComment),
     };
   }
 );

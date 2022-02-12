@@ -90,6 +90,10 @@ function printNode(node: Node, opts: PrintOptions): string {
       return c.cyan(node.text);
     case "comment":
       return c.grey(node.text);
+    case "error":
+      return c.bgRed(c.white(node.text));
+    case "unknown":
+      return node.text;
   }
 }
 

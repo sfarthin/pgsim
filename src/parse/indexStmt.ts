@@ -18,7 +18,7 @@ import {
   endOfStatement,
   combineComments,
   or,
-  constant,
+  keyword,
   zeroToMany,
   COMMA,
 } from "./util";
@@ -46,7 +46,13 @@ export const indexStmt: Rule<IndexStmt> = transform(
     __,
     transform(identifier, (value, ctx) => ({ value, pos: ctx.pos })),
     __,
-    optional(sequence([USING, __, or([constant("hash"), constant("btree")])])), // 15
+    optional(
+      sequence([
+        USING,
+        __,
+        or([keyword("hash" as any), keyword("btree" as any)]),
+      ])
+    ), // 15
     __,
     LPAREN,
     __,

@@ -156,6 +156,9 @@ export function adjustPrecedence(
         },
       };
     }
+
+    // Lets assume
+    // SELECT true=true
   }
 
   if ("BoolExpr" in node) {

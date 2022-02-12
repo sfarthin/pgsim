@@ -29,7 +29,10 @@ import {
   DELETE,
   UPDATE,
 } from "./util";
-import { rawValue } from "./rawExpr";
+// import { rawValue } from "./rawExpr";
+import { aConst } from "./aConst";
+import { funcCall } from "./funcCall";
+import { typeCast } from "./typeCast";
 import {
   DefaultConstraint,
   // ReferenceConstraint,
@@ -41,11 +44,11 @@ import {
   ConType,
 } from "../types";
 
-const defaultConstraint: Rule<{
+export const defaultConstraint: Rule<{
   codeComment: string;
   value: DefaultConstraint;
 }> = transform(
-  sequence([DEFAULT, __, (ctx) => rawValue(ctx)]),
+  sequence([DEFAULT, __, or([typeCast, funcCall, aConst])]),
   (value, ctx) => {
     return {
       codeComment: combineComments(value[1], value[2].codeComment),
