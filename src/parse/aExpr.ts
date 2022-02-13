@@ -10,7 +10,6 @@ import {
   transform,
   Rule,
   lookForWhiteSpaceOrComment,
-  identifier,
 } from "./util";
 import { RawValue, AExprKind, AExpr } from "../types";
 import { rowExpr } from "./rowExpr";
@@ -225,53 +224,3 @@ export const aExprIn = (ctx: Context) =>
       };
     }
   )(ctx);
-
-// SELECT true= true
-// left param should be a column ref and not a boolean
-export const aExprBooleanSpecialCase = (ctx: Context) => {
-  const rule: Rule<{
-    codeComment: string;
-    value: RawValue;
-  }> = transform(
-    sequence([
-      transform(identifier, (v, ctx) => ({ start: ctx.pos, value: v })),
-      // -- NOTICE THERE IS NO SPACE HERE -- //
-      symbol("="),
-      __,
-      (ctx) => rawValue(ctx),
-    ]),
-    (v, ctx) => {
-      return {
-        value: {
-          A_Expr: {
-            kind: AExprKind.AEXPR_OP,
-            name: [
-              {
-                String: {
-                  str: "=",
-                },
-              },
-            ],
-            lexpr: {
-              ColumnRef: {
-                fields: [
-                  {
-                    String: {
-                      str: v[0].value,
-                    },
-                  },
-                ],
-                location: v[0].start,
-              },
-            },
-            rexpr: v[3].value,
-            location: ctx.pos,
-          },
-        },
-        codeComment: combineComments(v[2], v[3].codeComment),
-      };
-    }
-  );
-
-  return rule(ctx);
-};

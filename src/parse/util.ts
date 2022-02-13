@@ -1370,12 +1370,36 @@ export const lookForWhiteSpaceOrComment = // we want to ensure the next characte
       cStyleComment,
       sqlStyleComment,
       endOfInput,
-      symbol(","),
-      symbol(";"),
       symbol("("), // <-- in column definition
       symbol(")"),
+      symbol(","),
+      symbol(";"),
     ])
   );
+
+export const lookForWhiteSpaceOrCommentOrOperator = lookAhead(
+  or([
+    whitespace,
+    cStyleComment,
+    sqlStyleComment,
+    endOfInput,
+    symbol("("), // <-- in column definition
+    symbol(")"),
+    symbol(","),
+    symbol(";"),
+    symbol("="),
+    or([
+      symbol("<"),
+      symbol(">"),
+      symbol("*"),
+      symbol("/"),
+      symbol("!"),
+      symbol("%"),
+      symbol("+"),
+      symbol("-"),
+    ]),
+  ])
+);
 
 /**
  * Kinda like oneToMany, but smartly capturing comments in between tokens.
@@ -1489,7 +1513,7 @@ export function keyword(
         // ✓ SET statement_timeout = 0;
         // ✓ SET/* foo */statement_timeout = 0;
         // ✗ SETstatement_timeout = 0;
-        lookForWhiteSpaceOrComment,
+        lookForWhiteSpaceOrCommentOrOperator,
       ]),
       (v) => ({ start: v[0].start, value: str })
     )(ctx);

@@ -159,8 +159,8 @@ export default function parseAndFormat(
       const { line } = toLineAndColumn(sql, nextToken.start);
 
       assertNoDiff(
-        astNoComments[key],
         actualAstNoComments[key],
+        astNoComments[key],
         `AST does not match native parser, ${c.cyan(
           `${basename(filename)}:${line + 1}`
         )} (Statement ${Number(key) + 1} of ${

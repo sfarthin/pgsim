@@ -20,7 +20,6 @@ import {
   aExprDoubleParams,
   aExprSingleParm,
   aExprFactorial,
-  aExprBooleanSpecialCase,
   aExprIn,
 } from "./aExpr";
 import { rowExpr } from "./rowExpr";
@@ -37,9 +36,6 @@ export const rawValue: Rule<{
   // Base case
   sequence([
     or([
-      // Special cases "true= false", left parm is a column ref and not a boolean
-      aExprBooleanSpecialCase,
-
       (ctx) => typeCast(ctx),
       aExprSingleParm,
       typeCastLiteral,

@@ -8,7 +8,7 @@
     "@typescript-eslint/no-unused-vars": 0,
     "@typescript-eslint/no-use-before-define": 0,
     "@typescript-eslint/no-explicit-any": 0,
-    "local-rules/no-template-literals": 2,
+    // "local-rules/no-template-literals": 2,
     "@typescript-eslint/ban-types": 0
   },
   "parserOptions": {
