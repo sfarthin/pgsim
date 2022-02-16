@@ -18,6 +18,7 @@ import {
   commentsOnSameLine,
   or,
   PERIOD,
+  EOS,
 } from "./util";
 import { ColumnDef, Constraint, CreateStmt } from "../types";
 import { columnDef } from "./columnDef";
@@ -79,53 +80,60 @@ const columnDefs = transform(
   }
 );
 
-export const createStmt: Rule<CreateStmt> = transform(
-  sequence([
-    _,
-    CREATE,
-    __,
-    TABLE,
-    __,
-    optional(ifNotExists), // 5
-    __,
-    transform(
-      sequence([optional(sequence([identifier, PERIOD])), identifier]),
-      (v, ctx) => ({
-        ...(v[0] ? { schemaname: v[0][0] } : {}),
-        relname: v[1],
-        relpersistence: "p" as const,
-        inh: true,
-        location: ctx.pos,
-      })
-    ),
-    __,
-    columnDefs, // 9
-    __,
-    endOfStatement,
-  ]),
+export const createStmt: Rule<{ eos: EOS; value: { CreateStmt: CreateStmt } }> =
+  transform(
+    sequence([
+      _,
+      CREATE,
+      __,
+      TABLE,
+      __,
+      optional(ifNotExists), // 5
+      __,
+      transform(
+        sequence([optional(sequence([identifier, PERIOD])), identifier]),
+        (v, ctx) => ({
+          ...(v[0] ? { schemaname: v[0][0] } : {}),
+          relname: v[1],
+          relpersistence: "p" as const,
+          inh: true,
+          location: ctx.pos,
+        })
+      ),
+      __,
+      columnDefs, // 9
+      __,
+      endOfStatement,
+    ]),
 
-  (value) => {
-    //
-    const tableElts = "codeComment" in value[9] ? [] : value[9];
-    const relation = value[7];
-    const ifNotExists = value[5];
-    const comment = combineComments(
-      value[0],
-      value[2],
-      value[4],
-      value[5]?.codeComment,
-      value[6],
-      value[8],
-      "codeComment" in value[9] ? value[9].codeComment : null,
-      value[10]
-    );
+    (value) => {
+      //
+      const tableElts = "codeComment" in value[9] ? [] : value[9];
+      const relation = value[7];
+      const ifNotExists = value[5];
+      const comment = combineComments(
+        value[0],
+        value[2],
+        value[4],
+        value[5]?.codeComment,
+        value[6],
+        value[8],
+        "codeComment" in value[9] ? value[9].codeComment : null,
+        value[10],
+        value[11].comment
+      );
 
-    return {
-      relation,
-      tableElts,
-      oncommit: "ONCOMMIT_NOOP",
-      ...(ifNotExists ? { if_not_exists: true } : {}),
-      codeComment: comment,
-    };
-  }
-);
+      return {
+        eos: value[11],
+        value: {
+          CreateStmt: {
+            relation,
+            tableElts,
+            oncommit: "ONCOMMIT_NOOP",
+            ...(ifNotExists ? { if_not_exists: true } : {}),
+            codeComment: comment,
+          },
+        },
+      };
+    }
+  );

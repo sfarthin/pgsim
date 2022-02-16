@@ -19,6 +19,7 @@ import {
   endOfStatement,
   RENAME,
   TO,
+  EOS,
 } from "./util";
 import { AlterEnumStmt } from "../types";
 
@@ -34,7 +35,10 @@ const afterOrBefore = transform(
   })
 );
 
-export const alterEnumStmtAdd: Rule<AlterEnumStmt> = transform(
+export const alterEnumStmtAdd: Rule<{
+  eos: EOS;
+  value: { AlterEnumStmt: AlterEnumStmt };
+}> = transform(
   sequence([
     _, // 0
     ALTER,
@@ -57,36 +61,44 @@ export const alterEnumStmtAdd: Rule<AlterEnumStmt> = transform(
   ]),
   (v) => {
     return {
-      typeName: [
-        {
-          String: {
-            str: v[5],
-          },
+      eos: v[17],
+      value: {
+        AlterEnumStmt: {
+          typeName: [
+            {
+              String: {
+                str: v[5],
+              },
+            },
+          ],
+          newVal: v[13].value,
+          codeComment: combineComments(
+            v[0],
+            v[2],
+            v[4],
+            v[6],
+            v[8],
+            v[10],
+            v[11]?.codeComment,
+            v[12],
+            v[14],
+            v[15]?.codeComment,
+            v[16],
+            v[17].comment
+          ),
+          ...(v[15]?.where !== "BEFORE" ? { newValIsAfter: true } : {}),
+          ...(v[15] ? { newValNeighbor: v[15].value } : {}),
+          ...(v[11] !== null ? { skipIfNewValExists: true } : {}),
         },
-      ],
-      newVal: v[13].value,
-      codeComment: combineComments(
-        v[0],
-        v[2],
-        v[4],
-        v[6],
-        v[8],
-        v[10],
-        v[11]?.codeComment,
-        v[12],
-        v[14],
-        v[15]?.codeComment,
-        v[16],
-        v[17]
-      ),
-      ...(v[15]?.where !== "BEFORE" ? { newValIsAfter: true } : {}),
-      ...(v[15] ? { newValNeighbor: v[15].value } : {}),
-      ...(v[11] !== null ? { skipIfNewValExists: true } : {}),
+      },
     };
   }
 );
 
-export const alterEnumStmtRename: Rule<AlterEnumStmt> = transform(
+export const alterEnumStmtRename: Rule<{
+  eos: EOS;
+  value: { AlterEnumStmt: AlterEnumStmt };
+}> = transform(
   sequence([
     _, // 0
     ALTER,
@@ -109,32 +121,37 @@ export const alterEnumStmtRename: Rule<AlterEnumStmt> = transform(
   ]),
   (v) => {
     return {
-      typeName: [
-        {
-          String: {
-            str: v[5],
-          },
+      eos: v[17],
+      value: {
+        AlterEnumStmt: {
+          typeName: [
+            {
+              String: {
+                str: v[5],
+              },
+            },
+          ],
+          codeComment: combineComments(
+            v[0],
+            v[2],
+            v[4],
+            v[6],
+            v[8],
+            v[10],
+            v[12],
+            v[14],
+            v[16],
+            v[17].comment
+          ),
+          oldVal: v[11].value,
+          newVal: v[15].value,
         },
-      ],
-      codeComment: combineComments(
-        v[0],
-        v[2],
-        v[4],
-        v[6],
-        v[8],
-        v[10],
-        v[12],
-        v[14],
-        v[16],
-        v[17]
-      ),
-      oldVal: v[11].value,
-      newVal: v[15].value,
+      },
     };
   }
 );
 
-export const alterEnumStmt: Rule<AlterEnumStmt> = or([
-  alterEnumStmtAdd,
-  alterEnumStmtRename,
-]);
+export const alterEnumStmt: Rule<{
+  eos: EOS;
+  value: { AlterEnumStmt: AlterEnumStmt };
+}> = or([alterEnumStmtAdd, alterEnumStmtRename]);

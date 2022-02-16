@@ -119,3 +119,6 @@ SELECT 1> 3;
 SELECT foobar= bar;
 SELECT true= true;
 SELECT true = true;
+
+select 1;
+-- select 2

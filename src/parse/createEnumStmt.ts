@@ -16,6 +16,7 @@ import {
   combineComments,
   _,
   __,
+  EOS,
 } from "./util";
 import { CreateEnumStmt } from "../types";
 
@@ -46,7 +47,10 @@ const enumList = transform(
   }
 );
 
-export const createEnumStmt: Rule<CreateEnumStmt> = transform(
+export const createEnumStmt: Rule<{
+  eos: EOS;
+  value: { CreateEnumStmt: CreateEnumStmt };
+}> = transform(
   sequence([
     _,
     CREATE,
@@ -64,17 +68,22 @@ export const createEnumStmt: Rule<CreateEnumStmt> = transform(
     endOfStatement,
   ]),
   (v) => ({
-    typeName: [{ String: { str: v[5] } }],
-    vals: v[11],
-    codeComment: combineComments(
-      v[0],
-      v[2],
-      v[4],
-      v[6],
-      v[8],
-      v[10],
-      v[12],
-      v[13]
-    ),
+    eos: v[13],
+    value: {
+      CreateEnumStmt: {
+        typeName: [{ String: { str: v[5] } }],
+        vals: v[11],
+        codeComment: combineComments(
+          v[0],
+          v[2],
+          v[4],
+          v[6],
+          v[8],
+          v[10],
+          v[12],
+          v[13].comment
+        ),
+      },
+    },
   })
 );

@@ -9,11 +9,15 @@ import {
   combineComments,
   _,
   __,
+  EOS,
 } from "./util";
 import { aConst } from "./aConst";
 import { VariableSetStmt } from "../types";
 
-export const variableSetStmt: Rule<VariableSetStmt> = transform(
+export const variableSetStmt: Rule<{
+  value: { VariableSetStmt: VariableSetStmt };
+  eos: EOS;
+}> = transform(
   sequence([
     _,
     SET,
@@ -27,17 +31,22 @@ export const variableSetStmt: Rule<VariableSetStmt> = transform(
     endOfStatement,
   ]),
   (v) => ({
-    kind: "VAR_SET_VALUE",
-    name: v[3],
-    args: [v[7].value],
-    codeComment: combineComments(
-      v[0],
-      v[2],
-      v[4],
-      v[6],
-      v[7].codeComment,
-      v[8],
-      v[9]
-    ),
+    eos: v[9],
+    value: {
+      VariableSetStmt: {
+        kind: "VAR_SET_VALUE",
+        name: v[3],
+        args: [v[7].value],
+        codeComment: combineComments(
+          v[0],
+          v[2],
+          v[4],
+          v[6],
+          v[7].codeComment,
+          v[8],
+          v[9].comment
+        ),
+      },
+    },
   })
 );

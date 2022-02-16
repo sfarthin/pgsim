@@ -11,11 +11,15 @@ import {
   sequence,
   _,
   __,
+  EOS,
 } from "./util";
 import { CreateSeqStmt } from "../types";
 import { defElemList } from "./defElem";
 
-export const createSeqStmt: Rule<CreateSeqStmt> = transform(
+export const createSeqStmt: Rule<{
+  eos: EOS;
+  value: { CreateSeqStmt: CreateSeqStmt };
+}> = transform(
   sequence([
     _,
     CREATE,
@@ -37,14 +41,27 @@ export const createSeqStmt: Rule<CreateSeqStmt> = transform(
   ]),
   (v) => {
     return {
-      sequence: v[7],
-      ...(v[9]?.length
-        ? {
-            options: v[9],
-          }
-        : {}),
-      ...(v[5] !== null ? { if_not_exists: true } : {}),
-      codeComment: combineComments(v[0], v[2], v[4], v[6], v[8], v[10], v[11]),
+      eos: v[11],
+      value: {
+        CreateSeqStmt: {
+          sequence: v[7],
+          ...(v[9]?.length
+            ? {
+                options: v[9],
+              }
+            : {}),
+          ...(v[5] !== null ? { if_not_exists: true } : {}),
+          codeComment: combineComments(
+            v[0],
+            v[2],
+            v[4],
+            v[6],
+            v[8],
+            v[10],
+            v[11].comment
+          ),
+        },
+      },
     };
   }
 );

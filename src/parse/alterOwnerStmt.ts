@@ -11,10 +11,14 @@ import {
   combineComments,
   __,
   _,
+  EOS,
 } from "./util";
 import { AlterOwnerStmt } from "../types";
 
-export const alterOwnerStmt: Rule<AlterOwnerStmt> = transform(
+export const alterOwnerStmt: Rule<{
+  eos: EOS;
+  value: { AlterOwnerStmt: AlterOwnerStmt };
+}> = transform(
   sequence([
     _, // 0
     ALTER,
@@ -32,22 +36,27 @@ export const alterOwnerStmt: Rule<AlterOwnerStmt> = transform(
     endOfStatement, // 13
   ]),
   (v) => ({
-    objectType: "OBJECT_TYPE",
-    object: { List: { items: [{ String: { str: v[5] } }] } },
-    newowner: {
-      roletype: "ROLESPEC_CSTRING",
-      rolename: v[11].value,
-      location: v[11].pos,
+    eos: v[13],
+    value: {
+      AlterOwnerStmt: {
+        objectType: "OBJECT_TYPE",
+        object: { List: { items: [{ String: { str: v[5] } }] } },
+        newowner: {
+          roletype: "ROLESPEC_CSTRING",
+          rolename: v[11].value,
+          location: v[11].pos,
+        },
+        codeComment: combineComments(
+          v[0],
+          v[2],
+          v[4],
+          v[6],
+          v[8],
+          v[10],
+          v[12],
+          v[13].comment
+        ),
+      },
     },
-    codeComment: combineComments(
-      v[0],
-      v[2],
-      v[4],
-      v[6],
-      v[8],
-      v[10],
-      v[12],
-      v[13]
-    ),
   })
 );

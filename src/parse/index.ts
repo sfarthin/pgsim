@@ -2,8 +2,6 @@ import { Stmt } from "../types";
 import {
   transform,
   sequence,
-  oneToMany,
-  endOfInput,
   zeroToMany,
   whitespace,
   sqlStyleComment,
@@ -13,6 +11,7 @@ import {
   Rule,
   Context,
   combineComments,
+  endOfInput,
 } from "./util";
 import { getFriendlyErrorMessage } from "./error";
 import { variableSetStmt } from "./variableSetStmt";
@@ -38,67 +37,63 @@ const CommentStatement = transform(
     zeroToMany(whitespace),
   ]),
   (v) => {
-    return { Comment: v[1] };
+    return { value: { Comment: v[1] }, eos: null };
   }
 );
 
+export const stmt = or([
+  variableSetStmt,
+  createEnumStmt,
+  createSeqStmt,
+  alterSeqStmt,
+  createStmt,
+  dropStmt,
+  alterEnumStmt,
+  alterOwnerStmt,
+  indexStmt,
+  alterTableStmt,
+  selectStmt,
+  viewStmt,
+  renameStmt,
+  updateStmt,
+
+  // Standalone comments
+  CommentStatement,
+]);
+
 export const stmts: Rule<Stmt[]> = transform(
   sequence([
-    oneToMany(
-      transform(
-        or([
-          transform(variableSetStmt, (v) => ({ VariableSetStmt: v })),
-          transform(createEnumStmt, (v) => ({ CreateEnumStmt: v })),
-          transform(createSeqStmt, (v) => ({ CreateSeqStmt: v })),
-          transform(alterSeqStmt, (v) => ({ AlterSeqStmt: v })),
-          transform(createStmt, (v) => ({ CreateStmt: v })),
-          transform(dropStmt, (v) => ({ DropStmt: v })),
-          transform(alterEnumStmt, (v) => ({ AlterEnumStmt: v })),
-          transform(alterOwnerStmt, (v) => ({ AlterOwnerStmt: v })),
-          transform(indexStmt, (v) => ({ IndexStmt: v })),
-          transform(alterTableStmt, (v) => ({ AlterTableStmt: v })),
-          transform(selectStmt, (v) => ({ SelectStmt: v })),
-          transform(viewStmt, (v) => ({ ViewStmt: v })),
-          transform(renameStmt, (v) => ({ RenameStmt: v })),
-          transform(updateStmt, (v) => ({ UpdateStmt: v })),
-
-          // Standalone comments
-          CommentStatement,
-        ]),
-        (stmt, context) => {
-          // HACK, we are mutating this context as we parse
-          // This gets a little tricky when there are extra semicolons
-
-          const eos = context.endOfStatement
-            // remove missing and duplicate entries
-            .filter((v, i) => v && context.endOfStatement.indexOf(v) === i)
-            // sort so we are always pulling the latest information
-            .sort((a, b) => a - b);
-
-          const sons = context.startOfNextStatement
-            // remove missing and duplicate entries
-            .filter(
-              (v, i) => v && context.startOfNextStatement.indexOf(v) === i
-            )
-            // sort so we are always pulling the latest information
-            .sort((a, b) => a - b);
-
-          const stmt_location =
-            sons.length <= 1 ? 0 : sons[sons.length - 2] + 1;
-
-          const stmt_len = eos[eos.length - 1] - stmt_location;
-
-          return {
-            stmt,
-            stmt_len,
-            ...(stmt_location === 0 ? {} : { stmt_location }),
-          };
-        }
-      )
-    ),
-    endOfInput,
+    zeroToMany(stmt),
+    endOfInput, // <-- This ensures we don't return before hitting the end of our SQL.
   ]),
-  (v) => v[0]
+  (v) => {
+    const stmts = v[0];
+
+    const output: Stmt[] = [];
+
+    let previousStmtLocation = 0;
+    for (let i = 0; i < stmts.length; i++) {
+      const c = stmts[i];
+
+      output.push({
+        stmt: c.value,
+        ...(c.eos?.firstSemicolonPos
+          ? {
+              stmt_len: c.eos.firstSemicolonPos - previousStmtLocation,
+            }
+          : {}),
+        ...(previousStmtLocation
+          ? { stmt_location: previousStmtLocation }
+          : {}),
+      });
+
+      if (c.eos?.lastSemicolonPos != null) {
+        previousStmtLocation = c.eos.lastSemicolonPos + 1;
+      }
+    }
+
+    return output;
+  }
 );
 
 function reduceComments(acc: Stmt[], stmt: Stmt): Stmt[] {
@@ -141,8 +136,6 @@ function reduceComments(acc: Stmt[], stmt: Stmt): Stmt[] {
  */
 export function parseComments(inputSql: string) {
   const result = codeComments({
-    endOfStatement: [],
-    startOfNextStatement: [],
     str: inputSql,
     pos: 0,
   });
@@ -169,8 +162,6 @@ export default function parse(
   }
 
   const context: Context = {
-    endOfStatement: [],
-    startOfNextStatement: [],
     str: inputSql,
     pos: 0,
   };

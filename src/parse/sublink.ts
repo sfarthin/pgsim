@@ -24,7 +24,7 @@ export const subLinkExists: Rule<{
       SubLink: {
         subLinkType: SubLinkType.EXISTS_SUBLINK,
         subselect: {
-          SelectStmt: v[4],
+          SelectStmt: v[4].value,
         },
         location: v[0].start,
       },
@@ -42,7 +42,7 @@ export const subLinkExpr: Rule<{
       SubLink: {
         subLinkType: SubLinkType.EXPR_SUBLINK,
         subselect: {
-          SelectStmt: v[2],
+          SelectStmt: v[2].value,
         },
         location: v[0].start,
       },
@@ -62,7 +62,7 @@ export const subLinkConnection = (ctx: Context) =>
           SubLink: {
             subLinkType: SubLinkType.ANY_SUBLINK,
             testexpr: c1.value,
-            subselect: { SelectStmt: v[5] },
+            subselect: { SelectStmt: v[5].value },
             location: v[1].start,
           },
         },
@@ -71,7 +71,7 @@ export const subLinkConnection = (ctx: Context) =>
           v[0],
           v[2],
           v[4],
-          v[5].codeComment,
+          v[5].value.codeComment,
           v[6]
         ),
       };

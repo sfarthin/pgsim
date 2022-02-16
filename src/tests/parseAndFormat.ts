@@ -91,13 +91,15 @@ function concatAllCodeComments(input: any): string[] {
 
 function removeComments(stmts: Stmt[]): Stmt[] {
   return (
-    (stmts.map((stmt) =>
-      omitDeep(stmt as object, [
-        // Only in new parser
-        "codeComment",
-        "codeComments",
-      ])
-    ) as Stmt[])
+    (
+      stmts.map((stmt) =>
+        omitDeep(stmt as object, [
+          // Only in new parser
+          "codeComment",
+          "codeComments",
+        ])
+      ) as Stmt[]
+    )
       // Only in PEGJS parser
       .filter((stmt) => !("Comment" in stmt.stmt))
   );
@@ -128,7 +130,8 @@ export default function parseAndFormat(
   } catch (e) {
     // Lets see the parse error too.
     try {
-      parse(sql, basename(filename), realAst);
+      const ast = parse(sql, basename(filename), realAst);
+      console.log(JSON.stringify(ast, null, 2));
     } catch (errorWithOurParser) {
       console.error(e);
       throw errorWithOurParser;
@@ -150,6 +153,7 @@ export default function parseAndFormat(
   const astNoComments = removeComments(ast);
   if (realAst) {
     const actualAstNoComments = removeComments(realAst);
+
     for (const key in astNoComments) {
       const start = astNoComments[key].stmt_location ?? 0;
       const end = astNoComments[key].stmt_len ?? 99999;

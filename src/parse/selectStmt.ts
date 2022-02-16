@@ -17,6 +17,7 @@ import {
   or,
   GROUP,
   BY,
+  EOS,
 } from "./util";
 import { rawValue } from "./rawExpr";
 import { SelectStmt } from "../types";
@@ -134,7 +135,7 @@ const target = transform(
 );
 
 // We need to make endOfStatement optional, for use with viewStmt.
-export const select: Rule<SelectStmt> = transform(
+export const select: Rule<{ value: SelectStmt; start: number }> = transform(
   sequence([
     SELECT,
     __,
@@ -151,34 +152,42 @@ export const select: Rule<SelectStmt> = transform(
     const groupBy = v[6];
 
     return {
-      targetList: [
-        v[2].value,
-        ...v[3].map((r) => ({
-          ...r[3].value,
-        })),
-      ],
-      ...from,
-      ...(groupBy ? { groupClause: groupBy.value } : {}),
-      ...(sortBy ? { sortClause: sortBy } : {}),
-      limitOption: "LIMIT_OPTION_DEFAULT",
-      op: "SETOP_NONE",
-      codeComments: {
-        fromClause: from?.codeComments?.fromClause,
+      start: v[0].start,
+      value: {
         targetList: [
-          combineComments(v[1], v[2].codeComment, v[4]),
-          ...v[3].map((r) => combineComments(r[0], r[2], r[3].codeComment)),
+          v[2].value,
+          ...v[3].map((r) => ({
+            ...r[3].value,
+          })),
         ],
-        whereClause: from?.codeComments?.whereClause,
-        groupClause: groupBy?.codeComments.groupClause,
+        ...from,
+        ...(groupBy ? { groupClause: groupBy.value } : {}),
+        ...(sortBy ? { sortClause: sortBy } : {}),
+        limitOption: "LIMIT_OPTION_DEFAULT",
+        op: "SETOP_NONE",
+        codeComments: {
+          fromClause: from?.codeComments?.fromClause,
+          targetList: [
+            combineComments(v[1], v[2].codeComment, v[4]),
+            ...v[3].map((r) => combineComments(r[0], r[2], r[3].codeComment)),
+          ],
+          whereClause: from?.codeComments?.whereClause,
+          groupClause: groupBy?.codeComments.groupClause,
+        },
       },
     };
   }
 );
 
-export const selectStmt: Rule<SelectStmt> = transform(
-  sequence([_, select, endOfStatement]),
-  (v) => ({
-    ...v[1],
-    codeComment: combineComments(v[0], v[2]),
-  })
-);
+export const selectStmt: Rule<{
+  value: { SelectStmt: SelectStmt };
+  eos: EOS;
+}> = transform(sequence([_, select, __, endOfStatement]), (v) => ({
+  eos: v[3],
+  value: {
+    SelectStmt: {
+      ...v[1].value,
+      codeComment: combineComments(v[0], v[2], v[3].comment),
+    },
+  },
+}));

@@ -17,10 +17,14 @@ import {
   combineComments,
   COMMA,
   PERIOD,
+  EOS,
 } from "./util";
 import { alterTableCmd } from "./alterTableCmd";
 
-export const alterTableStmt: Rule<AlterTableStmt> = transform(
+export const alterTableStmt: Rule<{
+  eos: EOS;
+  value: { AlterTableStmt: AlterTableStmt };
+}> = transform(
   sequence([
     _,
     ALTER,
@@ -62,23 +66,28 @@ export const alterTableStmt: Rule<AlterTableStmt> = transform(
     }
 
     return {
-      relation: {
-        ...v[9],
-        ...(!v[7] ? { inh: true } : {}),
+      eos: v[14],
+      value: {
+        AlterTableStmt: {
+          relation: {
+            ...v[9],
+            ...(!v[7] ? { inh: true } : {}),
+          },
+          cmds: alterCmds.map((AlterTableCmd) => ({ AlterTableCmd })),
+          relkind: "OBJECT_TABLE",
+          ...(v[5] ? { missing_ok: true } : {}),
+          codeComment: combineComments(
+            v[0],
+            v[2],
+            v[4],
+            v[5]?.[1],
+            v[6],
+            v[8],
+            v[13],
+            v[14].comment
+          ),
+        },
       },
-      cmds: alterCmds.map((AlterTableCmd) => ({ AlterTableCmd })),
-      relkind: "OBJECT_TABLE",
-      ...(v[5] ? { missing_ok: true } : {}),
-      codeComment: combineComments(
-        v[0],
-        v[2],
-        v[4],
-        v[5]?.[1],
-        v[6],
-        v[8],
-        v[13],
-        v[14]
-      ),
     };
   }
 );

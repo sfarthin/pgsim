@@ -79,8 +79,6 @@ export const findNextToken = (str: string, _pos: number) => {
   const ctx = {
     pos: _pos,
     str,
-    endOfStatement: [],
-    startOfNextStatement: [],
   };
   const leadingWhitespace = zeroToMany(
     or([cStyleComment, sqlStyleComment, whitespace])

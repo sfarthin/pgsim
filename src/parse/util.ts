@@ -2,7 +2,7 @@
 import { TypeNameKeyword } from "src/types";
 import { NEWLINE, TAB } from "../format/print";
 import { Node } from "../format/util";
-import { stmts } from "./index";
+import { stmt } from "./index";
 /**
  * Types
  */
@@ -51,10 +51,6 @@ export type FailResult = {
 export type RuleResult<R> = FailResult | SuccessResult<R>;
 
 export type Context = {
-  // hacky, computed from end endOfStatement rule
-  startOfNextStatement: number[];
-  endOfStatement: number[];
-
   // original sql
   str: string;
 
@@ -97,11 +93,11 @@ export const placeholder: Rule<null> = (ctx) => ({
   },
 });
 
-export const endOfInput: Rule<null> = (ctx) => {
+export const endOfInput: Rule<number> = (ctx) => {
   if (ctx.pos == ctx.str.length) {
     return {
       type: ResultType.Success,
-      value: null,
+      value: ctx.pos,
       length: 0, // <-- unlike most rules, this one does not progress the position
       expected: [],
       pos: ctx.pos,
@@ -1312,14 +1308,14 @@ export const sqlStyleCommentWithoutNewline = toNodes(
   ]
 );
 
-export function lookAhead(rule: Rule<unknown>): Rule<null> {
-  const newRule: Rule<null> = (ctx: Context) => {
+export function lookAhead<T>(rule: Rule<T>): Rule<T> {
+  const newRule: Rule<T> = (ctx: Context) => {
     const curr = rule(ctx);
 
     if (curr.type === ResultType.Success) {
       return {
         type: ResultType.Success,
-        value: null,
+        value: curr.value,
         length: 0, // <-- unlike most rules, this one does not progress the position
         expected: [],
         pos: ctx.pos,
@@ -1662,9 +1658,7 @@ export const identifier: Rule<string> = (ctx: Context) => {
   return result;
 };
 
-export function maybeInParens<T>(
-  rule: Rule<T>
-): Rule<{
+export function maybeInParens<T>(rule: Rule<T>): Rule<{
   value: T;
   topCodeComment: string;
   bottomCodeComment: string;
@@ -1729,11 +1723,16 @@ export const quotedString = toNodes(
  * Statement utility
  */
 
-export const endOfStatement = transform(
-  or([
-    transform(sequence([zeroToMany(whitespace), endOfInput]), (v) => v[1]),
-    // Lets also eagerly goble up semicolons
-    oneToMany(
+export type EOS = {
+  comment: string;
+  firstSemicolonPos: number | null;
+  lastSemicolonPos: number | null;
+};
+
+export const endOfStatement: Rule<EOS> = transform(
+  sequence([
+    zeroToMany(
+      // ^^^ We don't require a semicolon, but the real parser does. oneToMany would require a semicolon.
       sequence([
         SEMICOLON,
         // Lets include all the comments on the same line as the semicolumn
@@ -1742,20 +1741,22 @@ export const endOfStatement = transform(
         zeroToMany(whitespace),
       ])
     ),
-    // If we see there is a valid statement aferward, we can infer that
-    // this statement is done
-    lookAhead((ctx) => stmts(ctx)),
+    zeroToMany(whitespace),
   ]),
-  (v, context) => {
-    if (v && v.length > 0) {
-      // The first semicolon is when the statement ends
-      context.endOfStatement.push(v[0]?.[0].start);
-
-      // The last semi colon is used to indicate when the next statement
-      context.startOfNextStatement.push(v[v.length - 1]?.[0].start);
-      return combineComments(...v.map((iv) => iv[1]));
+  (v) => {
+    if (v[0] && v[0].length > 0) {
+      const collection = v[0];
+      return {
+        comment: combineComments(...collection.map((iv) => iv[1])),
+        firstSemicolonPos: collection[0][0].start,
+        lastSemicolonPos: collection[collection.length - 1][0].start,
+      };
     }
-    return "";
+    return {
+      comment: "",
+      firstSemicolonPos: null,
+      lastSemicolonPos: null,
+    };
   }
 );
 

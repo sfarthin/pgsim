@@ -204,3 +204,7 @@ SELECT foobar = bar;
 SELECT TRUE = TRUE;
 
 SELECT TRUE = TRUE;
+
+SELECT 1;
+
+-- select 2
