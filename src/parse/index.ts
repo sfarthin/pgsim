@@ -12,6 +12,7 @@ import {
   Context,
   combineComments,
   endOfInput,
+  FailResult,
 } from "./util";
 import { getFriendlyErrorMessage } from "./error";
 import { variableSetStmt } from "./variableSetStmt";
@@ -30,6 +31,22 @@ import { codeComments } from "./codeComments";
 import { renameStmt } from "./renameStmt";
 import { updateStmt } from "./updateStmt";
 
+class ParseError extends Error {
+  expectedStmt?: Stmt;
+  // context: Context;
+  // result: FailResult;
+  constructor(context: Context, result: FailResult, expectedStmt?: Stmt) {
+    super(getFriendlyErrorMessage(context, result));
+    // this.context = context;
+    // this.result = result;
+    this.expectedStmt = expectedStmt;
+  }
+
+  toString() {
+    return "error";
+  }
+}
+
 const CommentStatement = transform(
   sequence([
     zeroToMany(whitespace),
@@ -41,25 +58,36 @@ const CommentStatement = transform(
   }
 );
 
-export const stmt = or([
-  variableSetStmt,
-  createEnumStmt,
-  createSeqStmt,
-  alterSeqStmt,
-  createStmt,
-  dropStmt,
-  alterEnumStmt,
-  alterOwnerStmt,
-  indexStmt,
-  alterTableStmt,
-  selectStmt,
-  viewStmt,
-  renameStmt,
-  updateStmt,
+export const stmt = transform(
+  or([
+    variableSetStmt,
+    createEnumStmt,
+    createSeqStmt,
+    alterSeqStmt,
+    createStmt,
+    dropStmt,
+    alterEnumStmt,
+    alterOwnerStmt,
+    indexStmt,
+    alterTableStmt,
+    selectStmt,
+    viewStmt,
+    renameStmt,
+    updateStmt,
 
-  // Standalone comments
-  CommentStatement,
-]);
+    // Standalone comments
+    CommentStatement,
+  ]),
+  (v, ctx) => {
+    if (!ctx.numStatements) {
+      ctx.numStatements = 1;
+    } else {
+      ctx.numStatements++;
+    }
+
+    return v;
+  }
+);
 
 export const stmts: Rule<Stmt[]> = transform(
   sequence([
@@ -138,6 +166,7 @@ export function parseComments(inputSql: string) {
   const result = codeComments({
     str: inputSql,
     pos: 0,
+    numStatements: 0,
   });
 
   if (result.type == ResultType.Success) {
@@ -153,18 +182,12 @@ export function parseComments(inputSql: string) {
  * failed.
  */
 export default function parse(
-  inputSql: string,
-  filename = "",
+  context: Context,
   expectedAst: Stmt[] = []
 ): Stmt[] {
-  if (inputSql === "") {
+  if (context.str === "") {
     return [];
   }
-
-  const context: Context = {
-    str: inputSql,
-    pos: 0,
-  };
 
   const result = stmts(context);
 
@@ -172,17 +195,11 @@ export default function parse(
     return result.value.reduce(reduceComments, []);
   }
 
-  const error = new Error(
-    getFriendlyErrorMessage({
-      filename,
-      str: context.str,
-      result,
-      expectedAst: expectedAst[context.endOfStatement.length],
-    })
+  const error = new ParseError(
+    context,
+    result,
+    expectedAst[context.numStatements ?? 0]
   );
-
-  // @ts-expect-error -- Used for tests
-  error.result = result;
 
   throw error;
 }

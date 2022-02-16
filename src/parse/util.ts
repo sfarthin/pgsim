@@ -2,11 +2,11 @@
 import { TypeNameKeyword } from "src/types";
 import { NEWLINE, TAB } from "../format/print";
 import { Node } from "../format/util";
-import { stmt } from "./index";
 /**
  * Types
  */
 
+// unformatted SQL may have arbitrary newlines. Our formatter has consistent newliens and do not need this Node
 type FNode = Node | { type: "newline" };
 type Formatter =
   | {
@@ -51,11 +51,17 @@ export type FailResult = {
 export type RuleResult<R> = FailResult | SuccessResult<R>;
 
 export type Context = {
+  // Name given to the file.
+  filename?: string;
+
   // original sql
   str: string;
 
   // position we have parsed so far
   pos: number;
+
+  // Number of statements we have encountered
+  numStatements?: number;
 };
 
 export type Rule<R> = (c: Context) => RuleResult<R>;

@@ -6,8 +6,8 @@ import {
   sqlStyleComment,
   cStyleComment,
   regexChar,
+  Context,
 } from "./util";
-import { Stmt } from "../types";
 import c from "ansi-colors";
 import { NEWLINE } from "../format/print";
 
@@ -79,6 +79,7 @@ export const findNextToken = (str: string, _pos: number) => {
   const ctx = {
     pos: _pos,
     str,
+    numStatements: 0,
   };
   const leadingWhitespace = zeroToMany(
     or([cStyleComment, sqlStyleComment, whitespace])
@@ -87,6 +88,7 @@ export const findNextToken = (str: string, _pos: number) => {
   const afterToken = zeroToMany(regexChar(/[a-zA-Z0-9_]/))({
     ...ctx,
     pos: leadingWhitespace.pos ?? _pos,
+    numStatements: 0,
   });
 
   return {
@@ -125,17 +127,11 @@ export const getSnippetWithLineNumbers = ({
 /**
  * Prints parser errors nicely
  */
-export const getFriendlyErrorMessage = ({
-  filename,
-  str,
-  result,
-  expectedAst,
-}: {
-  filename: string;
-  str: string;
-  result: FailResult;
-  expectedAst?: Stmt | undefined;
-}): string => {
+export const getFriendlyErrorMessage = (
+  context: Context,
+  result: FailResult
+): string => {
+  const { str, filename } = context;
   let expected = result.expected.map((v) => v.value);
   expected = expected.filter((v, i) => expected.indexOf(v) === i).sort();
 
@@ -189,9 +185,7 @@ export const getFriendlyErrorMessage = ({
       prefixNumeralLength,
       startLine: start.line + 1,
     }) + NEWLINE;
-  if (expectedAst) {
-    error += `${NEWLINE}${NEWLINE}${JSON.stringify(expectedAst.stmt, null, 2)}`;
-  }
+
   error += NEWLINE;
 
   return error;

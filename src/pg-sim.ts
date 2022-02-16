@@ -1,12 +1,26 @@
-// TODO
+import yargs from "yargs/yargs";
+import "regenerator-runtime/runtime.js";
 
-// import minimist from "minimist";
-// import { join } from "path";
-// import parse from "./parse";
-// import format from "./format";
-// import dump from "./dump";
-// import migrate from "./migrate";
-// import { readFileSync } from "fs";
+const format = () => console.log("🎵 Oy oy oy");
+
+const parse = async () => {
+  console.log("parse");
+  // console.log(
+  //   JSON.stringify(parse(readFileSync(filepath).toString()), null, 2)
+  // );
+};
+
+const argv = yargs(process.argv.splice(2))
+  .command("parse", "parse SQL file and return AST JSON", () => {}, parse)
+  .command(
+    "format",
+    "parse SQL file and return formmated SQL",
+    () => {},
+    format
+  )
+  .demandCommand(1, 1, "Choose a command")
+  .strict()
+  .help("h").argv;
 
 // const argv = minimist(process.argv.slice(2));
 // const command = argv._[0];
@@ -29,9 +43,9 @@
 
 // switch (command) {
 //   case "parse":
-//     console.log(
-//       JSON.stringify(parse(readFileSync(filepath).toString()), null, 2)
-//     );
+// console.log(
+//   JSON.stringify(parse(readFileSync(filepath).toString()), null, 2)
+// );
 //     process.exit(0);
 //   case "format":
 //     console.log(format(readFileSync(filepath).toString()));

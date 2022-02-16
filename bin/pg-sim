@@ -1,0 +1,3 @@
+#!/usr/bin/env bash -e
+
+yarn build > /dev/null && node ./dist/pg-sim.js $@

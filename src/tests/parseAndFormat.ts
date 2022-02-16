@@ -130,7 +130,10 @@ export default function parseAndFormat(
   } catch (e) {
     // Lets see the parse error too.
     try {
-      const ast = parse(sql, basename(filename), realAst);
+      const ast = parse(
+        { str: sql, filename: basename(filename), pos: 0 },
+        realAst
+      );
       console.log(JSON.stringify(ast, null, 2));
     } catch (errorWithOurParser) {
       console.error(e);
@@ -146,7 +149,10 @@ export default function parseAndFormat(
   }
 
   // 3. Then we make sure our parser matches the output of the native parser
-  const ast = parse(sql, basename(filename), realAst);
+  const ast = parse(
+    { str: sql, filename: basename(filename), pos: 0 },
+    realAst
+  );
 
   const comments = parseComments(sql);
 
@@ -193,7 +199,11 @@ export default function parseAndFormat(
 
   let formattedAst;
   try {
-    formattedAst = parse(formattedSql, basename(filename));
+    formattedAst = parse({
+      str: formattedSql,
+      filename: basename(filename),
+      pos: 0,
+    });
   } catch (_e) {
     const e = _e as Error;
     console.log(formattedSql);
