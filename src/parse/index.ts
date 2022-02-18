@@ -13,6 +13,7 @@ import {
   combineComments,
   endOfInput,
   FailResult,
+  SuccessResult,
 } from "./util";
 import { getFriendlyErrorMessage } from "./error";
 import { variableSetStmt } from "./variableSetStmt";
@@ -31,12 +32,15 @@ import { codeComments } from "./codeComments";
 import { renameStmt } from "./renameStmt";
 import { updateStmt } from "./updateStmt";
 
+export { toBlock } from "./util";
+
 class ParseError extends Error {
   expectedStmt?: Stmt;
   // context: Context;
   // result: FailResult;
   constructor(context: Context, result: FailResult, expectedStmt?: Stmt) {
-    super(getFriendlyErrorMessage(context, result));
+    super();
+    this.message = getFriendlyErrorMessage(context, result);
     // this.context = context;
     // this.result = result;
     this.expectedStmt = expectedStmt;
@@ -184,15 +188,12 @@ export function parseComments(inputSql: string) {
 export default function parse(
   context: Context,
   expectedAst: Stmt[] = []
-): Stmt[] {
-  if (context.str === "") {
-    return [];
-  }
-
+): SuccessResult<Stmt[]> {
   const result = stmts(context);
 
   if (result.type == ResultType.Success) {
-    return result.value.reduce(reduceComments, []);
+    result.value = result.value.reduce(reduceComments, []);
+    return result;
   }
 
   const error = new ParseError(

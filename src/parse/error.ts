@@ -9,7 +9,7 @@ import {
   Context,
 } from "./util";
 import c from "ansi-colors";
-import { NEWLINE } from "../format/print";
+import { NEWLINE, toString } from "../format/print";
 
 const indent = ({
   lines,
@@ -159,32 +159,47 @@ export const getFriendlyErrorMessage = (
   )},${c.cyan(String(start.column + 1))}): ${message}${NEWLINE}`;
   error += NEWLINE;
 
-  const lineToStartPrinting =
-    start.line - NUM_CONTEXT_LINES_BEFORE < 0
-      ? 0
-      : start.line - NUM_CONTEXT_LINES_BEFORE;
-  error +=
-    indent({
-      lines: lines.slice(lineToStartPrinting, start.line),
-      prefixNumeralLength,
-      startLine: lineToStartPrinting,
-    }) + NEWLINE;
-  error +=
-    indent({
-      lines: [lines[start.line]], // < -- highlight one line at most.
-      prefixNumeralLength,
-      startLine: start.line,
-      highlightColumns: {
-        start: start.column,
-        end: end.line === start.line ? end.column : 999999, // <-- go to end of line if token spans multiple lines.
-      },
-    }) + NEWLINE;
-  error +=
-    indent({
-      lines: lines.slice(start.line + 1, start.line + NUM_CONTEXT_LINES_AFTER),
-      prefixNumeralLength,
-      startLine: start.line + 1,
-    }) + NEWLINE;
+  console.log(result);
+  if ("nodes" in result.formatter) {
+    error += toString(
+      [
+        result.formatter.nodes.flatMap((n) =>
+          n.type === "newline" ? [] : [n]
+        ),
+      ],
+      { colors: true, lineNumbers: false }
+    );
+  } else {
+    const lineToStartPrinting =
+      start.line - NUM_CONTEXT_LINES_BEFORE < 0
+        ? 0
+        : start.line - NUM_CONTEXT_LINES_BEFORE;
+    error +=
+      indent({
+        lines: lines.slice(lineToStartPrinting, start.line),
+        prefixNumeralLength,
+        startLine: lineToStartPrinting,
+      }) + NEWLINE;
+    error +=
+      indent({
+        lines: [lines[start.line]], // < -- highlight one line at most.
+        prefixNumeralLength,
+        startLine: start.line,
+        highlightColumns: {
+          start: start.column,
+          end: end.line === start.line ? end.column : 999999, // <-- go to end of line if token spans multiple lines.
+        },
+      }) + NEWLINE;
+    error +=
+      indent({
+        lines: lines.slice(
+          start.line + 1,
+          start.line + NUM_CONTEXT_LINES_AFTER
+        ),
+        prefixNumeralLength,
+        startLine: start.line + 1,
+      }) + NEWLINE;
+  }
 
   error += NEWLINE;
 

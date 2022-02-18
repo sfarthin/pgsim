@@ -97,7 +97,7 @@ function printNode(node: Node, opts: PrintOptions): string {
   }
 }
 
-export function plaintext(block: Block, opts: PrintOptions) {
+export function toString(block: Block, opts: PrintOptions) {
   return block
     .map((line) => line.map((node) => printNode(node, opts)).join(""))
     .join(NEWLINE);

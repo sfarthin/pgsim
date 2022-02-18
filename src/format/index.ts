@@ -17,11 +17,13 @@ import indexStmt from "./indexStmt";
 import parse from "../parse";
 import { toSingleLineIfPossible, comment, Block } from "./util";
 import {
-  plaintext,
+  toString,
   PrintOptions,
   createFriendlyStmtError,
   FormatDetailsForError,
 } from "./print";
+
+export { toString } from "./print";
 
 function formatStmt(stmt: Stmt): Block {
   const s = stmt.stmt;
@@ -68,7 +70,7 @@ export default function format(
   // Parses a string or uses existing AST
   const stmts =
     typeof _stmts === "string"
-      ? parse({ str: _stmts, filename: opts?.filename, pos: 0 })
+      ? parse({ str: _stmts, filename: opts?.filename, pos: 0 }).value
       : _stmts;
 
   const codeBlock = stmts.flatMap((stmt, i) => {
@@ -89,5 +91,5 @@ export default function format(
     }
   });
 
-  return plaintext(codeBlock, { colors: false, lineNumbers: true, ...opts });
+  return toString(codeBlock, { colors: false, lineNumbers: true, ...opts });
 }

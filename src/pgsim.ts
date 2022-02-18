@@ -1,29 +1,29 @@
 import yargs from "yargs/yargs";
 import { readFileSync } from "fs";
 import "regenerator-runtime/runtime.js";
-import parse from "./parse";
-import format from "./format";
+import parse, { toBlock } from "./parse";
+import format, { toString } from "./format";
 import { resolve } from "path";
 
 Error.stackTraceLimit = Infinity;
 yargs(process.argv.splice(2))
-  .command(
-    "parse <filename>",
-    "parse SQL file and return AST JSON",
-    {
-      filename: {
-        alias: "f",
-        type: "string",
-        required: true,
-      },
-    },
-    (r) => {
-      const str = readFileSync(resolve(process.cwd(), r.filename)).toString();
-      const response = parse({ str, filename: r.filename, pos: 0 });
+  // .command(
+  //   "parse <filename>",
+  //   "parse SQL file and return AST JSON",
+  //   {
+  //     filename: {
+  //       alias: "f",
+  //       type: "string",
+  //       required: true,
+  //     },
+  //   },
+  //   (r) => {
+  //     const str = readFileSync(resolve(process.cwd(), r.filename)).toString();
+  //     const response = parse({ str, filename: r.filename, pos: 0 });
 
-      console.log(JSON.stringify(response, null, 2));
-    }
-  )
+  //     console.log(JSON.stringify(response, null, 2));
+  //   }
+  // )
   .command(
     "format <filename>",
     "parse SQL file and return formmated SQL",
@@ -49,6 +49,37 @@ yargs(process.argv.splice(2))
       const response = format(str, r);
 
       console.log(response);
+    }
+  )
+  .command(
+    "print <filename>",
+    "parse SQL file and print colorized SQL",
+    {
+      filename: {
+        type: "string",
+        required: true,
+        describe: "Path to file SQL file",
+      },
+      lineNumbers: {
+        type: "boolean",
+        default: false,
+        describe: "Include line number on each line",
+      },
+      colors: {
+        type: "boolean",
+        default: true,
+        describe: "Remove ansi colors from output",
+      },
+    },
+    (r) => {
+      const str = readFileSync(resolve(process.cwd(), r.filename)).toString();
+      const response = parse({ str, filename: r.filename, pos: 0 });
+
+      const block = toBlock(response.formatter);
+
+      // console.log(block);
+
+      console.log(toString(block, { colors: true, lineNumbers: false }));
     }
   )
   .demandCommand(1, 1, "Choose a command")

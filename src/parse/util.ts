@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TypeNameKeyword } from "src/types";
 import { NEWLINE, TAB } from "../format/print";
-import { Node } from "../format/util";
+import { Node, Block } from "../format/util";
 /**
  * Types
  */
@@ -87,6 +87,25 @@ const expectedReducer = (acc: Expected[], e: Expected): Expected[] => {
   // if r is referes to a previes pos, ignore
   return acc;
 };
+
+export function toBlock(formatter: Formatter): Block {
+  if ("buffer" in formatter) {
+    return [[{ type: "identifier", text: formatter.buffer }]];
+  }
+
+  const block: Block = [[]];
+  let line = 0;
+  for (const node of formatter.nodes) {
+    if (node.type === "newline") {
+      line++;
+      block.push([]);
+    } else {
+      block[line].push(node);
+    }
+  }
+
+  return block;
+}
 
 export const placeholder: Rule<null> = (ctx) => ({
   type: ResultType.Success,
@@ -1025,7 +1044,7 @@ export function toNodes<T>(
       return {
         ...result,
         formatter: {
-          nodes: [{ type: "error", text: result.formatter.buffer }],
+          nodes: [],
         },
       };
     }
