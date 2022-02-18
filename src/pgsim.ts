@@ -1,26 +1,59 @@
 import yargs from "yargs/yargs";
+import { readFileSync } from "fs";
 import "regenerator-runtime/runtime.js";
+import parse from "./parse";
+import format from "./format";
+import { resolve } from "path";
 
-const format = () => console.log("🎵 Oy oy oy");
-
-const parse = async () => {
-  console.log("parse");
-  // console.log(
-  //   JSON.stringify(parse(readFileSync(filepath).toString()), null, 2)
-  // );
-};
-
-const argv = yargs(process.argv.splice(2))
-  .command("parse", "parse SQL file and return AST JSON", () => {}, parse)
+Error.stackTraceLimit = Infinity;
+yargs(process.argv.splice(2))
   .command(
-    "format",
+    "parse <filename>",
+    "parse SQL file and return AST JSON",
+    {
+      filename: {
+        alias: "f",
+        type: "string",
+        required: true,
+      },
+    },
+    (r) => {
+      const str = readFileSync(resolve(process.cwd(), r.filename)).toString();
+      const response = parse({ str, filename: r.filename, pos: 0 });
+
+      console.log(JSON.stringify(response, null, 2));
+    }
+  )
+  .command(
+    "format <filename>",
     "parse SQL file and return formmated SQL",
-    () => {},
-    format
+    {
+      filename: {
+        type: "string",
+        required: true,
+        describe: "Path to file SQL file",
+      },
+      lineNumbers: {
+        type: "boolean",
+        default: false,
+        describe: "Include line number on each line",
+      },
+      colors: {
+        type: "boolean",
+        default: true,
+        describe: "Remove ansi colors from output",
+      },
+    },
+    (r) => {
+      const str = readFileSync(resolve(process.cwd(), r.filename)).toString();
+      const response = format(str, r);
+
+      console.log(response);
+    }
   )
   .demandCommand(1, 1, "Choose a command")
   .strict()
-  .help("h").argv;
+  .help().argv;
 
 // const argv = minimist(process.argv.slice(2));
 // const command = argv._[0];

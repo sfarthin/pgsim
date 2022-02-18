@@ -1,10 +1,19 @@
 import { ColumnDef } from "../types";
 
 import toConstraints from "./constraint";
-import { comment, identifier, keyword, _, Block } from "./util";
+import {
+  comment,
+  identifier,
+  keyword,
+  _,
+  Block,
+  Line,
+  integerLiteral,
+  symbol,
+} from "./util";
 
 // TODO Seperate params as symbols
-export function toType(columnDef: ColumnDef): string {
+export function toType(columnDef: ColumnDef): Line {
   const names = (columnDef.typeName.names as any)
     .map((s: any) => s.String.str)
     .filter((s: any) => s !== "pg_catalog");
@@ -18,13 +27,13 @@ export function toType(columnDef: ColumnDef): string {
 
   const name = names[0];
 
-  const typeWithParam = (t: string): string => {
+  const typeWithParam = (t: string): Line => {
     const val = columnDef.typeName.typmods?.[0].A_Const.val;
     const size = (val && "Integer" in val && val.Integer.ival) ?? null;
     if (!size) {
-      return `${t}`;
+      return [keyword(`${t}`)];
     } else {
-      return `${t}(${size})`;
+      return [keyword(t), symbol("("), integerLiteral(size), symbol(")")];
     }
   };
 
@@ -33,65 +42,65 @@ export function toType(columnDef: ColumnDef): string {
   switch (name.toLowerCase()) {
     case "timetz":
       if (!referencesCatalog) {
-        return "timetz";
+        return [keyword("timetz")];
       } else {
-        return "time with time zone";
+        return [keyword("time with time zone")];
       }
     case "timestamptz":
       if (!referencesCatalog) {
-        return "timestamptz";
+        return [keyword("timestamptz")];
       } else {
-        return "timestamp with time zone";
+        return [keyword("timestamp with time zone")];
       }
     case "varchar":
       return typeWithParam(`varchar`);
     case "text":
-      return "text";
+      return [keyword("text")];
     case "serial4":
-      return "serial4";
+      return [keyword("serial4")];
     case "serial":
-      return "serial";
+      return [keyword("serial")];
     case "serial8":
-      return "serial8";
+      return [keyword("serial8")];
     case "bigserial":
-      return "bigserial";
+      return [keyword("bigserial")];
     // case "integer":
     //   return "integer";
     case "smallint":
     case "int2":
       if (!referencesCatalog) {
-        return "int2";
+        return [keyword("int2")];
       } else {
-        return "smallint";
+        return [keyword("smallint")];
       }
     case "int":
     case "integer":
     case "int4":
       if (!referencesCatalog) {
-        return "int4";
+        return [keyword("int4")];
       } else {
-        return "integer";
+        return [keyword("integer")];
       }
     case "int8":
     case "bigint":
       if (!referencesCatalog) {
-        return "int8";
+        return [keyword("int8")];
       } else {
-        return "bigint";
+        return [keyword("bigint")];
       }
     case "bit":
       return typeWithParam(`bit`);
     case "bool":
       if (!referencesCatalog) {
-        return "bool";
+        return [keyword("bool")];
       } else {
-        return "boolean";
+        return [keyword("boolean")];
       }
     case "float4":
       if (!referencesCatalog) {
-        return "float4";
+        return [keyword("float4")];
       } else {
-        return "real";
+        return [keyword("real")];
       }
     case "bit varying":
     case "varbit":
@@ -103,27 +112,30 @@ export function toType(columnDef: ColumnDef): string {
 
     case "float8":
       if (!referencesCatalog) {
-        return "float8";
+        return [keyword("float8")];
       } else {
-        return "double precision";
+        return [keyword("double precision")];
       }
 
     case "bpchar": {
       const c = columnDef.typeName.typmods?.[0].A_Const;
       const val = columnDef.typeName.typmods?.[0].A_Const.val;
-      const size = (val && "Integer" in val && val.Integer.ival) ?? null;
-      const param = c?.location === -1 || size === 1 ? "" : `(${size})`;
+      const size = val && "Integer" in val ? val.Integer.ival : null;
+      const param =
+        size === null || c?.location === -1 || size === 1
+          ? []
+          : [symbol("("), integerLiteral(size), symbol(")")];
 
-      return `char${param}`;
+      return [keyword("char"), ...param];
     }
     case "interval": {
       const val = columnDef.typeName.typmods?.[0].A_Const.val;
       const size = (val && "Integer" in val && val.Integer.ival) ?? null;
 
       if (size === 1032) {
-        return "interval day to hour";
+        return [keyword("interval day to hour")];
       }
-      return "interval";
+      return [keyword("interval")];
     }
     case "decimal": // variable	user-specified precision, exact	up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
     case "numeric": // variable	user-specified precision, exact	up to 131072 digits before the decimal point; up to 16383 digits after the decimal point
@@ -135,10 +147,18 @@ export function toType(columnDef: ColumnDef): string {
       const param =
         size1 || size2
           ? size1 && size2
-            ? `(${size1}, ${size2})`
-            : `(${size1})`
-          : "";
-      return `decimal${param}`;
+            ? [
+                symbol("("),
+                integerLiteral(size1),
+                symbol(","),
+                integerLiteral(size2),
+                symbol(")"),
+              ]
+            : size1
+            ? [symbol("("), integerLiteral(size1), symbol(")")]
+            : []
+          : [];
+      return [keyword("decimal"), ...param];
     case "box":
     case "bytea":
     case "cidr":
@@ -157,9 +177,9 @@ export function toType(columnDef: ColumnDef): string {
     case "txid_snapshot":
     case "uuid":
     case "xml":
-      return name;
+      return [keyword(name)];
     default:
-      return name;
+      return [keyword(name)];
   }
 }
 
@@ -175,7 +195,7 @@ export default function toColumn(columnDef: ColumnDef): Block {
     [
       identifier(columnDef.colname),
       _,
-      keyword(toType(columnDef)),
+      ...toType(columnDef),
       ...toConstraints(constraints),
     ],
   ];

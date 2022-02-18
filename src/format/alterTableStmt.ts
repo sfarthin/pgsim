@@ -28,7 +28,7 @@ function alterTableCmd(c: AlterTableCmd): Line {
         _,
         keyword("TYPE"),
         _,
-        keyword(toType(c.def.ColumnDef)),
+        ...toType(c.def.ColumnDef),
       ];
     case AlterTableCmdSubType.AT_DropColumn:
       return [keyword("DROP"), _, identifier(c.name ?? "")];
@@ -86,7 +86,7 @@ function alterTableCmd(c: AlterTableCmd): Line {
         _,
         identifier(c.def.ColumnDef.colname),
         _,
-        keyword(toType(c.def.ColumnDef).toUpperCase()),
+        ...toType(c.def.ColumnDef),
         ...toConstraints(constraints, true),
       ];
     }

@@ -66,7 +66,10 @@ export default function format(
   opts?: Partial<PrintOptions> & Partial<FormatDetailsForError>
 ): string {
   // Parses a string or uses existing AST
-  const stmts = typeof _stmts === "string" ? parse(_stmts) : _stmts;
+  const stmts =
+    typeof _stmts === "string"
+      ? parse({ str: _stmts, filename: opts?.filename, pos: 0 })
+      : _stmts;
 
   const codeBlock = stmts.flatMap((stmt, i) => {
     try {

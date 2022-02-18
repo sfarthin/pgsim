@@ -77,11 +77,11 @@ function printNode(node: Node, opts: PrintOptions): string {
 
   switch (node.type) {
     case "booleanLiteral":
-      return c.cyanBright(node.text);
+      return c.green(node.text);
     case "numberLiteral":
-      return c.greenBright(node.text);
+      return c.green(node.text);
     case "stringLiteral":
-      return c.magentaBright(node.text);
+      return c.green(node.text);
     case "keyword":
       return c.magenta(node.text);
     case "symbol":
