@@ -1,4 +1,5 @@
 import parse, { parseComments } from "../parse";
+import { SuccessResult } from "../parse/util";
 import { toLineAndColumn, findNextToken } from "../parse/error";
 import nParse from "./nativeParse";
 import format from "../format";
@@ -121,7 +122,7 @@ function removeStyle(stmts: Stmt[]): Stmt[] {
 export default function parseAndFormat(
   sql: string,
   filename: string
-): { formattedSql: string; ast: Stmt[] } {
+): { formattedSql: string; ast: SuccessResult<Stmt[]> } {
   // 1. First we validate the syntax is correct with real parser
   // 2. Then we ensure our type matches the native ast with the decoder
   let realAst;
@@ -156,7 +157,7 @@ export default function parseAndFormat(
 
   const comments = parseComments(sql);
 
-  const astNoComments = removeComments(ast);
+  const astNoComments = removeComments(ast.value);
   if (realAst) {
     const actualAstNoComments = removeComments(realAst);
 
@@ -194,8 +195,8 @@ export default function parseAndFormat(
   );
 
   // 4. Then we verify our formatter by confirmating it produces the same parsed AST
-  const astNoStyle = removeStyle(ast);
-  const formattedSql = format(ast, { sql, filename: basename(filename) });
+  const astNoStyle = removeStyle(ast.value);
+  const formattedSql = format(ast.value, { sql, filename: basename(filename) });
 
   let formattedAst;
   try {
@@ -211,18 +212,18 @@ export default function parseAndFormat(
     throw e;
   }
 
-  const formattedAstNoStyle = removeStyle(formattedAst);
+  const formattedAstNoStyle = removeStyle(formattedAst.value);
 
   for (const key in astNoStyle) {
-    const startAst = ast[key].stmt_location ?? 0;
-    const endAst = ast[key].stmt_len ?? 99999;
+    const startAst = ast.value[key].stmt_location ?? 0;
+    const endAst = ast.value[key].stmt_len ?? 99999;
     const originalSql = sql.substring(startAst, startAst + endAst);
 
     const nextToken = findNextToken(sql, startAst);
     const { line } = toLineAndColumn(sql, nextToken.start);
 
-    const startFormattedAst = formattedAst[key].stmt_location ?? 0;
-    const endFormattedAst = formattedAst[key].stmt_len ?? 99999;
+    const startFormattedAst = formattedAst.value[key].stmt_location ?? 0;
+    const endFormattedAst = formattedAst.value[key].stmt_len ?? 99999;
     const formattedSqlStmt = formattedSql.substring(
       startFormattedAst,
       startFormattedAst + endFormattedAst
@@ -244,8 +245,8 @@ export default function parseAndFormat(
 
     // Lets make sure the formatter prints all comments
     assertNoDiff(
-      concatAllCodeComments(ast[key]).slice().sort(),
-      concatAllCodeComments(formattedAst[key]).slice().sort(),
+      concatAllCodeComments(ast.value[key]).slice().sort(),
+      concatAllCodeComments(formattedAst.value[key]).slice().sort(),
       `Formatter does not retain the same comments, ${c.cyan(
         `${basename(filename)}:${line + 1}`
       )} (Statement ${Number(key) + 1} of ${
@@ -317,7 +318,7 @@ if (process.argv[2]) {
     );
 
     // 3. Make sure the filename should match the statement type.
-    const unexpectedStatement = ast.find(
+    const unexpectedStatement = ast.value.find(
       (s: Stmt) =>
         Object.keys(s.stmt)[0].toLowerCase() !== statementName.toLowerCase() &&
         Object.keys(s.stmt)[0].toLowerCase() !== "comment"

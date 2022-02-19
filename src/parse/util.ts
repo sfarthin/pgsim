@@ -28,22 +28,36 @@ type Expected =
 
 export type SuccessResult<R> = {
   type: ResultType.Success;
+  /**
+   * The Abstract Syntax Tree
+   */
   value: R;
+
+  /**
+   * The character length of the rule. For Stmt this is always the entire SQL length,
+   * but is useful in sub-rules.
+   */
   length: number;
 
-  // Sometimes we get a successful result but it may fail later and we still need to
-  // refer to this expected result
+  /**
+   * Sometimes we get a successful result but it may fail later and we still need to
+   * refer to this expected result
+   */
   expected: Expected[];
-  pos: number;
 
-  // This is kind of like our formatter Nodes, except we have a newline node
-  // rather than a nested array.
+  /**
+   * This is the original SQL segmented in Unformatted Nodes so we can
+   * print the SQL back in color.
+   */
   formatter: Formatter;
 };
 
 export type FailResult = {
   type: ResultType.Fail;
   expected: Expected[];
+  /**
+   * The ending location where the parser could no longer parse
+   */
   pos: number;
   formatter: Formatter;
 };
@@ -51,16 +65,25 @@ export type FailResult = {
 export type RuleResult<R> = FailResult | SuccessResult<R>;
 
 export type Context = {
-  // Name given to the file.
+  /**
+   * Filename of SQL file
+   */
   filename?: string;
 
-  // original sql
+  /**
+   * Original SQL
+   */
   str: string;
 
-  // position we have parsed so far
+  /**
+   * position we have parsed so far
+   */
   pos: number;
 
-  // Number of statements we have encountered
+  /**
+   * Number of statements we have encountered.
+   * This is only useful to reconcile which statement we failed to parse and expected parse statements when testing.
+   */
   numStatements?: number;
 };
 
@@ -1216,7 +1239,7 @@ export function or(rules: Rule<any>[]): Rule<any> {
     return {
       type: ResultType.Fail,
       expected,
-      pos: expected?.[0]?.pos ?? results[0]?.pos,
+      pos: expected?.[0]?.pos,
       formatter: results[0].formatter,
     };
   };
