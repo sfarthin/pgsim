@@ -2,31 +2,33 @@
 import { TypeNameKeyword } from "src/types";
 import { NEWLINE, TAB } from "../format/print";
 import { Node, Block } from "../format/util";
+import { expectedReducer } from "./expectedReducer";
+import { or } from "./or";
+import { sequence } from "./sequence";
+
+export { or } from "./or";
+export { sequence } from "./sequence";
 /**
  * Types
  */
 
 // unformatted SQL may have arbitrary newlines. Our formatter has consistent newliens and do not need this Node
-type FNode = Node | { type: "newline" };
-type Formatter =
-  | {
-      nodes: FNode[];
-    }
-  | { buffer: string };
+export type UnformattedNode = Node | { type: "newline" };
 
 export enum ResultType {
   Fail = "___FAIL___",
   Success = "___SUCCESS___",
 }
 
-type Expected =
+// Todo reconcile this more with Nodes
+export type Expected =
   | { type: "keyword"; value: string; pos: number }
   | { type: "notKeyword"; value: string; pos: number }
   | { type: "regex"; value: string; pos: number }
   | { type: "identifier"; value: string; pos: number }
   | { type: "endOfInput"; value: string; pos: number };
 
-export type SuccessResult<R> = {
+type SuccessResultBase<R> = {
   type: ResultType.Success;
   /**
    * The Abstract Syntax Tree
@@ -44,13 +46,16 @@ export type SuccessResult<R> = {
    * refer to this expected result
    */
   expected: Expected[];
+};
 
+export type SuccessResult<R> =
   /**
    * This is the original SQL segmented in Unformatted Nodes so we can
    * print the SQL back in color.
    */
-  formatter: Formatter;
-};
+  SuccessResultBase<R> & { nodes: UnformattedNode[] };
+
+type SuccessBufferResult<R> = SuccessResultBase<R> & { buffer: string };
 
 export type FailResult = {
   type: ResultType.Fail;
@@ -59,10 +64,12 @@ export type FailResult = {
    * The ending location where the parser could no longer parse
    */
   pos: number;
-  formatter: Formatter;
+
+  nodes: UnformattedNode[];
 };
 
 export type RuleResult<R> = FailResult | SuccessResult<R>;
+type BufferRuleResult<R> = FailResult | SuccessBufferResult<R>;
 
 export type Context = {
   /**
@@ -89,36 +96,16 @@ export type Context = {
 
 export type Rule<R> = (c: Context) => RuleResult<R>;
 
-const expectedReducer = (acc: Expected[], e: Expected): Expected[] => {
-  // Lets ignore these comment and whitespace characters.
-  if (['"/*"', '"--"', "/[ \\t\\r\\n]/", "/[ \\t\\r]/"].includes(e.value)) {
-    return acc;
-  }
+// TODO Type Buffer and Node Rule seperately.
+// use generics one methods that can be both.
+export type BufferRule<R> = (s: Context) => BufferRuleResult<R>;
 
-  // If this is the first one use it.
-  // If the error is furthor along, then use that one.
-  if (!acc[0] || acc[0].pos < e.pos) {
-    return [e];
-  }
+export type EitherRule<R> = (c: Context) => RuleResult<R> | BufferRuleResult<R>;
 
-  // If its on the same line just concatenate them.
-  // unless its a duplicate
-  if (acc[0].pos === e.pos && !acc.some((v) => v.value === e.value)) {
-    return acc.concat(e);
-  }
-
-  // if r is referes to a previes pos, ignore
-  return acc;
-};
-
-export function toBlock(formatter: Formatter): Block {
-  if ("buffer" in formatter) {
-    return [[{ type: "identifier", text: formatter.buffer }]];
-  }
-
+export function toBlock(nodes: UnformattedNode[]): Block {
   const block: Block = [[]];
   let line = 0;
-  for (const node of formatter.nodes) {
+  for (const node of nodes) {
     if (node.type === "newline") {
       line++;
       block.push([]);
@@ -136,9 +123,7 @@ export const placeholder: Rule<null> = (ctx) => ({
   expected: [],
   length: 0,
   pos: ctx.pos,
-  formatter: {
-    nodes: [],
-  },
+  nodes: [],
 });
 
 export const endOfInput: Rule<number> = (ctx) => {
@@ -149,9 +134,7 @@ export const endOfInput: Rule<number> = (ctx) => {
       length: 0, // <-- unlike most rules, this one does not progress the position
       expected: [],
       pos: ctx.pos,
-      formatter: {
-        nodes: [],
-      },
+      nodes: [],
     };
   }
 
@@ -159,16 +142,34 @@ export const endOfInput: Rule<number> = (ctx) => {
     type: ResultType.Fail,
     expected: [{ type: "endOfInput", value: "End of Input", pos: ctx.pos }],
     pos: ctx.pos,
-    formatter: {
-      nodes: [],
-    },
+    nodes: [],
+  };
+};
+
+const endOfInputBuffer: BufferRule<number> = (ctx) => {
+  if (ctx.pos == ctx.str.length) {
+    return {
+      type: ResultType.Success,
+      value: ctx.pos,
+      length: 0, // <-- unlike most rules, this one does not progress the position
+      expected: [],
+      pos: ctx.pos,
+      buffer: "",
+    };
+  }
+
+  return {
+    type: ResultType.Fail,
+    expected: [{ type: "endOfInput", value: "End of Input", pos: ctx.pos }],
+    pos: ctx.pos,
+    nodes: [],
   };
 };
 
 export function constant(
   keyword: string
-): Rule<{ start: number; value: string }> {
-  const rule: Rule<{ start: number; value: string }> = (ctx: Context) => {
+): BufferRule<{ start: number; value: string }> {
+  const rule: BufferRule<{ start: number; value: string }> = (ctx: Context) => {
     const potentialKeyword = ctx.str.substring(
       ctx.pos,
       ctx.pos + keyword.length
@@ -181,9 +182,7 @@ export function constant(
         length: keyword.length,
         expected: [],
         pos: ctx.pos,
-        formatter: {
-          buffer: keyword,
-        },
+        buffer: keyword,
       };
     }
 
@@ -197,9 +196,7 @@ export function constant(
         },
       ],
       pos: ctx.pos,
-      formatter: {
-        buffer: keyword,
-      },
+      nodes: [],
     };
   };
 
@@ -209,13 +206,13 @@ export function constant(
 export const symbol = (keyword: string) =>
   toNodes(constant(keyword), (buffer) => [{ type: "symbol", text: buffer }]);
 
-export function regexChar(r: RegExp): Rule<string> {
+export function regexChar(r: RegExp): BufferRule<string> {
   if (r.global) {
     throw new Error(
       "Cannot use global match. See https://stackoverflow.com/questions/209732/why-am-i-seeing-inconsistent-javascript-logic-behavior-looping-with-an-alert-v"
     );
   }
-  const rule: Rule<string> = ({ str, pos }) => {
+  const rule: BufferRule<string> = ({ str, pos }) => {
     const char = str.charAt(pos);
     if (r.test(char)) {
       return {
@@ -224,16 +221,14 @@ export function regexChar(r: RegExp): Rule<string> {
         length: 1,
         expected: [],
         pos,
-        formatter: {
-          buffer: char,
-        },
+        buffer: char,
       };
     }
     return {
       type: ResultType.Fail,
       expected: [{ type: "regex", value: r.toString(), pos }],
       pos,
-      formatter: { buffer: char },
+      nodes: [],
     };
   };
 
@@ -241,12 +236,23 @@ export function regexChar(r: RegExp): Rule<string> {
 }
 
 function multiply<T>(
-  rule: Rule<T>,
+  rule: BufferRule<T>,
   min: number,
   max: number | null
-): Rule<T[]> {
-  const newRule: Rule<T[]> = (ctx: Context) => {
-    let curr: RuleResult<T>;
+): BufferRule<T[]>;
+function multiply<T>(rule: Rule<T>, min: number, max: number | null): Rule<T[]>;
+function multiply<T>(
+  rule: EitherRule<T>,
+  min: number,
+  max: number | null
+): EitherRule<T[]>;
+function multiply<T>(
+  rule: EitherRule<T>,
+  min: number,
+  max: number | null
+): EitherRule<T[]> {
+  const newRule: EitherRule<T[]> = (ctx: Context) => {
+    let curr;
     const start = ctx.pos;
     let pos = ctx.pos;
     const values = [];
@@ -254,19 +260,19 @@ function multiply<T>(
     let lastPos = pos;
 
     // It can be one or the other.
-    let nodes: FNode[] = [];
+    let nodes: UnformattedNode[] = [];
     let buffer = "";
     while (pos < ctx.str.length && (max === null || values.length < max)) {
       curr = rule({ ...ctx, pos });
       expected = expected.concat(curr.expected).reduce(expectedReducer, []);
 
-      if ("nodes" in curr.formatter) {
-        nodes = [...nodes, ...curr.formatter.nodes];
-      } else {
-        buffer = `${buffer}${curr.formatter.buffer}`;
-      }
-
       if (curr.type === ResultType.Success) {
+        if ("nodes" in curr) {
+          nodes = [...nodes, ...curr.nodes];
+        } else {
+          buffer = `${buffer}${curr.buffer}`;
+        }
+
         pos += curr.length;
         values.push(curr.value);
       } else {
@@ -276,7 +282,6 @@ function multiply<T>(
     }
 
     if (nodes.length && buffer.length) {
-      console.log(nodes, buffer);
       throw new Error(
         `Invalid expression, expression must be nodes or buffer: ${nodes.length},${buffer.length}`
       );
@@ -287,7 +292,7 @@ function multiply<T>(
         type: ResultType.Fail,
         expected,
         pos: lastPos,
-        formatter: nodes.length ? { nodes } : { buffer },
+        ...(nodes.length ? { nodes } : { nodes: [] }),
       };
     }
 
@@ -297,45 +302,55 @@ function multiply<T>(
       length: pos - start,
       expected,
       pos: lastPos,
-      formatter: nodes.length ? { nodes } : { buffer },
+      ...(nodes.length ? { nodes } : { buffer }),
     };
   };
 
   return newRule;
 }
 
-export function zeroToMany<T>(rule: Rule<T>) {
+export function zeroToMany<T>(rule: Rule<T>): Rule<T[]>;
+export function zeroToMany<T>(rule: BufferRule<T>): BufferRule<T[]>;
+export function zeroToMany<T>(rule: EitherRule<T>): EitherRule<T[]> {
   return multiply(rule, 0, null);
 }
 
-export function oneToMany<T>(rule: Rule<T>) {
+export function oneToMany<T>(rule: Rule<T>): Rule<T[]>;
+export function oneToMany<T>(rule: BufferRule<T>): BufferRule<T[]>;
+export function oneToMany<T>(rule: EitherRule<T>): EitherRule<T[]> {
   return multiply(rule, 1, null);
 }
 
-export function zeroToOne<T>(rule: Rule<T>) {
+export function zeroToOne<T>(rule: Rule<T>): Rule<T[]>;
+export function zeroToOne<T>(rule: BufferRule<T>): BufferRule<T[]>;
+export function zeroToOne<T>(rule: EitherRule<T>) {
   return multiply(rule, 0, 1);
 }
 
-export function zeroToTen<T>(rule: Rule<T>) {
+export function zeroToTen<T>(rule: Rule<T>): Rule<T[]>;
+export function zeroToTen<T>(rule: BufferRule<T>): BufferRule<T[]>;
+export function zeroToTen<T>(rule: EitherRule<T>) {
   return multiply(rule, 0, 10);
 }
 
-export const whitespace = transform(
-  toNodes(regexChar(/[ \t\r\n]/), (str) => [
-    str === " "
-      ? { type: "space" }
-      : str === TAB
-      ? { type: "tab" }
-      : { type: "newline" },
-  ]),
+export const whitespace: Rule<null> = transform(
+  toNodes(regexChar(/[ \t\r\n]/), (str) => {
+    return [
+      str === " "
+        ? { type: "space" }
+        : str === TAB
+        ? { type: "tab" }
+        : { type: "newline" },
+    ];
+  }),
   () => null
 );
 export const whitespaceWithoutNewline = toNodes(regexChar(/[ \t\r]/), (str) => [
   str === " " ? { type: "space" } : { type: "tab" },
 ]);
 
-export function notConstant(keyword: string): Rule<string> {
-  const rule: Rule<string> = (ctx: Context) => {
+export function notConstant(keyword: string): BufferRule<string> {
+  const rule: BufferRule<string> = (ctx: Context) => {
     const potentialKeyword = ctx.str.substring(
       ctx.pos,
       ctx.pos + keyword.length
@@ -348,7 +363,7 @@ export function notConstant(keyword: string): Rule<string> {
         expected: [],
         length: 1,
         pos: ctx.pos,
-        formatter: { buffer: potentialKeyword },
+        buffer: potentialKeyword,
       };
     }
 
@@ -362,680 +377,26 @@ export function notConstant(keyword: string): Rule<string> {
         },
       ],
       pos: ctx.pos,
-      formatter: { buffer: potentialKeyword },
+      nodes: [],
     };
   };
 
   return rule;
 }
 
-export function sequence<A, B>(rules: [Rule<A>, Rule<B>]): Rule<[A, B]>;
-export function sequence<A, B, C>(
-  rules: [Rule<A>, Rule<B>, Rule<C>]
-): Rule<[A, B, C]>;
-export function sequence<A, B, C, D>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>]
-): Rule<[A, B, C, D]>;
-export function sequence<A, B, C, D, E>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>]
-): Rule<[A, B, C, D, E]>;
-export function sequence<A, B, C, D, E, F>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>]
-): Rule<[A, B, C, D, E, F]>;
-export function sequence<A, B, C, D, E, F, G>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>, Rule<G>]
-): Rule<[A, B, C, D, E, F, G]>;
-export function sequence<A, B, C, D, E, F, G, H>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>
-  ]
-): Rule<[A, B, C, D, E, F, G, H]>;
-export function sequence<A, B, C, D, E, F, G, H, I>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I]>;
-export function sequence<A, B, C, D, E, F, G, H, I, J>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J]>;
-export function sequence<A, B, C, D, E, F, G, H, I, J, K>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K]>;
-export function sequence<A, B, C, D, E, F, G, H, I, J, K, L>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K, L]>;
-export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M]>;
-export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M, N>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N]>;
-export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O]>;
-export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>,
-    Rule<P>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P]>;
-export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>,
-    Rule<P>,
-    Rule<Q>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q]>;
-export function sequence<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>,
-    Rule<P>,
-    Rule<Q>,
-    Rule<R>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R]>;
-export function sequence<
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-  G,
-  H,
-  I,
-  J,
-  K,
-  L,
-  M,
-  N,
-  O,
-  P,
-  Q,
-  R,
-  S
->(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>,
-    Rule<P>,
-    Rule<Q>,
-    Rule<R>,
-    Rule<S>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S]>;
-export function sequence<
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-  G,
-  H,
-  I,
-  J,
-  K,
-  L,
-  M,
-  N,
-  O,
-  P,
-  Q,
-  R,
-  S,
-  T
->(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>,
-    Rule<P>,
-    Rule<Q>,
-    Rule<R>,
-    Rule<S>,
-    Rule<T>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T]>;
-export function sequence<
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-  G,
-  H,
-  I,
-  J,
-  K,
-  L,
-  M,
-  N,
-  O,
-  P,
-  Q,
-  R,
-  S,
-  T,
-  U
->(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>,
-    Rule<P>,
-    Rule<Q>,
-    Rule<R>,
-    Rule<S>,
-    Rule<T>,
-    Rule<U>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U]>;
-export function sequence<
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-  G,
-  H,
-  I,
-  J,
-  K,
-  L,
-  M,
-  N,
-  O,
-  P,
-  Q,
-  R,
-  S,
-  T,
-  U,
-  V
->(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>,
-    Rule<P>,
-    Rule<Q>,
-    Rule<R>,
-    Rule<S>,
-    Rule<T>,
-    Rule<U>,
-    Rule<V>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V]>;
-export function sequence<
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-  G,
-  H,
-  I,
-  J,
-  K,
-  L,
-  M,
-  N,
-  O,
-  P,
-  Q,
-  R,
-  S,
-  T,
-  U,
-  V,
-  W
->(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>,
-    Rule<P>,
-    Rule<Q>,
-    Rule<R>,
-    Rule<S>,
-    Rule<T>,
-    Rule<U>,
-    Rule<V>,
-    Rule<W>
-  ]
-): Rule<[A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W]>;
-export function sequence<
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-  G,
-  H,
-  I,
-  J,
-  K,
-  L,
-  M,
-  N,
-  O,
-  P,
-  Q,
-  R,
-  S,
-  T,
-  U,
-  V,
-  W,
-  X
->(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>,
-    Rule<P>,
-    Rule<Q>,
-    Rule<R>,
-    Rule<S>,
-    Rule<T>,
-    Rule<U>,
-    Rule<V>,
-    Rule<W>,
-    Rule<X>
-  ]
-): Rule<
-  [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X]
->;
-export function sequence<
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-  G,
-  H,
-  I,
-  J,
-  K,
-  L,
-  M,
-  N,
-  O,
-  P,
-  Q,
-  R,
-  S,
-  T,
-  U,
-  V,
-  W,
-  X,
-  Y
->(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>,
-    Rule<P>,
-    Rule<Q>,
-    Rule<R>,
-    Rule<S>,
-    Rule<T>,
-    Rule<U>,
-    Rule<V>,
-    Rule<W>,
-    Rule<X>,
-    Rule<Y>
-  ]
-): Rule<
-  [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y]
->;
-export function sequence<
-  A,
-  B,
-  C,
-  D,
-  E,
-  F,
-  G,
-  H,
-  I,
-  J,
-  K,
-  L,
-  M,
-  N,
-  O,
-  P,
-  Q,
-  R,
-  S,
-  T,
-  U,
-  V,
-  W,
-  X,
-  Y,
-  Z
->(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>,
-    Rule<P>,
-    Rule<Q>,
-    Rule<R>,
-    Rule<S>,
-    Rule<T>,
-    Rule<U>,
-    Rule<V>,
-    Rule<W>,
-    Rule<X>,
-    Rule<Y>,
-    Rule<Z>
-  ]
-): Rule<
-  [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
->;
-
-export function sequence(rules: Rule<any>[]): Rule<any> {
-  const newRule: Rule<any> = (ctx) => {
-    let pos = ctx.pos;
-    let length = 0;
-    const values = [];
-
-    let expected: Expected[] = [];
-    let nodes: FNode[] = [];
-    let buffer = "";
-
-    for (const rule of rules) {
-      const result = rule({ ...ctx, pos });
-
-      expected = expected.concat(result.expected).reduce(expectedReducer, []);
-
-      if ("nodes" in result.formatter) {
-        nodes = [...nodes, ...result.formatter.nodes];
-      } else {
-        buffer = `${buffer}${result.formatter.buffer}`;
-      }
-
-      if (nodes.length && buffer.length) {
-        console.log(nodes, buffer);
-        throw new Error("Buffer and Node mishap");
-      }
-
-      if (result.type === ResultType.Fail) {
-        return {
-          ...result,
-          expected,
-          formatter: nodes.length ? { nodes } : { buffer },
-        };
-      }
-
-      pos = pos + result.length;
-      length = length + result.length;
-      values.push(result.value);
-    }
-
-    return {
-      type: ResultType.Success,
-      value: values,
-      length,
-      expected,
-      pos,
-      formatter: nodes.length ? { nodes } : { buffer },
-    };
-  };
-
-  return newRule;
-}
-
+export function transform<T, R>(
+  rule: BufferRule<T>,
+  transform: (i: T, c: Context) => R
+): BufferRule<R>;
 export function transform<T, R>(
   rule: Rule<T>,
   transform: (i: T, c: Context) => R
-): Rule<R> {
-  const newRule: Rule<R> = (ctx) => {
+): Rule<R>;
+export function transform<T, R>(
+  rule: EitherRule<T>,
+  transform: (i: T, c: Context) => R
+): EitherRule<R> {
+  const newRule: EitherRule<R> = (ctx) => {
     const result = rule(ctx);
     if (result.type === ResultType.Success) {
       return {
@@ -1050,199 +411,26 @@ export function transform<T, R>(
 }
 
 export function toNodes<T>(
-  rule: Rule<T>,
-  func: (buffer: string) => FNode[]
+  rule: BufferRule<T>,
+  func: (buffer: string) => UnformattedNode[]
 ): Rule<T> {
   const newRule: Rule<T> = (ctx) => {
     const result = rule(ctx);
-    if (!("buffer" in result.formatter)) {
-      throw new Error("No buffer");
-    }
+
     if (result.type === ResultType.Success) {
       return {
         ...result,
-        formatter: { nodes: func(result.formatter.buffer) },
+        nodes: func(result.buffer),
       };
     } else {
       return {
         ...result,
-        formatter: {
-          nodes: [],
-        },
+        nodes: [],
       };
     }
   };
 
   return newRule;
-}
-
-export function or<A>(rules: [Rule<A>]): Rule<A>;
-export function or<A, B>(rules: [Rule<A>, Rule<B>]): Rule<A | B>;
-export function or<A, B, C>(
-  rules: [Rule<A>, Rule<B>, Rule<C>]
-): Rule<A | B | C>;
-export function or<A, B, C, D>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>]
-): Rule<A | B | C | D>;
-export function or<A, B, C, D, E>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>]
-): Rule<A | B | C | D | E>;
-export function or<A, B, C, D, E, F>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>]
-): Rule<A | B | C | D | E | F>;
-export function or<A, B, C, D, E, F, G>(
-  rules: [Rule<A>, Rule<B>, Rule<C>, Rule<D>, Rule<E>, Rule<F>, Rule<G>]
-): Rule<A | B | C | D | E | F | G>;
-export function or<A, B, C, D, E, F, G, H>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>
-  ]
-): Rule<A | B | C | D | E | F | G | H>;
-export function or<A, B, C, D, E, F, G, H, I>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>
-  ]
-): Rule<A | B | C | D | E | F | G | H | I>;
-export function or<A, B, C, D, E, F, G, H, I, J>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>
-  ]
-): Rule<A | B | C | D | E | F | G | H | I | J>;
-export function or<A, B, C, D, E, F, G, H, I, J, K>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>
-  ]
-): Rule<A | B | C | D | E | F | G | H | I | J | K>;
-export function or<A, B, C, D, E, F, G, H, I, J, K, L>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>
-  ]
-): Rule<A | B | C | D | E | F | G | H | I | J | K | L>;
-export function or<A, B, C, D, E, F, G, H, I, J, K, L, M>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>
-  ]
-): Rule<A | B | C | D | E | F | G | H | I | J | K | L | M>;
-export function or<A, B, C, D, E, F, G, H, I, J, K, L, M, N>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>
-  ]
-): Rule<A | B | C | D | E | F | G | H | I | J | K | L | M | N>;
-
-export function or<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(
-  rules: [
-    Rule<A>,
-    Rule<B>,
-    Rule<C>,
-    Rule<D>,
-    Rule<E>,
-    Rule<F>,
-    Rule<G>,
-    Rule<H>,
-    Rule<I>,
-    Rule<J>,
-    Rule<K>,
-    Rule<L>,
-    Rule<M>,
-    Rule<N>,
-    Rule<O>
-  ]
-): Rule<A | B | C | D | E | F | G | H | I | J | K | L | M | N | O>;
-
-export function or(rules: Rule<any>[]): Rule<any> {
-  return (ctx: Context) => {
-    // TODO optomize
-    const results = rules.map((r) => r(ctx));
-
-    const firstMatch = results.find((r) => {
-      return r.type === ResultType.Success;
-    });
-
-    const expected = results
-      .reduce((acc, r) => acc.concat(r.expected), [] as Expected[])
-      .reduce(expectedReducer, []);
-
-    if (firstMatch) {
-      return { ...firstMatch, expected };
-    }
-
-    return {
-      type: ResultType.Fail,
-      expected,
-      pos: expected?.[0]?.pos,
-      formatter: results[0].formatter,
-    };
-  };
 }
 
 export function combineComments(...c: (string | null | undefined)[]) {
@@ -1252,7 +440,7 @@ export function combineComments(...c: (string | null | undefined)[]) {
     .join(NEWLINE);
 }
 
-export const cStyleComment = toNodes(
+export const cStyleComment: Rule<string> = toNodes(
   transform(
     sequence([
       constant("/*"),
@@ -1288,7 +476,7 @@ export const cStyleComment = toNodes(
         ]
 );
 
-export const cStyleCommentWithoutNewline = toNodes(
+export const cStyleCommentWithoutNewline: Rule<string> = toNodes(
   transform(
     sequence([constant("/*"), zeroToMany(notConstant("*/")), constant("*/")]),
     (v) =>
@@ -1309,13 +497,13 @@ export const cStyleCommentWithoutNewline = toNodes(
   ]
 );
 
-export const sqlStyleComment = toNodes(
+export const sqlStyleComment: Rule<string> = toNodes(
   transform(
     sequence([
       constant("--"),
       zeroToOne(regexChar(/[ \t\r]/)),
       zeroToMany(notConstant(NEWLINE)),
-      or([constant(NEWLINE), endOfInput]),
+      or([constant(NEWLINE), endOfInputBuffer]),
     ]),
     (v) => combineComments(v[2].join(""))
   ),
@@ -1338,7 +526,7 @@ export const sqlStyleComment = toNodes(
         ]
 );
 
-export const sqlStyleCommentWithoutNewline = toNodes(
+export const sqlStyleCommentWithoutNewline: Rule<string> = toNodes(
   transform(
     sequence([
       constant("--"),
@@ -1362,12 +550,12 @@ export function lookAhead<T>(rule: Rule<T>): Rule<T> {
 
     if (curr.type === ResultType.Success) {
       return {
+        ...curr,
         type: ResultType.Success,
         value: curr.value,
         length: 0, // <-- unlike most rules, this one does not progress the position
         expected: [],
         pos: ctx.pos,
-        formatter: curr.formatter,
       };
     }
 
@@ -1380,17 +568,19 @@ export function lookAhead<T>(rule: Rule<T>): Rule<T> {
 /**
  * __ Removes all whitespace and grabs any comments
  */
-export const __ = transform(
+export const __: Rule<string> = transform(
   // We can have any number of whitespace or comments
   zeroToMany(or([cStyleComment, sqlStyleComment, whitespace])),
-  (v) => combineComments(...v)
+  (v) => {
+    return combineComments(...v);
+  }
 );
 
 /**
  * Unlike "__", "_" only grabs comments directly above the statement.
  * This way we can have these standalone comments captured seperatly
  */
-export const _ = transform(
+export const _: Rule<string> = transform(
   sequence([
     // We can have an unlimited amount of whitespace before our comments
     zeroToMany(whitespace),
@@ -1683,7 +873,7 @@ export const identifier: Rule<string> = (ctx: Context) => {
     (text) => [{ type: "identifier", text }]
   )(ctx);
 
-  if (!("nodes" in result.formatter)) {
+  if (!("nodes" in result)) {
     throw new Error("Lets make TS happy");
   }
 
@@ -1699,7 +889,7 @@ export const identifier: Rule<string> = (ctx: Context) => {
       type: ResultType.Fail,
       expected: [{ type: "identifier", value: "identifier", pos: ctx.pos }],
       pos: ctx.pos,
-      formatter: result.formatter,
+      nodes: result.nodes,
     };
   }
 

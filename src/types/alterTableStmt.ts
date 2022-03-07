@@ -92,16 +92,15 @@ export type AlterTableAddColumn = {
   codeComment?: string;
 };
 
-export const alterTableAddColumnDecoder: d.Decoder<AlterTableAddColumn> = d.exact(
-  {
+export const alterTableAddColumnDecoder: d.Decoder<AlterTableAddColumn> =
+  d.exact({
     subtype: d.constant(AlterTableCmdSubType.AT_AddColumn),
     def: d.exact({
       ColumnDef: columnDefDecoder,
     }),
     behavior: dropBehaviorDecoder,
     codeComment: d.optional(d.string),
-  }
-);
+  });
 
 /**
  * Drop Column
@@ -113,14 +112,13 @@ export type AlterTableDropColumn = {
   codeComment?: string;
 };
 
-export const alterTableDropColumnDecoder: d.Decoder<AlterTableDropColumn> = d.exact(
-  {
+export const alterTableDropColumnDecoder: d.Decoder<AlterTableDropColumn> =
+  d.exact({
     subtype: d.constant(AlterTableCmdSubType.AT_DropColumn),
     behavior: dropBehaviorDecoder,
     name: d.optional(d.string),
     codeComment: d.optional(d.string),
-  }
-);
+  });
 
 /**
  * Add Constraint
@@ -136,14 +134,13 @@ export type AlterTableAddConstraint = {
   codeComment?: string;
 };
 
-export const alterTableAddConstraintDecoder: d.Decoder<AlterTableAddConstraint> = d.exact(
-  {
+export const alterTableAddConstraintDecoder: d.Decoder<AlterTableAddConstraint> =
+  d.exact({
     subtype: d.constant(AlterTableCmdSubType.AT_AddConstraint),
     def: d.exact({ Constraint: constraintDecoder }),
     behavior: dropBehaviorDecoder,
     codeComment: d.optional(d.string),
-  }
-);
+  });
 
 /**
  * Drop Constraint
@@ -185,13 +182,12 @@ export type AlterTableRowSecurity = {
   codeComment?: string;
 };
 
-export const alterTableRowSecurityDecoder: d.Decoder<AlterTableRowSecurity> = d.exact(
-  {
+export const alterTableRowSecurityDecoder: d.Decoder<AlterTableRowSecurity> =
+  d.exact({
     subtype: d.constant(AlterTableCmdSubType.AT_EnableRowSecurity),
     behavior: dropBehaviorDecoder,
     codeComment: d.optional(d.string),
-  }
-);
+  });
 
 /**
  * INHERIT
@@ -289,13 +285,12 @@ export type AlterTableSetWithoutCluster = {
   codeComment?: string;
 };
 
-export const alterTableSetWithoutClusterDecoder: d.Decoder<AlterTableSetWithoutCluster> = d.exact(
-  {
+export const alterTableSetWithoutClusterDecoder: d.Decoder<AlterTableSetWithoutCluster> =
+  d.exact({
     subtype: d.constant(AlterTableCmdSubType.AT_DropCluster),
     behavior: dropBehaviorDecoder,
     codeComment: d.optional(d.string),
-  }
-);
+  });
 
 // /**
 //  * Restrict
@@ -329,14 +324,13 @@ export type AlterTableAttachPartition = {
   codeComment?: string;
 };
 
-export const alterTableAttachPartitionDecoder: d.Decoder<AlterTableAttachPartition> = d.exact(
-  {
+export const alterTableAttachPartitionDecoder: d.Decoder<AlterTableAttachPartition> =
+  d.exact({
     subtype: d.constant(AlterTableCmdSubType.AT_AttachPartition),
     def: d.unknown,
     behavior: dropBehaviorDecoder,
     codeComment: d.optional(d.string),
-  }
-);
+  });
 
 /**
  * SET_DEFAULT
@@ -363,14 +357,13 @@ export type AlterTableDropNotNull = {
   codeComment?: string;
 };
 
-export const alterTableDropNotNullDecoder: d.Decoder<AlterTableDropNotNull> = d.exact(
-  {
+export const alterTableDropNotNullDecoder: d.Decoder<AlterTableDropNotNull> =
+  d.exact({
     subtype: d.constant(AlterTableCmdSubType.AT_DropNotNull),
     name: d.string,
     behavior: dropBehaviorDecoder,
     codeComment: d.optional(d.string),
-  }
-);
+  });
 
 /**
  * SET_NOT_NULL
@@ -383,14 +376,13 @@ export type AlterTableSetNotNull = {
   codeComment?: string;
 };
 
-export const alterTableSetNotNullDecoder: d.Decoder<AlterTableSetNotNull> = d.exact(
-  {
+export const alterTableSetNotNullDecoder: d.Decoder<AlterTableSetNotNull> =
+  d.exact({
     subtype: d.constant(AlterTableCmdSubType.AT_SetNotNull),
     name: d.string,
     behavior: dropBehaviorDecoder,
     codeComment: d.optional(d.string),
-  }
-);
+  });
 
 /**
  * Wrapper

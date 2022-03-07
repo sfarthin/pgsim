@@ -79,6 +79,7 @@ function printNode(node: Node, opts: PrintOptions): string {
     case "booleanLiteral":
       return c.green(node.text);
     case "numberLiteral":
+      console.log("-->", node.text);
       return c.green(node.text);
     case "stringLiteral":
       return c.green(node.text);

@@ -14,19 +14,24 @@ import { A_Const } from "../types";
 
 export const aConstInteger = toNodes(
   (ctx) =>
-    transform(oneToMany(regexChar(/[0-9]/)), (s, ctx) => ({
-      value:
-        BigInt(s.join("")) > BigInt("2147483647")
-          ? {
-              Float: { str: s.join("") },
-            }
-          : {
-              Integer: { ival: Number(s.join("")) },
-            },
-      codeComment: "",
-      location: ctx.pos,
-    }))(ctx),
-  (text) => [{ type: "numberLiteral", text }]
+    transform(oneToMany(regexChar(/[0-9]/)), (s, ctx) => {
+      return {
+        value:
+          BigInt(s.join("")) > BigInt("2147483647")
+            ? {
+                Float: { str: s.join("") },
+              }
+            : {
+                Integer: { ival: Number(s.join("")) },
+              },
+        codeComment: "",
+        location: ctx.pos,
+      };
+    })(ctx),
+  (text) => {
+    // console.log("?-->", text);
+    return [{ type: "numberLiteral", text }];
+  }
 );
 
 const aConstFloat = transform(float, (str) => ({

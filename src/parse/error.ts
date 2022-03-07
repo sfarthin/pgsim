@@ -1,11 +1,11 @@
 import {
   FailResult,
-  zeroToMany,
-  or,
-  whitespace,
-  sqlStyleComment,
-  cStyleComment,
-  regexChar,
+  // zeroToMany,
+  // or,
+  // whitespace,
+  // sqlStyleComment,
+  // cStyleComment,
+  // regexChar,
   Context,
 } from "./util";
 import c from "ansi-colors";
@@ -74,29 +74,34 @@ export const toLineAndColumn = (str: string, pos: number) => {
   return { line: line, column: column === -1 ? pos : column };
 };
 
-export const findNextToken = (str: string, _pos: number) => {
-  // Lets ignore whitespace and comments.
-  const ctx = {
-    pos: _pos,
-    str,
-    numStatements: 0,
-  };
-  const leadingWhitespace = zeroToMany(
-    or([cStyleComment, sqlStyleComment, whitespace])
-  )(ctx);
+export const findNextToken = (_str: string, _pos: number) => {
+  // // Lets ignore whitespace and comments.
+  // const ctx = {
+  //   pos: _pos,
+  //   str,
+  //   numStatements: 0,
+  // };
+  // const leadingWhitespace = zeroToMany(
+  //   or([cStyleComment, sqlStyleComment, whitespace])
+  // )(ctx);
 
-  const afterToken = zeroToMany(regexChar(/[a-zA-Z0-9_]/))({
-    ...ctx,
-    pos: leadingWhitespace.pos ?? _pos,
-    numStatements: 0,
-  });
+  // const afterToken = zeroToMany(regexChar(/[a-zA-Z0-9_]/))({
+  //   ...ctx,
+  //   pos: leadingWhitespace.pos ?? _pos,
+  //   numStatements: 0,
+  // });
+
+  // return {
+  //   start: leadingWhitespace.pos ?? _pos,
+  //   end:
+  //     afterToken.pos === leadingWhitespace.pos
+  //       ? afterToken.pos + 1
+  //       : afterToken.pos,
+  // };
 
   return {
-    start: leadingWhitespace.pos ?? _pos,
-    end:
-      afterToken.pos === leadingWhitespace.pos
-        ? afterToken.pos + 1
-        : afterToken.pos,
+    start: 0,
+    end: 0,
   };
 };
 
@@ -160,13 +165,9 @@ export const getFriendlyErrorMessage = (
   error += NEWLINE;
 
   console.log(result);
-  if ("nodes" in result.formatter) {
+  if ("nodes" in result) {
     error += toString(
-      [
-        result.formatter.nodes.flatMap((n) =>
-          n.type === "newline" ? [] : [n]
-        ),
-      ],
+      [result.nodes.flatMap((n) => (n.type === "newline" ? [] : [n]))],
       { colors: true, lineNumbers: false }
     );
   } else {

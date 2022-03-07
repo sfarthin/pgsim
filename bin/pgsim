@@ -1,4 +1,4 @@
 #!/usr/bin/env bash -e
 
-yarn build > /dev/null && node ./dist/pgsim $@
-# ts-node ./src/pgsim $@
+# yarn build > /dev/null && node ./dist/pgsim $@
+ts-node ./src/pgsim $@

@@ -75,9 +75,12 @@ yargs(process.argv.splice(2))
       const str = readFileSync(resolve(process.cwd(), r.filename)).toString();
       const response = parse({ str, filename: r.filename, pos: 0 });
 
-      const block = toBlock(response.formatter);
+      if ("buffer" in response) {
+        throw new Error("Expected Nodes at this level");
+      }
+      console.log(response.nodes);
 
-      // console.log(block);
+      const block = toBlock(response.nodes);
 
       console.log(toString(block, { colors: true, lineNumbers: false }));
     }
