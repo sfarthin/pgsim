@@ -10,6 +10,8 @@ import { json as assertNoDiff } from "assert-no-diff";
 import c from "ansi-colors";
 import { NEWLINE } from "../format/print";
 
+Error.stackTraceLimit = Infinity;
+
 /**
  * By ensuring the native parser is verified by the decoder
  * and the our parser matches the base output of the

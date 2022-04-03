@@ -1,0 +1,30 @@
+#!/usr/bin/env bash -e
+
+onError() {
+cat << EOF 
+
+❌ Bootstrap Failed!
+
+EOF
+}
+
+trap 'onError' ERR
+
+
+brew install asdf
+
+asdf_plugin_add() {
+    # We don't care if this command fails. We assume its already installed.
+    set +e
+    trap - 0
+    asdf plugin-add $1 $2
+    set -e
+    trap 'onError' ERR
+}
+
+
+# Lets install asdf plugins if not already installed.
+asdf_plugin_add "nodejs"
+asdf_plugin_add "yarn"
+
+asdf install

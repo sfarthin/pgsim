@@ -1,4 +1,0 @@
-#!/usr/bin/env bash -e
-
-yarn build > /dev/null && node ./dist/tests/parseAndFormat $@
-# ts-node ./src/tests/parseAndFormat $@
