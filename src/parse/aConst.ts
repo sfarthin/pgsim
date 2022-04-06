@@ -29,7 +29,6 @@ export const aConstInteger = toNodes(
       };
     })(ctx),
   (text) => {
-    // console.log("?-->", text);
     return [{ type: "numberLiteral", text }];
   }
 );

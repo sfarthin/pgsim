@@ -182,7 +182,7 @@ export function constant(
         length: keyword.length,
         expected: [],
         pos: ctx.pos,
-        buffer: keyword,
+        buffer: potentialKeyword,
       };
     }
 
@@ -363,7 +363,7 @@ export function notConstant(keyword: string): BufferRule<string> {
         expected: [],
         length: 1,
         pos: ctx.pos,
-        buffer: potentialKeyword,
+        buffer: ctx.str.charAt(ctx.pos),
       };
     }
 
@@ -418,9 +418,10 @@ export function toNodes<T>(
     const result = rule(ctx);
 
     if (result.type === ResultType.Success) {
+      const { buffer, ...everythingButBuffer } = result;
       return {
-        ...result,
-        nodes: func(result.buffer),
+        ...everythingButBuffer,
+        nodes: func(buffer ?? ""),
       };
     } else {
       return {
@@ -457,23 +458,15 @@ export const cStyleComment: Rule<string> = toNodes(
           .replace(/\n$/, "")
       ).trim() // we can trim individual cStyle comments because they are unlikey to be indented with other comments.
   ),
-  (buffer) =>
-    buffer[buffer.length - 1] === NEWLINE
-      ? [
-          {
-            type: "comment",
-            text: buffer.substring(2, buffer.length - 3),
-            style: "c",
-          },
-          { type: "newline" },
-        ]
-      : [
-          {
-            type: "comment",
-            text: buffer.substring(2, buffer.length - 2),
-            style: "c",
-          },
-        ]
+  (buffer) => {
+    return [
+      {
+        type: "comment",
+        text: buffer,
+        style: "c",
+      },
+    ];
+  }
 );
 
 export const cStyleCommentWithoutNewline: Rule<string> = toNodes(
@@ -491,7 +484,7 @@ export const cStyleCommentWithoutNewline: Rule<string> = toNodes(
   (buffer) => [
     {
       type: "comment",
-      text: buffer.substring(2, buffer.length - 2),
+      text: buffer,
       style: "c",
     },
   ]
@@ -512,7 +505,7 @@ export const sqlStyleComment: Rule<string> = toNodes(
       ? [
           {
             type: "comment",
-            text: buffer.substring(2, buffer.length - 1),
+            text: buffer.substring(0, buffer.length - 1),
             style: "sql",
           },
           { type: "newline" },
@@ -520,7 +513,7 @@ export const sqlStyleComment: Rule<string> = toNodes(
       : [
           {
             type: "comment",
-            text: buffer.substring(2),
+            text: buffer,
             style: "sql",
           },
         ]
@@ -538,7 +531,7 @@ export const sqlStyleCommentWithoutNewline: Rule<string> = toNodes(
   (buffer) => [
     {
       type: "comment",
-      text: buffer.substring(2),
+      text: buffer,
       style: "sql",
     },
   ]
@@ -556,6 +549,7 @@ export function lookAhead<T>(rule: Rule<T>): Rule<T> {
         length: 0, // <-- unlike most rules, this one does not progress the position
         expected: [],
         pos: ctx.pos,
+        nodes: [],
       };
     }
 
@@ -580,6 +574,7 @@ export const __: Rule<string> = transform(
  * Unlike "__", "_" only grabs comments directly above the statement.
  * This way we can have these standalone comments captured seperatly
  */
+
 export const _: Rule<string> = transform(
   sequence([
     // We can have an unlimited amount of whitespace before our comments
@@ -870,7 +865,9 @@ export const identifier: Rule<string> = (ctx: Context) => {
         (v) => v[1].concat(v[2].join("")) // <-- not set to lowercase
       ),
     ]),
-    (text) => [{ type: "identifier", text }]
+    (text) => {
+      return [{ type: "identifier", text }];
+    }
   )(ctx);
 
   if (!("nodes" in result)) {
@@ -940,7 +937,9 @@ export const float = toNodes(
     ]),
     (s) => `${s[0].join("")}.${s[2].join("")}`
   ),
-  (text) => [{ type: "numberLiteral", text }]
+  (text) => {
+    return [{ type: "numberLiteral", text }];
+  }
 );
 
 /**

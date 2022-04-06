@@ -1264,8 +1264,11 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
     let buffer = "";
     let mode: "nodes" | "buffer" | null = null;
 
+    const results = [];
+
     for (const rule of rules) {
       const result = rule({ ...ctx, pos });
+      results.push(result);
 
       expected = expected.concat(result.expected).reduce(expectedReducer, []);
 
@@ -1279,14 +1282,12 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
 
       if ("nodes" in result) {
         if (mode && mode === "buffer") {
-          console.log(rules, values, result);
           throw new Error("Buffer and Node mishap");
         }
         mode = "nodes";
         nodes = [...nodes, ...result.nodes];
-      } else {
+      } else if ("buffer" in result && result.buffer !== "") {
         if (mode && mode === "nodes") {
-          console.log(rules, values, result);
           throw new Error("Buffer and Node mishap");
         }
         mode = "buffer";

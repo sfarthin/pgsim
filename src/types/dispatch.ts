@@ -65,7 +65,6 @@ export default function dispatch<
       const val = Object.values(v)[0];
       const decoder = o[key];
       if (!decoder) {
-        console.log(o, 1, key, 2, val);
         const e = new Error(`No decoder for ${key}`);
         e.name = "no_decoder";
 
