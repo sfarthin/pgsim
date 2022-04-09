@@ -1,7 +1,7 @@
 import yargs from "yargs/yargs";
 import { readFileSync } from "fs";
 import "regenerator-runtime/runtime.js";
-import parse, { toBlock } from "./parse";
+import parse from "./parse";
 import format, { toString } from "./format";
 import { resolve } from "path";
 
@@ -47,7 +47,6 @@ yargs(process.argv.splice(2))
     (r) => {
       const str = readFileSync(resolve(process.cwd(), r.filename)).toString();
       const response = format(str, r);
-
       console.log(response);
     }
   )
@@ -74,15 +73,9 @@ yargs(process.argv.splice(2))
     (r) => {
       const str = readFileSync(resolve(process.cwd(), r.filename)).toString();
       const response = parse({ str, filename: r.filename, pos: 0 });
-
-      if ("buffer" in response) {
-        throw new Error("Expected Nodes at this level");
-      }
-      console.log(response.nodes);
-
-      const block = toBlock(response.nodes);
-
-      console.log(toString(block, { colors: true, lineNumbers: false }));
+      console.log(
+        toString(response.tokens, { colors: r.colors, lineNumbers: false })
+      );
     }
   )
   .demandCommand(1, 1, "Choose a command")

@@ -2,7 +2,7 @@
  * Prints a CodeBlock to a string
  */
 
-import { Block, Node } from "./util";
+import { Block, Token } from "./util";
 import c from "ansi-colors";
 import {
   toLineAndColumn,
@@ -62,7 +62,7 @@ export function createFriendlyStmtError(
   return e;
 }
 
-function printNode(node: Node, opts: PrintOptions): string {
+function printToken(node: Token, opts: PrintOptions): string {
   if (node.type === "tab") {
     return TAB;
   }
@@ -99,6 +99,6 @@ function printNode(node: Node, opts: PrintOptions): string {
 
 export function toString(block: Block, opts: PrintOptions) {
   return block
-    .map((line) => line.map((node) => printNode(node, opts)).join(""))
+    .map((line) => line.map((token) => printToken(token, opts)).join(""))
     .join(NEWLINE);
 }

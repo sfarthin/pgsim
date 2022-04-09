@@ -1,19 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TypeNameKeyword } from "src/types";
 import { NEWLINE, TAB } from "../format/print";
-import { Node, Block } from "../format/util";
+import { Block } from "../format/util";
 import { expectedReducer } from "./expectedReducer";
 import { or } from "./or";
 import { sequence } from "./sequence";
 
 export { or } from "./or";
 export { sequence } from "./sequence";
-/**
- * Types
- */
-
-// unformatted SQL may have arbitrary newlines. Our formatter has consistent newliens and do not need this Node
-export type UnformattedNode = Node | { type: "newline" };
 
 export enum ResultType {
   Fail = "___FAIL___",
@@ -53,7 +47,7 @@ export type SuccessResult<R> =
    * This is the original SQL segmented in Unformatted Nodes so we can
    * print the SQL back in color.
    */
-  SuccessResultBase<R> & { nodes: UnformattedNode[] };
+  SuccessResultBase<R> & { tokens: Block };
 
 type SuccessBufferResult<R> = SuccessResultBase<R> & { buffer: string };
 
@@ -65,7 +59,7 @@ export type FailResult = {
    */
   pos: number;
 
-  nodes: UnformattedNode[];
+  tokens: Block;
 };
 
 export type RuleResult<R> = FailResult | SuccessResult<R>;
@@ -102,19 +96,20 @@ export type BufferRule<R> = (s: Context) => BufferRuleResult<R>;
 
 export type EitherRule<R> = (c: Context) => RuleResult<R> | BufferRuleResult<R>;
 
-export function toBlock(nodes: UnformattedNode[]): Block {
-  const block: Block = [[]];
-  let line = 0;
-  for (const node of nodes) {
-    if (node.type === "newline") {
-      line++;
-      block.push([]);
-    } else {
-      block[line].push(node);
-    }
+export function combineBlocks(input1: Block, input2: Block): Block {
+  if (input1.length === 0) {
+    return input2;
   }
 
-  return block;
+  if (input2.length === 0) {
+    return input1;
+  }
+
+  return [
+    ...input1.slice(0, -1),
+    [...input1[input1.length - 1], ...input2[0]],
+    ...input2.slice(1),
+  ];
 }
 
 export const placeholder: Rule<null> = (ctx) => ({
@@ -123,7 +118,7 @@ export const placeholder: Rule<null> = (ctx) => ({
   expected: [],
   length: 0,
   pos: ctx.pos,
-  nodes: [],
+  tokens: [],
 });
 
 export const endOfInput: Rule<number> = (ctx) => {
@@ -134,7 +129,7 @@ export const endOfInput: Rule<number> = (ctx) => {
       length: 0, // <-- unlike most rules, this one does not progress the position
       expected: [],
       pos: ctx.pos,
-      nodes: [],
+      tokens: [],
     };
   }
 
@@ -142,7 +137,7 @@ export const endOfInput: Rule<number> = (ctx) => {
     type: ResultType.Fail,
     expected: [{ type: "endOfInput", value: "End of Input", pos: ctx.pos }],
     pos: ctx.pos,
-    nodes: [],
+    tokens: [],
   };
 };
 
@@ -162,7 +157,7 @@ const endOfInputBuffer: BufferRule<number> = (ctx) => {
     type: ResultType.Fail,
     expected: [{ type: "endOfInput", value: "End of Input", pos: ctx.pos }],
     pos: ctx.pos,
-    nodes: [],
+    tokens: [],
   };
 };
 
@@ -196,7 +191,7 @@ export function constant(
         },
       ],
       pos: ctx.pos,
-      nodes: [],
+      tokens: [],
     };
   };
 
@@ -204,7 +199,9 @@ export function constant(
 }
 
 export const symbol = (keyword: string) =>
-  toNodes(constant(keyword), (buffer) => [{ type: "symbol", text: buffer }]);
+  fromBufferToCodeBlock(constant(keyword), (buffer) => [
+    [{ type: "symbol", text: buffer }],
+  ]);
 
 export function regexChar(r: RegExp): BufferRule<string> {
   if (r.global) {
@@ -228,7 +225,7 @@ export function regexChar(r: RegExp): BufferRule<string> {
       type: ResultType.Fail,
       expected: [{ type: "regex", value: r.toString(), pos }],
       pos,
-      nodes: [],
+      tokens: [],
     };
   };
 
@@ -260,15 +257,15 @@ function multiply<T>(
     let lastPos = pos;
 
     // It can be one or the other.
-    let nodes: UnformattedNode[] = [];
+    let tokens: Block = [];
     let buffer = "";
     while (pos < ctx.str.length && (max === null || values.length < max)) {
       curr = rule({ ...ctx, pos });
       expected = expected.concat(curr.expected).reduce(expectedReducer, []);
 
       if (curr.type === ResultType.Success) {
-        if ("nodes" in curr) {
-          nodes = [...nodes, ...curr.nodes];
+        if ("tokens" in curr) {
+          tokens = combineBlocks(tokens, curr.tokens);
         } else {
           buffer = `${buffer}${curr.buffer}`;
         }
@@ -281,9 +278,9 @@ function multiply<T>(
       }
     }
 
-    if (nodes.length && buffer.length) {
+    if (tokens.length && buffer.length) {
       throw new Error(
-        `Invalid expression, expression must be nodes or buffer: ${nodes.length},${buffer.length}`
+        `Invalid expression, expression must be nodes or buffer: ${tokens.length},${buffer.length}`
       );
     }
 
@@ -292,7 +289,7 @@ function multiply<T>(
         type: ResultType.Fail,
         expected,
         pos: lastPos,
-        ...(nodes.length ? { nodes } : { nodes: [] }),
+        ...(tokens.length ? { tokens } : { tokens: [] }),
       };
     }
 
@@ -302,7 +299,7 @@ function multiply<T>(
       length: pos - start,
       expected,
       pos: lastPos,
-      ...(nodes.length ? { nodes } : { buffer }),
+      ...(tokens.length ? { tokens } : { buffer }),
     };
   };
 
@@ -334,20 +331,19 @@ export function zeroToTen<T>(rule: EitherRule<T>) {
 }
 
 export const whitespace: Rule<null> = transform(
-  toNodes(regexChar(/[ \t\r\n]/), (str) => {
-    return [
-      str === " "
-        ? { type: "space" }
-        : str === TAB
-        ? { type: "tab" }
-        : { type: "newline" },
-    ];
+  fromBufferToCodeBlock(regexChar(/[ \t\r\n]/), (str) => {
+    return str === " "
+      ? [[{ type: "space" }]]
+      : str === TAB
+      ? [[{ type: "tab" }]]
+      : [[], []]; // <-- newline
   }),
   () => null
 );
-export const whitespaceWithoutNewline = toNodes(regexChar(/[ \t\r]/), (str) => [
-  str === " " ? { type: "space" } : { type: "tab" },
-]);
+export const whitespaceWithoutNewline = fromBufferToCodeBlock(
+  regexChar(/[ \t\r]/),
+  (str) => [[str === " " ? { type: "space" } : { type: "tab" }]]
+);
 
 export function notConstant(keyword: string): BufferRule<string> {
   const rule: BufferRule<string> = (ctx: Context) => {
@@ -377,7 +373,7 @@ export function notConstant(keyword: string): BufferRule<string> {
         },
       ],
       pos: ctx.pos,
-      nodes: [],
+      tokens: [],
     };
   };
 
@@ -410,9 +406,9 @@ export function transform<T, R>(
   return newRule;
 }
 
-export function toNodes<T>(
+export function fromBufferToCodeBlock<T>(
   rule: BufferRule<T>,
-  func: (buffer: string) => UnformattedNode[]
+  func: (buffer: string, result: BufferRuleResult<T>) => Block
 ): Rule<T> {
   const newRule: Rule<T> = (ctx) => {
     const result = rule(ctx);
@@ -421,12 +417,12 @@ export function toNodes<T>(
       const { buffer, ...everythingButBuffer } = result;
       return {
         ...everythingButBuffer,
-        nodes: func(buffer ?? ""),
+        tokens: combineBlocks([], func(buffer ?? "", result)),
       };
     } else {
       return {
         ...result,
-        nodes: [],
+        tokens: [],
       };
     }
   };
@@ -441,7 +437,7 @@ export function combineComments(...c: (string | null | undefined)[]) {
     .join(NEWLINE);
 }
 
-export const cStyleComment: Rule<string> = toNodes(
+export const cStyleComment: Rule<string> = fromBufferToCodeBlock(
   transform(
     sequence([
       constant("/*"),
@@ -460,16 +456,18 @@ export const cStyleComment: Rule<string> = toNodes(
   ),
   (buffer) => {
     return [
-      {
-        type: "comment",
-        text: buffer,
-        style: "c",
-      },
+      [
+        {
+          type: "comment",
+          text: buffer,
+          style: "c",
+        },
+      ],
     ];
   }
 );
 
-export const cStyleCommentWithoutNewline: Rule<string> = toNodes(
+export const cStyleCommentWithoutNewline: Rule<string> = fromBufferToCodeBlock(
   transform(
     sequence([constant("/*"), zeroToMany(notConstant("*/")), constant("*/")]),
     (v) =>
@@ -482,15 +480,17 @@ export const cStyleCommentWithoutNewline: Rule<string> = toNodes(
       ).trim()
   ),
   (buffer) => [
-    {
-      type: "comment",
-      text: buffer,
-      style: "c",
-    },
+    [
+      {
+        type: "comment",
+        text: buffer,
+        style: "c",
+      },
+    ],
   ]
 );
 
-export const sqlStyleComment: Rule<string> = toNodes(
+export const sqlStyleComment: Rule<string> = fromBufferToCodeBlock(
   transform(
     sequence([
       constant("--"),
@@ -503,39 +503,46 @@ export const sqlStyleComment: Rule<string> = toNodes(
   (buffer) =>
     buffer[buffer.length - 1] === NEWLINE
       ? [
-          {
-            type: "comment",
-            text: buffer.substring(0, buffer.length - 1),
-            style: "sql",
-          },
-          { type: "newline" },
+          [
+            {
+              type: "comment",
+              text: buffer.substring(0, buffer.length - 1),
+              style: "sql",
+            },
+          ],
+          [], // <-- Makes a newline
         ]
       : [
-          {
-            type: "comment",
-            text: buffer,
-            style: "sql",
-          },
+          [
+            {
+              type: "comment",
+              text: buffer,
+              style: "sql",
+            },
+          ],
         ]
 );
 
-export const sqlStyleCommentWithoutNewline: Rule<string> = toNodes(
-  transform(
-    sequence([
-      constant("--"),
-      zeroToOne(regexChar(/[ \t\r\n]/)),
-      zeroToMany(notConstant(NEWLINE)),
-    ]),
-    (v) => combineComments(v[2].join(""))
-  ),
-  (buffer) => [
-    {
-      type: "comment",
-      text: buffer,
-      style: "sql",
-    },
-  ]
-);
+export const sqlStyleCommentWithoutNewline: Rule<string> =
+  fromBufferToCodeBlock(
+    transform(
+      sequence([
+        constant("--"),
+        zeroToOne(regexChar(/[ \t\r\n]/)),
+        zeroToMany(notConstant(NEWLINE)),
+      ]),
+      (v) => combineComments(v[2].join(""))
+    ),
+    (buffer) => [
+      [
+        {
+          type: "comment",
+          text: buffer,
+          style: "sql",
+        },
+      ],
+    ]
+  );
 
 export function lookAhead<T>(rule: Rule<T>): Rule<T> {
   const newRule: Rule<T> = (ctx: Context) => {
@@ -549,7 +556,7 @@ export function lookAhead<T>(rule: Rule<T>): Rule<T> {
         length: 0, // <-- unlike most rules, this one does not progress the position
         expected: [],
         pos: ctx.pos,
-        nodes: [],
+        tokens: [],
       };
     }
 
@@ -733,7 +740,9 @@ export function keyword(
   return (ctx) => {
     const result = transform(
       sequence([
-        toNodes(constant(str), (text) => [{ type: "keyword", text }]),
+        fromBufferToCodeBlock(constant(str), (text) => [
+          [{ type: "keyword", text }],
+        ]),
         // we want to ensure the next character is a whitespace
         // or start of a comment, but we do not want to incliude
         // it in the sequence.
@@ -846,7 +855,7 @@ export const ifNotExists: Rule<{ codeComment: string }> = transform(
 );
 
 export const identifier: Rule<string> = (ctx: Context) => {
-  const result = toNodes(
+  const result = fromBufferToCodeBlock(
     or([
       transform(
         sequence([
@@ -866,11 +875,11 @@ export const identifier: Rule<string> = (ctx: Context) => {
       ),
     ]),
     (text) => {
-      return [{ type: "identifier", text }];
+      return [[{ type: "identifier", text }]];
     }
   )(ctx);
 
-  if (!("nodes" in result)) {
+  if (!("tokens" in result)) {
     throw new Error("Lets make TS happy");
   }
 
@@ -886,7 +895,7 @@ export const identifier: Rule<string> = (ctx: Context) => {
       type: ResultType.Fail,
       expected: [{ type: "identifier", value: "identifier", pos: ctx.pos }],
       pos: ctx.pos,
-      nodes: result.nodes,
+      tokens: result.tokens,
     };
   }
 
@@ -923,12 +932,12 @@ export const tableIdentifier = transform(
       : [v[1].toLocaleLowerCase()]
 );
 
-export const integer = toNodes(
+export const integer = fromBufferToCodeBlock(
   transform(oneToMany(regexChar(/[0-9]/)), (s) => Number(s.join(""))),
-  (text) => [{ type: "numberLiteral", text }]
+  (text) => [[{ type: "numberLiteral", text }]]
 );
 
-export const float = toNodes(
+export const float = fromBufferToCodeBlock(
   transform(
     sequence([
       oneToMany(regexChar(/[0-9]/)),
@@ -938,7 +947,7 @@ export const float = toNodes(
     (s) => `${s[0].join("")}.${s[2].join("")}`
   ),
   (text) => {
-    return [{ type: "numberLiteral", text }];
+    return [[{ type: "numberLiteral", text }]];
   }
 );
 
@@ -946,14 +955,12 @@ export const float = toNodes(
  * Common
  */
 
-export const quotedString = toNodes(
+export const quotedString = fromBufferToCodeBlock(
   transform(
     sequence([constant("'"), zeroToMany(notConstant("'")), constant("'")]),
     (v, ctx) => ({ value: v[1].join(""), pos: ctx.pos })
   ),
-  (text) => [
-    { type: "stringLiteral", text: text.substring(1, text.length - 1) },
-  ]
+  (text) => [[{ type: "stringLiteral", text }]]
 );
 
 /**

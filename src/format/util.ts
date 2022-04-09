@@ -2,7 +2,7 @@ import { NEWLINE } from "./print";
 
 const MAX_INTELIGABLE_LINE = 80;
 
-export type Node =
+export type Token =
   | { type: "keyword"; text: string } // <-- We can be more specific than "string", reconcile with parser
   // Our formatter only does "sql" type, but when parsing we may come accross the "c" type
   | { type: "comment"; text: string; style: "c" | "sql" }
@@ -21,11 +21,11 @@ export type Node =
   | { type: "unknown"; text: string };
 
 // spaces and newlines are encoded as a 2-dimensial array;
-export type Line = Node[];
+export type Line = Token[];
 export type Block = Line[];
-export type NodeType = Node["type"];
+export type TokenType = Token["type"];
 
-export type PartiallyParsedLine = (Node | { type: "unknown"; text: string })[];
+export type PartiallyParsedLine = (Token | { type: "unknown"; text: string })[];
 export type PartiallyParsedBlock = PartiallyParsedLine[];
 
 export const join = (lines: Block, joinToken: Line): Line =>
@@ -41,27 +41,27 @@ export const addToLastLine = (lines: Block, addition: Line) => {
   return [...lines.slice(0, -1), [...lines[lines.length - 1], ...addition]];
 };
 
-export function length(node: Node): number {
-  switch (node.type) {
+export function length(token: Token): number {
+  switch (token.type) {
     case "tab":
       return 1;
     case "space":
       return 1;
     default:
-      return node.text.length;
+      return token.text.length;
   }
 }
 
 export function lengthOfBlock(block: Block): number {
   return block.reduce(
     (acc, line) =>
-      acc + line.reduce((subAcc, node) => subAcc + length(node), 0),
+      acc + line.reduce((subAcc, token) => subAcc + length(token), 0),
     0
   );
 }
 
-export function doesContainType(block: Block, type: NodeType): boolean {
-  return block.some((line) => line.some((node) => node.type === type));
+export function doesContainType(block: Block, type: TokenType): boolean {
+  return block.some((line) => line.some((token) => token.type === type));
 }
 
 export function toSingleLineIfPossible(block: Block): Block {
@@ -84,21 +84,21 @@ export function toSingleLineIfPossible(block: Block): Block {
   ) {
     const unformattedLine = block
       // Remove newlines
-      .flatMap((line) => line.filter((n) => n.type !== "tab").concat(_))
+      .flatMap((line) => line.filter((t) => t.type !== "tab").concat(_))
       // flatten it out
       .flat();
     return [
-      unformattedLine.reduce((acc, n, i) => {
+      unformattedLine.reduce((acc, t, i) => {
         if (!acc.length) {
-          return [n];
+          return [t];
         }
 
-        const lastNode = acc[acc.length - 1];
-        const upcomingNodes = unformattedLine.slice(i);
+        const lastToken = acc[acc.length - 1];
+        const upcomingTokens = unformattedLine.slice(i);
 
         // If there is only whitespace left on line, trim those.
-        const isOnlyWhitespaceLeftOnLine = !upcomingNodes.some(
-          (n) => n.type !== "space" && n.type !== "tab"
+        const isOnlyWhitespaceLeftOnLine = !upcomingTokens.some(
+          (t) => t.type !== "space" && t.type !== "tab"
         );
         if (isOnlyWhitespaceLeftOnLine) {
           return acc;
@@ -106,45 +106,45 @@ export function toSingleLineIfPossible(block: Block): Block {
 
         // No spaces before certain symbols
         if (
-          lastNode.type === "space" &&
-          n.type === "symbol" &&
-          [",", "::", ";"].includes(n.text)
+          lastToken.type === "space" &&
+          t.type === "symbol" &&
+          [",", "::", ";"].includes(t.text)
         ) {
-          return [...acc.slice(0, -1), n];
+          return [...acc.slice(0, -1), t];
         }
 
         // Lets make sure there is no space after an open parens/bracket.
         if (
-          lastNode.type === "symbol" &&
-          ["[", "("].includes(lastNode.text) &&
-          n.type === "space"
+          lastToken.type === "symbol" &&
+          ["[", "("].includes(lastToken.text) &&
+          t.type === "space"
         ) {
           return acc;
         }
 
         // Lets make sure we don't have spaces before our end parens/bracket
         if (
-          lastNode.type === "space" &&
-          n.type === "symbol" &&
-          [")", "]"].includes(n.text) // "::", ","
+          lastToken.type === "space" &&
+          t.type === "symbol" &&
+          [")", "]"].includes(t.text) // "::", ","
         ) {
-          return [...acc.slice(0, -1), n];
+          return [...acc.slice(0, -1), t];
         }
 
         // Lets make sure we don't have duplicate spaces
         if (
-          (lastNode.type === "space" || lastNode.type === "tab") &&
-          n.type === "space"
+          (lastToken.type === "space" || lastToken.type === "tab") &&
+          t.type === "space"
         ) {
           return acc;
         }
 
         // We don't need tabs when we condence to a single line
-        if (n.type === "tab") {
+        if (t.type === "tab") {
           return [...acc, { type: "space" }];
         }
 
-        return [...acc, n];
+        return [...acc, t];
       }, [] as Line),
     ];
   }
@@ -152,7 +152,7 @@ export function toSingleLineIfPossible(block: Block): Block {
   return block;
 }
 
-export function indent(t: Node): Node;
+export function indent(t: Token): Token;
 export function indent(t: Block): Block;
 export function indent(t: Line): Line;
 export function indent(t: any): any {
@@ -166,30 +166,30 @@ export function indent(t: any): any {
     return [{ type: "tab" }, ...t];
   }
 
-  // Node
+  // Token
   return t;
 }
 
 const NEEDS_TO_BE_QUOTED = /[^a-z0-9_]/;
-export function identifier(c: string): Node {
+export function identifier(c: string): Token {
   return {
     type: "identifier",
     text: NEEDS_TO_BE_QUOTED.test(c) ? `"${c}"` : c,
   };
 }
 
-export function symbol(c: string): Node {
+export function symbol(c: string): Token {
   return { type: "symbol", text: c };
 }
 
-export function keyword(c: string): Node {
+export function keyword(c: string): Token {
   return { type: "keyword", text: c.toUpperCase() };
 }
 
-export const _: Node = { type: "space" };
-export const TRUE: Node = { type: "booleanLiteral", text: "TRUE" };
-export const FALSE: Node = { type: "booleanLiteral", text: "FALSE" };
-export const NULL: Node = { type: "stringLiteral", text: "NULL" };
+export const _: Token = { type: "space" };
+export const TRUE: Token = { type: "booleanLiteral", text: "TRUE" };
+export const FALSE: Token = { type: "booleanLiteral", text: "FALSE" };
+export const NULL: Token = { type: "stringLiteral", text: "NULL" };
 
 // We always use sql style comments so we don't have to handle "*/" within comments
 // and so we can easilly comment/uncomment.
@@ -204,7 +204,7 @@ export function comment(s: string | undefined): Block {
     .map((line) => [{ type: "comment", text: `-- ${line}`, style: "sql" }]);
 }
 
-// export function literal(s: string | number | boolean): Node {
+// export function literal(s: string | number | boolean): Token {
 //   if (typeof s === "string") {
 //     return { type: "stringLiteral", text: s };
 //   }
@@ -218,14 +218,14 @@ export function comment(s: string | undefined): Block {
 //   throw new Error(`Not a literal: ${s}`);
 // }
 
-export function stringLiteral(s: string): Node {
+export function stringLiteral(s: string): Token {
   return { type: "stringLiteral", text: `'${s}'` };
 }
 
-export function integerLiteral(s: number): Node {
+export function integerLiteral(s: number): Token {
   return { type: "numberLiteral", text: `${s}` };
 }
 
-export function floatLiteral(s: string): Node {
+export function floatLiteral(s: string): Token {
   return { type: "numberLiteral", text: s };
 }

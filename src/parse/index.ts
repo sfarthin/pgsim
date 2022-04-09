@@ -32,8 +32,6 @@ import { codeComments } from "./codeComments";
 import { renameStmt } from "./renameStmt";
 import { updateStmt } from "./updateStmt";
 
-export { toBlock } from "./util";
-
 class ParseError extends Error {
   expectedStmt?: Stmt;
   // context: Context;

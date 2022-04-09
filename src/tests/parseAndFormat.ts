@@ -2,11 +2,14 @@ import parse, { parseComments } from "../parse";
 import { SuccessResult } from "../parse/util";
 import { toLineAndColumn, findNextToken } from "../parse/error";
 import nParse from "./nativeParse";
-import format from "../format";
+import format, { toString } from "../format";
 import { Stmt } from "../types";
 import { join, basename } from "path";
 import { lstatSync, readdirSync, readFileSync, writeFileSync } from "fs";
-import { json as assertNoDiff } from "assert-no-diff";
+import {
+  json as assertNoDiff,
+  wordsWithSpace as assertStr,
+} from "assert-no-diff";
 import c from "ansi-colors";
 import { NEWLINE } from "../format/print";
 
@@ -151,11 +154,18 @@ export default function parseAndFormat(
     throw e;
   }
 
-  // 3. Then we make sure our parser matches the output of the native parser
   const ast = parse(
     { str: sql, filename: basename(filename), pos: 0 },
     realAst
   );
+
+  const printedNodes = toString(ast.tokens, {
+    colors: false,
+    lineNumbers: false,
+  });
+
+  // 3. Then we make sure our parser matches the output of the native parser
+  assertStr(printedNodes, sql, `The printed SQL does not match the input`);
 
   const comments = parseComments(sql);
 
@@ -171,6 +181,7 @@ export default function parseAndFormat(
       const nextToken = findNextToken(sql, start);
       const { line } = toLineAndColumn(sql, nextToken.start);
 
+      // 4. Then we make sure our parser matches the output of the native parser
       assertNoDiff(
         actualAstNoComments[key],
         astNoComments[key],

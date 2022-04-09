@@ -338,7 +338,7 @@ export function or(rules: EitherRule<any>[]): EitherRule<any> {
       type: ResultType.Fail,
       expected,
       pos: expected?.[0]?.pos,
-      nodes: [],
+      tokens: [],
     };
   };
 }

@@ -10,7 +10,7 @@ import {
   constant,
   Rule,
   combineComments,
-  toNodes,
+  fromBufferToCodeBlock,
 } from "./util";
 
 /**
@@ -22,11 +22,11 @@ export const codeComments: Rule<string> = transform(
       or([
         sqlStyleComment,
         cStyleComment,
-        toNodes(
+        fromBufferToCodeBlock(
           transform(notConstant("'"), () => ""),
-          (text) => [{ type: "unknown", text }]
+          (text) => [[{ type: "unknown", text }]]
         ),
-        toNodes(
+        fromBufferToCodeBlock(
           transform(
             sequence([
               constant("'"),
@@ -35,7 +35,7 @@ export const codeComments: Rule<string> = transform(
             ]),
             () => ""
           ),
-          (text) => [{ type: "unknown", text }]
+          (text) => [[{ type: "unknown", text }]]
         ),
       ])
     ),

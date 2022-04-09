@@ -2,11 +2,12 @@ import {
   Rule,
   BufferRule,
   EitherRule,
-  UnformattedNode,
   Expected,
   ResultType,
+  combineBlocks,
 } from "./util";
 import { expectedReducer } from "./expectedReducer";
+import { Block } from "src/format/util";
 
 export function sequence<A, B>(
   rules: [BufferRule<A>, BufferRule<B>]
@@ -1260,9 +1261,9 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
     const values = [];
 
     let expected: Expected[] = [];
-    let nodes: UnformattedNode[] = [];
+    let tokens: Block = [];
     let buffer = "";
-    let mode: "nodes" | "buffer" | null = null;
+    let mode: "tokens" | "buffer" | null = null;
 
     const results = [];
 
@@ -1276,18 +1277,18 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
         return {
           ...result,
           expected,
-          ...(mode !== "buffer" ? { nodes } : { nodes: [] }),
+          ...(mode !== "buffer" ? { tokens } : { tokens: [] }),
         };
       }
 
-      if ("nodes" in result) {
+      if ("tokens" in result) {
         if (mode && mode === "buffer") {
           throw new Error("Buffer and Node mishap");
         }
-        mode = "nodes";
-        nodes = [...nodes, ...result.nodes];
+        mode = "tokens";
+        tokens = combineBlocks(tokens, result.tokens);
       } else if ("buffer" in result && result.buffer !== "") {
-        if (mode && mode === "nodes") {
+        if (mode && mode === "tokens") {
           throw new Error("Buffer and Node mishap");
         }
         mode = "buffer";
@@ -1305,7 +1306,7 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
       length,
       expected,
       pos,
-      ...(mode !== "buffer" ? { nodes } : { buffer }),
+      ...(mode !== "buffer" ? { tokens } : { buffer }),
     };
   };
 

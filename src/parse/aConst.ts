@@ -6,13 +6,13 @@ import {
   quotedString,
   Rule,
   float,
-  toNodes,
+  fromBufferToCodeBlock,
   __,
   regexChar,
 } from "./util";
 import { A_Const } from "../types";
 
-export const aConstInteger = toNodes(
+export const aConstInteger = fromBufferToCodeBlock(
   (ctx) =>
     transform(oneToMany(regexChar(/[0-9]/)), (s, ctx) => {
       return {
@@ -29,7 +29,7 @@ export const aConstInteger = toNodes(
       };
     })(ctx),
   (text) => {
-    return [{ type: "numberLiteral", text }];
+    return [[{ type: "numberLiteral", text }]];
   }
 );
 

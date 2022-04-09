@@ -166,10 +166,10 @@ export const getFriendlyErrorMessage = (
 
   console.log(result);
   if ("nodes" in result) {
-    error += toString(
-      [result.nodes.flatMap((n) => (n.type === "newline" ? [] : [n]))],
-      { colors: true, lineNumbers: false }
-    );
+    error += toString(result.tokens, {
+      colors: true,
+      lineNumbers: false,
+    });
   } else {
     const lineToStartPrinting =
       start.line - NUM_CONTEXT_LINES_BEFORE < 0
