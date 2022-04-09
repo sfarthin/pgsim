@@ -1277,7 +1277,9 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
         return {
           ...result,
           expected,
-          ...(mode !== "buffer" ? { tokens } : { tokens: [] }),
+          ...(mode !== "buffer"
+            ? { tokens }
+            : { tokens: [[{ type: "error", text: buffer }]] }),
         };
       }
 

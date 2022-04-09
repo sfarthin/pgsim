@@ -191,7 +191,7 @@ export function constant(
         },
       ],
       pos: ctx.pos,
-      tokens: [],
+      tokens: [[{ type: "error", text: potentialKeyword }]],
     };
   };
 
@@ -225,7 +225,7 @@ export function regexChar(r: RegExp): BufferRule<string> {
       type: ResultType.Fail,
       expected: [{ type: "regex", value: r.toString(), pos }],
       pos,
-      tokens: [],
+      tokens: [[{ type: "error", text: char }]],
     };
   };
 
@@ -289,7 +289,9 @@ function multiply<T>(
         type: ResultType.Fail,
         expected,
         pos: lastPos,
-        ...(tokens.length ? { tokens } : { tokens: [] }),
+        ...(tokens.length
+          ? { tokens }
+          : { tokens: [[{ type: "error", text: buffer }]] }),
       };
     }
 
@@ -417,12 +419,12 @@ export function fromBufferToCodeBlock<T>(
       const { buffer, ...everythingButBuffer } = result;
       return {
         ...everythingButBuffer,
-        tokens: combineBlocks([], func(buffer ?? "", result)),
+        tokens: func(buffer ?? "", result),
       };
     } else {
       return {
         ...result,
-        tokens: [],
+        tokens: result.tokens,
       };
     }
   };

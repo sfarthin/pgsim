@@ -165,7 +165,7 @@ export const getFriendlyErrorMessage = (
   error += NEWLINE;
 
   console.log(result);
-  if ("nodes" in result) {
+  if ("tokens" in result) {
     error += toString(result.tokens, {
       colors: true,
       lineNumbers: false,

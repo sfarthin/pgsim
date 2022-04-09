@@ -128,8 +128,7 @@ export default function parseAndFormat(
   sql: string,
   filename: string
 ): { formattedSql: string; ast: SuccessResult<Stmt[]> } {
-  // 1. First we validate the syntax is correct with real parser
-  // 2. Then we ensure our type matches the native ast with the decoder
+  // 1. Make sure our parser and native parser can parse correctly
   let realAst;
   try {
     realAst = nParse(sql, basename(filename));
@@ -142,6 +141,7 @@ export default function parseAndFormat(
       );
       console.log(JSON.stringify(ast, null, 2));
     } catch (errorWithOurParser) {
+      // If both our parser and the native parser fail, its probably inncorrect syntax.
       console.error(e);
       throw errorWithOurParser;
     }
@@ -159,13 +159,14 @@ export default function parseAndFormat(
     realAst
   );
 
-  const printedNodes = toString(ast.tokens, {
-    colors: false,
-    lineNumbers: false,
-  });
-
-  // 3. Then we make sure our parser matches the output of the native parser
-  assertStr(printedNodes, sql, `The printed SQL does not match the input`);
+  assertStr(
+    toString(ast.tokens, {
+      colors: false,
+      lineNumbers: false,
+    }),
+    sql,
+    `2. The parsed tokens do not match the original SQL input`
+  );
 
   const comments = parseComments(sql);
 
@@ -181,11 +182,10 @@ export default function parseAndFormat(
       const nextToken = findNextToken(sql, start);
       const { line } = toLineAndColumn(sql, nextToken.start);
 
-      // 4. Then we make sure our parser matches the output of the native parser
       assertNoDiff(
         actualAstNoComments[key],
         astNoComments[key],
-        `AST does not match native parser, ${c.cyan(
+        `3. AST does not match native parser, ${c.cyan(
           `${basename(filename)}:${line + 1}`
         )} (Statement ${Number(key) + 1} of ${
           astNoComments.length
@@ -202,12 +202,12 @@ export default function parseAndFormat(
   assertNoDiff(
     comments.split(/\s/).slice(0).sort().filter(Boolean), // <-- direct comment parser
     concatAllCodeComments(ast).slice(0).sort().filter(Boolean), // <--- pull comments from AST.
-    `Parser is not retaining comments in ${c.cyan(
+    `4. Parser is not retaining comments in ${c.cyan(
       `${basename(filename)}`
     )}\n${JSON.stringify(ast, null, 2)}`
   );
 
-  // 4. Then we verify our formatter by confirmating it produces the same parsed AST
+  // 5. Then we verify our formatter by confirmating it produces the same parsed AST
   const astNoStyle = removeStyle(ast.value);
   const formattedSql = format(ast.value, { sql, filename: basename(filename) });
 
@@ -224,6 +224,15 @@ export default function parseAndFormat(
     e.name = `Format provided invalid SQL`;
     throw e;
   }
+
+  assertStr(
+    toString(formattedAst.tokens, {
+      colors: false,
+      lineNumbers: false,
+    }),
+    formattedSql,
+    `5. Our parsed tokens match our formatted SQL`
+  );
 
   const formattedAstNoStyle = removeStyle(formattedAst.value);
 
@@ -245,7 +254,7 @@ export default function parseAndFormat(
     assertNoDiff(
       astNoStyle[key],
       formattedAstNoStyle[key],
-      `Formatter does not produce the same AST, ${c.cyan(
+      `6. Formatter does not produce the same AST, ${c.cyan(
         `${basename(filename)}:${line + 1}`
       )} (Statement ${Number(key) + 1} of ${
         astNoComments.length
@@ -260,7 +269,7 @@ export default function parseAndFormat(
     assertNoDiff(
       concatAllCodeComments(ast.value[key]).slice().sort(),
       concatAllCodeComments(formattedAst.value[key]).slice().sort(),
-      `Formatter does not retain the same comments, ${c.cyan(
+      `7. Formatter does not retain the same comments, ${c.cyan(
         `${basename(filename)}:${line + 1}`
       )} (Statement ${Number(key) + 1} of ${
         astNoComments.length
