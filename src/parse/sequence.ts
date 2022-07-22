@@ -1260,26 +1260,27 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
     let length = 0;
     const values = [];
 
-    let expected: Expected[] = [];
     let tokens: Block = [];
     let buffer = "";
     let mode: "tokens" | "buffer" | null = null;
-
-    const results = [];
+    let expected: Expected[] = [];
 
     for (const rule of rules) {
       const result = rule({ ...ctx, pos });
-      results.push(result);
 
-      expected = expected.concat(result.expected).reduce(expectedReducer, []);
+      expected = expected
+        .concat(
+          result.expected.map((e) => ({
+            ...e,
+            tokens: combineBlocks(tokens, e.tokens),
+          }))
+        )
+        .reduce(expectedReducer, []);
 
       if (result.type === ResultType.Fail) {
         return {
           ...result,
           expected,
-          ...(mode !== "buffer"
-            ? { tokens }
-            : { tokens: [[{ type: "error", text: buffer }]] }),
         };
       }
 
@@ -1304,9 +1305,9 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
 
     return {
       type: ResultType.Success,
+      expected,
       value: values,
       length,
-      expected,
       pos,
       ...(mode !== "buffer" ? { tokens } : { buffer }),
     };

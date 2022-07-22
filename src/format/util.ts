@@ -17,7 +17,6 @@ export type Token =
   | { type: "tab" }
   | { type: "space" }
   // Only used when these is an error.
-  | { type: "error"; text: string }
   | { type: "unknown"; text: string };
 
 // spaces and newlines are encoded as a 2-dimensial array;

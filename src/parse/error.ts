@@ -59,8 +59,8 @@ const indent = ({
     .join(NEWLINE);
 };
 
-const NUM_CONTEXT_LINES_BEFORE = 4;
-const NUM_CONTEXT_LINES_AFTER = 3;
+// const NUM_CONTEXT_LINES_BEFORE = 4;
+// const NUM_CONTEXT_LINES_AFTER = 3;
 
 export const toLineAndColumn = (str: string, pos: number) => {
   const line = (str.substring(0, pos).match(/\n/g) || []).length;
@@ -137,26 +137,27 @@ export const getFriendlyErrorMessage = (
   result: FailResult
 ): string => {
   const { str, filename } = context;
+  console.log(result.expected);
   let expected = result.expected.map((v) => v.value);
   expected = expected.filter((v, i) => expected.indexOf(v) === i).sort();
 
   const pos = result.expected.length ? result.expected[0].pos : result.pos;
 
-  const lines = str.split(NEWLINE);
+  // const lines = str.split(NEWLINE);
   const nextToken = findNextToken(str, pos);
   const start = toLineAndColumn(str, nextToken.start);
-  const end = toLineAndColumn(str, nextToken.end);
+  // const end = toLineAndColumn(str, nextToken.end);
 
   const tokenStr = str.substring(nextToken.start, nextToken.end);
 
   const message =
     expected.length < 3
-      ? `Expected ${expected.join(" or ")}, but found ${tokenStr}`
+      ? `Expected ${expected.join(" or ")}, but found "${tokenStr}"`
       : `Expected one of the following, but found "${tokenStr}":${NEWLINE} - ${expected.join(
           `${NEWLINE} - `
         )}`;
 
-  const prefixNumeralLength = end.line.toString().length;
+  // const prefixNumeralLength = end.line.toString().length;
 
   let error = "";
   error += `Parse error${filename ? ` in ${c.cyan(filename)}` : ""}(${c.cyan(
@@ -164,43 +165,51 @@ export const getFriendlyErrorMessage = (
   )},${c.cyan(String(start.column + 1))}): ${message}${NEWLINE}`;
   error += NEWLINE;
 
-  console.log(result);
-  if ("tokens" in result) {
-    error += toString(result.tokens, {
-      colors: true,
-      lineNumbers: false,
-    });
-  } else {
-    const lineToStartPrinting =
-      start.line - NUM_CONTEXT_LINES_BEFORE < 0
-        ? 0
-        : start.line - NUM_CONTEXT_LINES_BEFORE;
-    error +=
-      indent({
-        lines: lines.slice(lineToStartPrinting, start.line),
-        prefixNumeralLength,
-        startLine: lineToStartPrinting,
-      }) + NEWLINE;
-    error +=
-      indent({
-        lines: [lines[start.line]], // < -- highlight one line at most.
-        prefixNumeralLength,
-        startLine: start.line,
-        highlightColumns: {
-          start: start.column,
-          end: end.line === start.line ? end.column : 999999, // <-- go to end of line if token spans multiple lines.
-        },
-      }) + NEWLINE;
-    error +=
-      indent({
-        lines: lines.slice(
-          start.line + 1,
-          start.line + NUM_CONTEXT_LINES_AFTER
-        ),
-        prefixNumeralLength,
-        startLine: start.line + 1,
-      }) + NEWLINE;
-  }
+  console.log(result.expected[0].tokens);
+
+  error += toString(result.expected[0].tokens, {
+    colors: true,
+    lineNumbers: false,
+  });
+
+  error += str.substring(result.pos);
+
+  // if ("tokens" in result) {
+  //   error += toString(result.tokens, {
+  //     colors: true,
+  //     lineNumbers: false,
+  //   });
+  // } else {
+  //   const lineToStartPrinting =
+  //     start.line - NUM_CONTEXT_LINES_BEFORE < 0
+  //       ? 0
+  //       : start.line - NUM_CONTEXT_LINES_BEFORE;
+  //   error +=
+  //     indent({
+  //       lines: lines.slice(lineToStartPrinting, start.line),
+  //       prefixNumeralLength,
+  //       startLine: lineToStartPrinting,
+  //     }) + NEWLINE;
+  //   error +=
+  //     indent({
+  //       lines: [lines[start.line]], // < -- highlight one line at most.
+  //       prefixNumeralLength,
+  //       startLine: start.line,
+  //       highlightColumns: {
+  //         start: start.column,
+  //         end: end.line === start.line ? end.column : 999999, // <-- go to end of line if token spans multiple lines.
+  //       },
+  //     }) + NEWLINE;
+  //   error +=
+  //     indent({
+  //       lines: lines.slice(
+  //         start.line + 1,
+  //         start.line + NUM_CONTEXT_LINES_AFTER
+  //       ),
+  //       prefixNumeralLength,
+  //       startLine: start.line + 1,
+  //     }) + NEWLINE;
+  // }
 
   error += NEWLINE;
 

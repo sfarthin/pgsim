@@ -14,13 +14,13 @@ export enum ResultType {
   Success = "___SUCCESS___",
 }
 
-// Todo reconcile this more with Nodes
-export type Expected =
-  | { type: "keyword"; value: string; pos: number }
-  | { type: "notKeyword"; value: string; pos: number }
-  | { type: "regex"; value: string; pos: number }
-  | { type: "identifier"; value: string; pos: number }
-  | { type: "endOfInput"; value: string; pos: number };
+// Todo reconcile this more with Tokens
+export type Expected = {
+  tokens: Block;
+  type: "keyword" | "notKeyword" | "regex" | "identifier" | "endOfInput";
+  pos: number;
+  value: string;
+};
 
 type SuccessResultBase<R> = {
   type: ResultType.Success;
@@ -58,8 +58,6 @@ export type FailResult = {
    * The ending location where the parser could no longer parse
    */
   pos: number;
-
-  tokens: Block;
 };
 
 export type RuleResult<R> = FailResult | SuccessResult<R>;
@@ -112,6 +110,23 @@ export function combineBlocks(input1: Block, input2: Block): Block {
   ];
 }
 
+export function blockLength(block: Block): number {
+  let length = 0;
+
+  for (const line of block) {
+    for (const token of line) {
+      if ("text" in token) {
+        length += token.text.length;
+      } else {
+        length += 1;
+      }
+    }
+    length += 1;
+  }
+
+  return length;
+}
+
 export const placeholder: Rule<null> = (ctx) => ({
   type: ResultType.Success,
   value: null,
@@ -135,9 +150,10 @@ export const endOfInput: Rule<number> = (ctx) => {
 
   return {
     type: ResultType.Fail,
-    expected: [{ type: "endOfInput", value: "End of Input", pos: ctx.pos }],
+    expected: [
+      { type: "endOfInput", value: "End of Input", pos: ctx.pos, tokens: [] },
+    ],
     pos: ctx.pos,
-    tokens: [],
   };
 };
 
@@ -155,9 +171,10 @@ const endOfInputBuffer: BufferRule<number> = (ctx) => {
 
   return {
     type: ResultType.Fail,
-    expected: [{ type: "endOfInput", value: "End of Input", pos: ctx.pos }],
+    expected: [
+      { type: "endOfInput", value: "End of Input", pos: ctx.pos, tokens: [] },
+    ],
     pos: ctx.pos,
-    tokens: [],
   };
 };
 
@@ -188,10 +205,10 @@ export function constant(
           type: "keyword",
           value: `"${keyword}"`,
           pos: ctx.pos,
+          tokens: [],
         },
       ],
       pos: ctx.pos,
-      tokens: [[{ type: "error", text: potentialKeyword }]],
     };
   };
 
@@ -223,9 +240,8 @@ export function regexChar(r: RegExp): BufferRule<string> {
     }
     return {
       type: ResultType.Fail,
-      expected: [{ type: "regex", value: r.toString(), pos }],
+      expected: [{ type: "regex", value: r.toString(), pos, tokens: [] }],
       pos,
-      tokens: [[{ type: "error", text: char }]],
     };
   };
 
@@ -261,6 +277,7 @@ function multiply<T>(
     let buffer = "";
     while (pos < ctx.str.length && (max === null || values.length < max)) {
       curr = rule({ ...ctx, pos });
+
       expected = expected.concat(curr.expected).reduce(expectedReducer, []);
 
       if (curr.type === ResultType.Success) {
@@ -272,6 +289,7 @@ function multiply<T>(
 
         pos += curr.length;
         values.push(curr.value);
+        lastPos = pos;
       } else {
         lastPos = curr.pos;
         break;
@@ -289,9 +307,6 @@ function multiply<T>(
         type: ResultType.Fail,
         expected,
         pos: lastPos,
-        ...(tokens.length
-          ? { tokens }
-          : { tokens: [[{ type: "error", text: buffer }]] }),
       };
     }
 
@@ -372,10 +387,10 @@ export function notConstant(keyword: string): BufferRule<string> {
           type: "notKeyword",
           value: `not "${keyword}"`,
           pos: ctx.pos,
+          tokens: [],
         },
       ],
       pos: ctx.pos,
-      tokens: [],
     };
   };
 
@@ -422,10 +437,7 @@ export function fromBufferToCodeBlock<T>(
         tokens: func(buffer ?? "", result),
       };
     } else {
-      return {
-        ...result,
-        tokens: result.tokens,
-      };
+      return result;
     }
   };
 
@@ -758,12 +770,16 @@ export function keyword(
       (v) => ({ start: v[0].start, value: str })
     )(ctx);
 
-    result.expected =
-      result.type === ResultType.Success
-        ? []
-        : [{ type: "keyword", value: `"${str}"`, pos: ctx.pos }];
-
-    return result;
+    if (result.type === ResultType.Success) {
+      return result;
+    } else {
+      return {
+        ...result,
+        expected: [
+          { type: "keyword", value: `"${str}"`, pos: ctx.pos, tokens: [] },
+        ],
+      };
+    }
   };
 }
 
@@ -881,23 +897,22 @@ export const identifier: Rule<string> = (ctx: Context) => {
     }
   )(ctx);
 
-  if (!("tokens" in result)) {
-    throw new Error("Lets make TS happy");
-  }
-
   if (result.type === ResultType.Fail) {
     return {
       ...result,
-      expected: [{ type: "identifier", value: "identifier", pos: ctx.pos }],
+      expected: [
+        { type: "identifier", value: "identifier", pos: ctx.pos, tokens: [] },
+      ],
     };
   }
 
   if ((keywordList as readonly string[]).includes(result.value.toUpperCase())) {
     return {
       type: ResultType.Fail,
-      expected: [{ type: "identifier", value: "identifier", pos: ctx.pos }],
+      expected: [
+        { type: "identifier", value: "identifier", pos: ctx.pos, tokens: [] },
+      ],
       pos: ctx.pos,
-      tokens: result.tokens,
     };
   }
 
