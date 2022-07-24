@@ -91,5 +91,5 @@ export default function format(
     }
   });
 
-  return toString(codeBlock, { colors: false, lineNumbers: true, ...opts });
+  return toString(codeBlock, { colors: false, lineNumbers: false, ...opts });
 }

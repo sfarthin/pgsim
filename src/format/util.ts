@@ -3,6 +3,7 @@ import { NEWLINE } from "./print";
 const MAX_INTELIGABLE_LINE = 80;
 
 export type Token =
+  | { type: "lineNumber"; text: string } // <-- Only used in printer.
   | { type: "keyword"; text: string } // <-- We can be more specific than "string", reconcile with parser
   // Our formatter only does "sql" type, but when parsing we may come accross the "c" type
   | { type: "comment"; text: string; style: "c" | "sql" }
@@ -17,7 +18,8 @@ export type Token =
   | { type: "tab" }
   | { type: "space" }
   // Only used when these is an error.
-  | { type: "unknown"; text: string };
+  | { type: "unknown"; text: string }
+  | { type: "error"; text: string };
 
 // spaces and newlines are encoded as a 2-dimensial array;
 export type Line = Token[];

@@ -1,15 +1,18 @@
 import {
   FailResult,
-  // zeroToMany,
-  // or,
-  // whitespace,
-  // sqlStyleComment,
-  // cStyleComment,
-  // regexChar,
+  zeroToMany,
+  or,
+  whitespace,
+  sqlStyleComment,
+  cStyleComment,
+  regexChar,
   Context,
+  blockLength,
+  combineBlocks,
 } from "./util";
 import c from "ansi-colors";
 import { NEWLINE, toString } from "../format/print";
+import { Block } from "src/format/util";
 
 const indent = ({
   lines,
@@ -59,8 +62,8 @@ const indent = ({
     .join(NEWLINE);
 };
 
-// const NUM_CONTEXT_LINES_BEFORE = 4;
-// const NUM_CONTEXT_LINES_AFTER = 3;
+const NUM_CONTEXT_LINES_BEFORE = 4;
+const NUM_CONTEXT_LINES_AFTER = 3;
 
 export const toLineAndColumn = (str: string, pos: number) => {
   const line = (str.substring(0, pos).match(/\n/g) || []).length;
@@ -129,6 +132,21 @@ export const getSnippetWithLineNumbers = ({
   });
 };
 
+function toUnknownBlock(str: string): Block {
+  return str.split(/\n/).map((line, lineNum) =>
+    line
+      .replace(/\s+/, "\x01")
+      .split("\x01")
+      .flatMap((text, tokenNum) => [
+        {
+          type: lineNum === 0 && tokenNum === 0 ? "error" : "unknown",
+          text,
+        },
+        { type: "space" }, // <-- THis adds a space a the end of each line but thats OK
+      ])
+  );
+}
+
 /**
  * Prints parser errors nicely
  */
@@ -137,16 +155,18 @@ export const getFriendlyErrorMessage = (
   result: FailResult
 ): string => {
   const { str, filename } = context;
-  console.log(result.expected);
+
+  if (result.expected.length === 0) {
+    throw new Error("Broken parse definition");
+  }
+
   let expected = result.expected.map((v) => v.value);
   expected = expected.filter((v, i) => expected.indexOf(v) === i).sort();
 
-  const pos = result.expected.length ? result.expected[0].pos : result.pos;
+  const pos = result.expected[0].pos;
 
-  // const lines = str.split(NEWLINE);
   const nextToken = findNextToken(str, pos);
   const start = toLineAndColumn(str, nextToken.start);
-  // const end = toLineAndColumn(str, nextToken.end);
 
   const tokenStr = str.substring(nextToken.start, nextToken.end);
 
@@ -165,14 +185,31 @@ export const getFriendlyErrorMessage = (
   )},${c.cyan(String(start.column + 1))}): ${message}${NEWLINE}`;
   error += NEWLINE;
 
-  console.log(result.expected[0].tokens);
+  // Sometimes tokens is missing some text. This is a bug I should fix. In the meantime
+  // Lets throw this unformatted text in here.
+  const missingTextHack = str.substring(
+    blockLength(result.expected[0].tokens) - 1,
+    pos
+  );
 
-  error += toString(result.expected[0].tokens, {
+  const block = combineBlocks(
+    combineBlocks(result.expected[0].tokens, [
+      [{ type: "unknown", text: missingTextHack }],
+    ]),
+    toUnknownBlock(str.substring(pos))
+  );
+
+  const lineToStartPrinting =
+    start.line - NUM_CONTEXT_LINES_BEFORE < 0
+      ? 0
+      : start.line - NUM_CONTEXT_LINES_BEFORE;
+
+  error += toString(block, {
     colors: true,
-    lineNumbers: false,
+    lineNumbers: true,
+    startLine: lineToStartPrinting,
+    endLine: start.line + NUM_CONTEXT_LINES_AFTER,
   });
-
-  error += str.substring(result.pos);
 
   // if ("tokens" in result) {
   //   error += toString(result.tokens, {
@@ -181,9 +218,9 @@ export const getFriendlyErrorMessage = (
   //   });
   // } else {
   //   const lineToStartPrinting =
-  //     start.line - NUM_CONTEXT_LINES_BEFORE < 0
-  //       ? 0
-  //       : start.line - NUM_CONTEXT_LINES_BEFORE;
+  // start.line - NUM_CONTEXT_LINES_BEFORE < 0
+  //   ? 0
+  //   : start.line - NUM_CONTEXT_LINES_BEFORE;
   //   error +=
   //     indent({
   //       lines: lines.slice(lineToStartPrinting, start.line),

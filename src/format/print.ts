@@ -17,6 +17,8 @@ export const TAB = "\t";
 export type PrintOptions = {
   colors: boolean;
   lineNumbers: boolean;
+  startLine?: number;
+  endLine?: number;
 };
 
 export type FormatDetailsForError = {
@@ -90,14 +92,25 @@ function printToken(node: Token, opts: PrintOptions): string {
       return c.cyan(node.text);
     case "comment":
       return c.grey(node.text);
-    // case "error":
-    //   return c.bgRed(c.white(node.text));
+    case "error":
+      return c.bgRed(c.white(node.text));
+    case "lineNumber":
+      return c.grey(node.text);
     case "unknown":
-      return node.text;
+      return c.grey(node.text);
   }
 }
 
-export function toString(block: Block, opts: PrintOptions) {
+export function toString(_block: Block, opts: PrintOptions) {
+  let block = _block;
+
+  if (opts.lineNumbers) {
+    block = block.map((line, index) => [
+      { type: "lineNumber", text: ` ${index + 1}   ` },
+      ...line,
+    ]);
+  }
+
   return block
     .map((line) => line.map((token) => printToken(token, opts)).join(""))
     .join(NEWLINE);

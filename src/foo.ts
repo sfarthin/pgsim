@@ -1,6 +1,13 @@
 import { sequence } from "./parse/sequence";
 import { or } from "./parse/or";
-import { keyword, __, zeroToMany, oneToMany, endOfInput } from "./parse/util";
+import {
+  optional,
+  keyword,
+  __,
+  zeroToMany,
+  oneToMany,
+  endOfInput,
+} from "./parse/util";
 import { stmt } from "./parse";
 
 // const result = sequence([keyword("a"), __, keyword("b"), __, keyword("c")])({
@@ -9,10 +16,16 @@ import { stmt } from "./parse";
 // });
 
 const result = sequence([
-  sequence([keyword("a"), __, keyword("b")]),
+  sequence([
+    keyword("a"),
+    __,
+    sequence([optional(or([keyword("b"), keyword("k")])), __]),
+    __,
+    keyword("c"),
+  ]),
   endOfInput,
 ])({
-  str: "a ",
+  str: "a b b",
   pos: 0,
 });
 
