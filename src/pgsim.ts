@@ -46,7 +46,7 @@ yargs(process.argv.splice(2))
     },
     (r) => {
       const str = readFileSync(resolve(process.cwd(), r.filename)).toString();
-      const response = format(str, r);
+      const response = format(str, r.filename, r);
       console.log(response);
     }
   )
@@ -71,10 +71,13 @@ yargs(process.argv.splice(2))
       },
     },
     (r) => {
-      const str = readFileSync(resolve(process.cwd(), r.filename)).toString();
-      const response = parse({ str, filename: r.filename, pos: 0 });
+      const sql = readFileSync(resolve(process.cwd(), r.filename)).toString();
+      const response = parse(sql, r.filename);
       console.log(
-        toString(response.tokens, { colors: r.colors, lineNumbers: false })
+        toString(response.tokens, {
+          colors: r.colors,
+          lineNumbers: false,
+        })
       );
     }
   )

@@ -9,10 +9,8 @@ import {
   or,
   ResultType,
   Rule,
-  Context,
   combineComments,
   endOfInput,
-  FailResult,
   SuccessResult,
 } from "./util";
 import { getFriendlyErrorMessage } from "./error";
@@ -31,23 +29,9 @@ import { viewStmt } from "./viewStmt";
 import { codeComments } from "./codeComments";
 import { renameStmt } from "./renameStmt";
 import { updateStmt } from "./updateStmt";
+import { transactionStmt } from "./transactionStmt";
 
-class ParseError extends Error {
-  expectedStmt?: Stmt;
-  // context: Context;
-  // result: FailResult;
-  constructor(context: Context, result: FailResult, expectedStmt?: Stmt) {
-    super();
-    this.message = getFriendlyErrorMessage(context, result);
-    // this.context = context;
-    // this.result = result;
-    this.expectedStmt = expectedStmt;
-  }
-
-  toString() {
-    return "error";
-  }
-}
+class ParseError extends Error {}
 
 const CommentStatement = transform(
   sequence([
@@ -62,32 +46,35 @@ const CommentStatement = transform(
 
 export const stmt = transform(
   or([
-    variableSetStmt,
-    createEnumStmt,
-    createSeqStmt,
-    alterSeqStmt,
-    createStmt,
-    dropStmt,
-    alterEnumStmt,
-    alterOwnerStmt,
-    indexStmt,
-    alterTableStmt,
+    or([
+      variableSetStmt,
+      createEnumStmt,
+      createSeqStmt,
+      alterSeqStmt,
+      createStmt,
+      dropStmt,
+      alterEnumStmt,
+      alterOwnerStmt,
+      indexStmt,
+      alterTableStmt,
+    ]),
     selectStmt,
     viewStmt,
     renameStmt,
     updateStmt,
+    transactionStmt,
 
     // Standalone comments
     CommentStatement,
   ]),
-  (v, ctx) => {
+  (v, ctx, r) => {
     if (!ctx.numStatements) {
       ctx.numStatements = 1;
     } else {
       ctx.numStatements++;
     }
-
-    return v;
+    // console.log(r.tokens);
+    return { ...v, tokens: r.tokens };
   }
 );
 
@@ -115,6 +102,7 @@ export const stmts: Rule<Stmt[]> = transform(
         ...(previousStmtLocation
           ? { stmt_location: previousStmtLocation }
           : {}),
+        tokens: c.tokens,
       });
 
       if (c.eos?.lastSemicolonPos != null) {
@@ -184,9 +172,16 @@ export function parseComments(inputSql: string) {
  * failed.
  */
 export default function parse(
-  context: Context,
-  expectedAst: Stmt[] = []
+  sql: string,
+  filename = "unknown",
+  opts?: {
+    /**
+     * When printing errors, should we use colors ?
+     */
+    colors?: boolean | undefined;
+  }
 ): SuccessResult<Stmt[]> {
+  const context = { str: sql, pos: 0, numStatements: 0 };
   const result = stmts(context);
 
   if (result.type == ResultType.Success) {
@@ -194,11 +189,14 @@ export default function parse(
     return result;
   }
 
-  const error = new ParseError(
-    context,
-    result,
-    expectedAst[context.numStatements ?? 0]
-  );
+  const errorMessage = getFriendlyErrorMessage(result, {
+    ...opts,
+    colors: true, // <-- By default errors will use ANSI colors
+    sql,
+    filename,
+  });
+
+  const error = new ParseError(errorMessage);
 
   throw error;
 }

@@ -65,11 +65,6 @@ type BufferRuleResult<R> = FailResult | SuccessBufferResult<R>;
 
 export type Context = {
   /**
-   * Filename of SQL file
-   */
-  filename?: string;
-
-  /**
    * Original SQL
    */
   str: string;
@@ -406,22 +401,26 @@ export function notConstant(keyword: string): BufferRule<string> {
 
 export function transform<T, R>(
   rule: BufferRule<T>,
-  transform: (i: T, c: Context) => R
+  transform: (i: T, c: Context, r: SuccessResult<T>) => R
 ): BufferRule<R>;
 export function transform<T, R>(
   rule: Rule<T>,
-  transform: (i: T, c: Context) => R
+  transform: (i: T, c: Context, r: SuccessResult<T>) => R
 ): Rule<R>;
 export function transform<T, R>(
   rule: EitherRule<T>,
-  transform: (i: T, c: Context) => R
+  transform: (
+    i: T,
+    c: Context,
+    r: SuccessResult<T> // <-- THis is really right, but we never access this during bufferResults
+  ) => R
 ): EitherRule<R> {
   const newRule: EitherRule<R> = (ctx) => {
     const result = rule(ctx);
     if (result.type === ResultType.Success) {
       return {
         ...result,
-        value: transform(result.value, ctx),
+        value: transform(result.value, ctx, result as SuccessResult<T>),
       };
     }
     return result;
@@ -686,6 +685,7 @@ const keywordList = [
   "AND",
   "ACTION",
   "ADD",
+  "BEGIN",
   "AFTER",
   "ALTER",
   "AS",
@@ -698,6 +698,7 @@ const keywordList = [
   "CONCURRENTLY",
   // "CONSTRAINT",
   "COLUMN",
+  "COMMIT",
   "CREATE",
   "CYCLE",
   // "DEFAULT",
@@ -738,6 +739,7 @@ const keywordList = [
   "RENAME",
   "RESTRICT",
   "RIGHT",
+  "ROLLBACK",
   "SEQUENCE",
   "SET",
   "SELECT",
@@ -801,6 +803,7 @@ export const ALTER = keyword("ALTER");
 export const AS = keyword("AS");
 export const ASC = keyword("ASC");
 export const BEFORE = keyword("BEFORE");
+export const BEGIN = keyword("BEGIN");
 export const BY = keyword("BY");
 export const CACHE = keyword("CACHE");
 export const CASCADE = keyword("CASCADE");
@@ -808,6 +811,7 @@ export const CASE = keyword("CASE");
 export const CONCURRENTLY = keyword("CONCURRENTLY");
 export const CONSTRAINT = keyword("CONSTRAINT" as any); // <-- exeption for Truebill
 export const COLUMN = keyword("COLUMN");
+export const COMMIT = keyword("COMMIT");
 export const CREATE = keyword("CREATE");
 export const CYCLE = keyword("CYCLE");
 export const DEFAULT = keyword("DEFAULT" as any); // <-- exeption for Truebill
@@ -847,6 +851,7 @@ export const PUBLIC = keyword("PUBLIC" as any); // <-- One exeption where we can
 export const REFERENCES = keyword("REFERENCES");
 export const RENAME = keyword("RENAME");
 export const RESTRICT = keyword("RESTRICT");
+export const ROLLBACK = keyword("ROLLBACK");
 export const SEQUENCE = keyword("SEQUENCE");
 export const SELECT = keyword("SELECT");
 export const SET = keyword("SET");

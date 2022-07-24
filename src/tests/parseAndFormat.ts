@@ -1,6 +1,5 @@
 import parse, { parseComments } from "../parse";
 import { SuccessResult } from "../parse/util";
-import { toLineAndColumn, findNextToken } from "../parse/error";
 import nParse from "./nativeParse";
 import format, { toString } from "../format";
 import { Stmt } from "../types";
@@ -14,6 +13,18 @@ import c from "ansi-colors";
 import { NEWLINE } from "../format/print";
 
 Error.stackTraceLimit = Infinity;
+
+export const toLineAndColumn = (str: string, pos: number) => {
+  const line = (str.substring(0, pos).match(/\n/g) || []).length;
+  const column = str
+    .substring(0, pos)
+    .split("")
+    .reverse()
+    .join("")
+    .indexOf(NEWLINE);
+
+  return { line: line, column: column === -1 ? pos : column };
+};
 
 /**
  * By ensuring the native parser is verified by the decoder
@@ -103,6 +114,7 @@ function removeComments(stmts: Stmt[]): Stmt[] {
           // Only in new parser
           "codeComment",
           "codeComments",
+          "tokens",
         ])
       ) as Stmt[]
     )
@@ -120,6 +132,9 @@ function removeStyle(stmts: Stmt[]): Stmt[] {
 
       // different in each parser
       "location",
+
+      // only in our parser
+      "tokens",
     ])
   ) as Stmt[];
 }
@@ -135,10 +150,7 @@ export default function parseAndFormat(
   } catch (e) {
     // Lets see the parse error too.
     try {
-      const ast = parse(
-        { str: sql, filename: basename(filename), pos: 0 },
-        realAst
-      );
+      const ast = parse(sql, basename(filename));
       console.log(JSON.stringify(ast, null, 2));
     } catch (errorWithOurParser) {
       // If both our parser and the native parser fail, its probably inncorrect syntax.
@@ -154,10 +166,7 @@ export default function parseAndFormat(
     throw e;
   }
 
-  const ast = parse(
-    { str: sql, filename: basename(filename), pos: 0 },
-    realAst
-  );
+  const ast = parse(sql, basename(filename));
 
   assertStr(
     toString(ast.tokens, {
@@ -179,8 +188,10 @@ export default function parseAndFormat(
       const end = astNoComments[key].stmt_len ?? 99999;
       const rawSql = sql.substring(start, start + end);
 
-      const nextToken = findNextToken(sql, start);
-      const { line } = toLineAndColumn(sql, nextToken.start);
+      const { line } = toLineAndColumn(
+        sql,
+        astNoComments[key].stmt_location ?? 0
+      );
 
       assertNoDiff(
         actualAstNoComments[key],
@@ -204,23 +215,18 @@ export default function parseAndFormat(
     concatAllCodeComments(ast).slice(0).sort().filter(Boolean), // <--- pull comments from AST.
     `4. Parser is not retaining comments in ${c.cyan(
       `${basename(filename)}`
-    )}\n${JSON.stringify(ast, null, 2)}`
+    )}\n${JSON.stringify(removeStyle(ast.value), null, 2)}`
   );
 
-  // 5. Then we verify our formatter by confirmating it produces the same parsed AST
+  // 5. Then we verify our formatter by confirming it produces the same parsed AST
   const astNoStyle = removeStyle(ast.value);
-  const formattedSql = format(ast.value, { sql, filename: basename(filename) });
+  const formattedSql = format(ast, basename(filename), { sql });
 
   let formattedAst;
   try {
-    formattedAst = parse({
-      str: formattedSql,
-      filename: basename(filename),
-      pos: 0,
-    });
+    formattedAst = parse(formattedSql, basename(filename));
   } catch (_e) {
     const e = _e as Error;
-    console.log(formattedSql);
     e.name = `Format provided invalid SQL`;
     throw e;
   }
@@ -241,8 +247,7 @@ export default function parseAndFormat(
     const endAst = ast.value[key].stmt_len ?? 99999;
     const originalSql = sql.substring(startAst, startAst + endAst);
 
-    const nextToken = findNextToken(sql, startAst);
-    const { line } = toLineAndColumn(sql, nextToken.start);
+    const { line, column } = toLineAndColumn(sql, startAst);
 
     const startFormattedAst = formattedAst.value[key].stmt_location ?? 0;
     const endFormattedAst = formattedAst.value[key].stmt_len ?? 99999;
@@ -255,7 +260,7 @@ export default function parseAndFormat(
       astNoStyle[key],
       formattedAstNoStyle[key],
       `6. Formatter does not produce the same AST, ${c.cyan(
-        `${basename(filename)}:${line + 1}`
+        `${basename(filename)}(${line + 1}:${column + 1})`
       )} (Statement ${Number(key) + 1} of ${
         astNoComments.length
       })${NEWLINE}${NEWLINE}Correct:${NEWLINE}${c.yellow(

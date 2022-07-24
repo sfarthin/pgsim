@@ -5,7 +5,6 @@ import {
   Context,
   Expected,
   ResultType,
-  FailResult,
 } from "./util";
 import { expectedReducer } from "./expectedReducer";
 

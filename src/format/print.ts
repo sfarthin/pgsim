@@ -4,67 +4,59 @@
 
 import { Block, Token } from "./util";
 import c from "ansi-colors";
-import {
-  toLineAndColumn,
-  getSnippetWithLineNumbers,
-  findNextToken,
-} from "../parse/error";
 import { Stmt } from "../types";
 
 export const NEWLINE = "\n";
 export const TAB = "\t";
 
 export type PrintOptions = {
-  colors: boolean;
-  lineNumbers: boolean;
+  sql: string; // <-- Original sql before formatting
+  filename: string; // <-- What file it comes from.
+  colors?: boolean;
+  lineNumbers?: boolean;
   startLine?: number;
   endLine?: number;
 };
 
-export type FormatDetailsForError = {
-  sql?: string; // <-- Original sql before formatting
-  filename?: string; // <-- If this comes from a particular file
+export const toLineAndColumn = (str: string, pos: number) => {
+  const line = (str.substring(0, pos).match(/\n/g) || []).length;
+  const column = str
+    .substring(0, pos)
+    .split("")
+    .reverse()
+    .join("")
+    .indexOf(NEWLINE);
+
+  return { line: line, column: column === -1 ? pos : column };
 };
 
 export function createFriendlyStmtError(
-  stmt: Stmt,
-
+  result: Stmt,
   // This is the original error thrown
-  e: {
-    name?: string;
-    message?: string;
-  },
-  opts?: FormatDetailsForError
+  e: Error,
+  opts: PrintOptions
 ): unknown {
   const errorType = e.name === "Error" ? "" : `(${e.name})`;
-  if (opts?.filename && opts?.sql) {
-    // Lets skip over any comments
-    const { start: pos } = findNextToken(opts.sql, stmt.stmt_location ?? 0);
 
-    const { line, column } = toLineAndColumn(opts.sql, pos);
+  const { line, column } = toLineAndColumn(opts.sql, result.stmt_location ?? 0);
 
-    e.name = `Problem formatting${errorType} ${c.cyan(opts.filename)}(${c.cyan(
-      String(line + 1)
-    )},${c.cyan(String(column + 1))})`;
+  e.name = `Problem formatting${errorType} ${c.cyan(opts.filename)}(${c.cyan(
+    String(line + 1)
+  )},${c.cyan(String(column + 1))})`;
 
-    e.message = `${e.message}${NEWLINE}${NEWLINE}${getSnippetWithLineNumbers({
-      str: opts.sql,
-      start: pos,
-      end: (stmt.stmt_location ?? 0) + (stmt.stmt_len ?? 20),
-    })}${NEWLINE}`;
-  } else {
-    e.name = `Problem formatting${errorType}`;
-    e.message = `${e.message}${NEWLINE}${NEWLINE}${JSON.stringify(
-      stmt,
-      null,
-      2
-    )}`;
-  }
+  // Lets print the one statment we had an issue printing.
+  e.message = `${e.message}${NEWLINE}${NEWLINE}${toString(
+    result.tokens ?? [],
+    opts
+  )}${NEWLINE}`;
 
   return e;
 }
 
-function printToken(node: Token, opts: PrintOptions): string {
+function printToken(
+  node: Token,
+  opts: Omit<PrintOptions, "sql" | "filename">
+): string {
   if (node.type === "tab") {
     return TAB;
   }
@@ -101,14 +93,41 @@ function printToken(node: Token, opts: PrintOptions): string {
   }
 }
 
-export function toString(_block: Block, opts: PrintOptions) {
+export function toString(
+  _block: Block,
+  opts: Omit<PrintOptions, "sql" | "filename">
+) {
   let block = _block;
 
+  if (opts.startLine || opts.endLine) {
+    block = block.slice(opts.startLine ?? 0, opts.endLine);
+  }
+
   if (opts.lineNumbers) {
-    block = block.map((line, index) => [
-      { type: "lineNumber", text: ` ${index + 1}   ` },
-      ...line,
-    ]);
+    const longestLineNumberLength = `${
+      opts.endLine ?? block.length + (opts.startLine ?? 0)
+    }`.length;
+
+    block = block.map((line, index) => {
+      const lineNumber = index + 1 + (opts.startLine ?? 0);
+
+      const prefixSpaces = [
+        ...new Array(
+          longestLineNumberLength -
+            ((opts.startLine ?? 0) + index + 1).toString().length
+        ),
+      ]
+        .map(() => " ")
+        .join("");
+
+      return [
+        {
+          type: "lineNumber",
+          text: `${prefixSpaces}${lineNumber}   `,
+        },
+        ...line,
+      ];
+    });
   }
 
   return block

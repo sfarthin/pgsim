@@ -10,18 +10,16 @@ import alterTableStmt from "./alterTableStmt";
 import viewStmt from "./viewStmt";
 import selectStmt from "./selectStmt";
 import renameStmt from "./renameStmt";
+import transactionStmt from "./transactionStmt";
 
 import updateStmt from "./updateStmt";
 import { Stmt } from "../types";
 import indexStmt from "./indexStmt";
 import parse from "../parse";
 import { toSingleLineIfPossible, comment, Block } from "./util";
-import {
-  toString,
-  PrintOptions,
-  createFriendlyStmtError,
-  FormatDetailsForError,
-} from "./print";
+import { toString, PrintOptions, createFriendlyStmtError } from "./print";
+import { SuccessResult } from "../parse/util";
+import { assertError } from "../assertError";
 
 export { toString } from "./print";
 
@@ -58,22 +56,37 @@ function formatStmt(stmt: Stmt): Block {
     return renameStmt(s.RenameStmt);
   } else if ("UpdateStmt" in s) {
     return updateStmt(s.UpdateStmt);
+  } else if ("TransactionStmt" in s) {
+    return transactionStmt(s.TransactionStmt);
   }
 
   throw new Error(`Cannot format ${Object.keys(s)}`);
 }
 
+/**
+ * If we already have the parse result, we can
+ * pass that in rather than re-parsing it.
+ */
 export default function format(
-  _stmts: Stmt[] | string,
-  opts?: Partial<PrintOptions> & Partial<FormatDetailsForError>
+  input: SuccessResult<Stmt[]>,
+  filename: string,
+  opts: Omit<PrintOptions, "filename">
+): string;
+export default function format(
+  input: string,
+  filename: string,
+  opts?: Omit<PrintOptions, "sql" | "filename">
+): string;
+export default function format(
+  input: string | SuccessResult<Stmt[]>,
+  filename = "unknown",
+  opts?: Partial<PrintOptions>
 ): string {
-  // Parses a string or uses existing AST
-  const stmts =
-    typeof _stmts === "string"
-      ? parse({ str: _stmts, filename: opts?.filename, pos: 0 }).value
-      : _stmts;
+  const result =
+    typeof input === "string" ? parse(input, filename, opts) : input;
+  const sql = typeof input === "string" ? input : opts?.sql ?? "";
 
-  const codeBlock = stmts.flatMap((stmt, i) => {
+  const codeBlock = result.value.flatMap((stmt, i) => {
     try {
       const formattedStmt = toSingleLineIfPossible(formatStmt(stmt));
       if (i === 0) {
@@ -83,13 +96,20 @@ export default function format(
         return [[], ...formattedStmt];
       }
     } catch (e) {
-      throw createFriendlyStmtError(
-        stmt,
-        e as { name?: string; message?: string },
-        opts
-      );
+      assertError(e);
+
+      throw createFriendlyStmtError(stmt, e, {
+        sql,
+        filename,
+        colors: true,
+        ...opts,
+      });
     }
   });
 
-  return toString(codeBlock, { colors: false, lineNumbers: false, ...opts });
+  return toString(codeBlock, {
+    sql,
+    filename,
+    ...opts,
+  });
 }

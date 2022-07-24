@@ -14,7 +14,9 @@ import { IndexStmt, indexStmtDecoder } from "./indexStmt";
 import { ViewStmt, viewStmtDecoder } from "./viewStmt";
 import { RenameStmt, renameStmtDecoder } from "./renameStmt";
 import { UpdateStmt, updateStmtDecoder } from "./updateStmt";
+import { TransactionStmt, transactionStmtDecoder } from "./transactionStmt";
 import dispatch from "./dispatch";
+import { Block } from "src/format/util";
 
 export * from "./aExpr";
 export * from "./alias";
@@ -54,10 +56,12 @@ export * from "./typeName";
 export * from "./updateStmt";
 export * from "./variableSetStmt";
 export * from "./viewStmt";
+export * from "./transactionStmt";
 
 export type Stmt = {
-  stmt_len?: number;
-  stmt_location?: number;
+  stmt_len?: number; // <-- This simulates the same fields we have on the native parser
+  stmt_location?: number; // <-- This simulates the same fields we have on the native parser
+  tokens?: Block; // <-- This is only supported by our parser
   stmt: // SUPPORTED START
   | { Comment: string } // <-- on our parser only, for trailing comments
     | { CreateStmt: CreateStmt }
@@ -73,7 +77,8 @@ export type Stmt = {
     | { SelectStmt: SelectStmt }
     | { ViewStmt: ViewStmt }
     | { RenameStmt: RenameStmt }
-    | { UpdateStmt: UpdateStmt };
+    | { UpdateStmt: UpdateStmt }
+    | { TransactionStmt: TransactionStmt }; // BEGIN...END
 
   // | { RenameStmt: Record<string, unknown> }
   // | { CompositeTypeStmt: Record<string, unknown> }
@@ -85,7 +90,6 @@ export type Stmt = {
   // // Pass 3
 
   // | { CommentStmt: Record<string, unknown> }
-  // | { TransactionStmt: Record<string, unknown> } // BEGIN...END
   // | { CreateRoleStmt: Record<string, unknown> }
 
   // | { DefineStmt: Record<string, unknown> }
@@ -161,6 +165,7 @@ export const stmtDecoder: d.Decoder<Stmt> = d.exact({
     ViewStmt: viewStmtDecoder,
     RenameStmt: renameStmtDecoder,
     UpdateStmt: updateStmtDecoder,
+    TransactionStmt: transactionStmtDecoder,
 
     // RenameStmt: pojo,
     // CompositeTypeStmt: pojo,
@@ -178,7 +183,7 @@ export const stmtDecoder: d.Decoder<Stmt> = d.exact({
     // CreateRoleStmt: pojo,
     // DropRoleStmt: pojo,
     // CreateTableAsStmt: pojo,
-    // TransactionStmt: pojo,
+    //
     // VariableShowStmt: pojo,
     // VacuumStmt: pojo,
     // AlterRoleStmt: pojo,
