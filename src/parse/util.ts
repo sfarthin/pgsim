@@ -278,7 +278,14 @@ function multiply<T>(
     while (pos < ctx.str.length && (max === null || values.length < max)) {
       curr = rule({ ...ctx, pos });
 
-      expected = expected.concat(curr.expected).reduce(expectedReducer, []);
+      expected = expected
+        .concat(
+          curr.expected.map((e) => ({
+            ...e,
+            tokens: combineBlocks(tokens, e.tokens),
+          }))
+        )
+        .reduce(expectedReducer, []);
 
       if (curr.type === ResultType.Success) {
         if ("tokens" in curr) {
