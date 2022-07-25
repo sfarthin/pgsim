@@ -7,6 +7,10 @@ SELECT 2;
 
 SELECT 2.0;
 
+SELECT avg(b)::DECIMAL;
+
+SELECT avg(b)::DECIMAL(10,3);
+
 SELECT
 	-- foo
 	FALSE,
@@ -26,16 +30,16 @@ SELECT foo FROM foo JOIN bar ON (foo.id = bar.id);
 -- one-off
 SELECT pg_catalog.set_config('search_path', '', FALSE);
 
-SELECT nextval('accounts_id_seq'::regclass);
+SELECT nextval('accounts_id_seq'::REGCLASS);
 
 -- Can wrap in typecast or parens
-SELECT 4::text;
+SELECT 4::TEXT;
 
 SELECT 4;
 
-SELECT '1'::int4;
+SELECT '1'::INTEGER;
 
-SELECT ||/ '1'::int4;
+SELECT ||/ '1'::INTEGER;
 
 SELECT ||/ -1;
 
@@ -106,15 +110,15 @@ SELECT foo['2'];
 SELECT foo(c.foo);
 
 -- Precedence
-SELECT 1 + 1::int4;
+SELECT 1 + 1::INTEGER;
 
-SELECT 1::int4 + 1;
+SELECT 1::INTEGER + 1;
 
 SELECT foo[0] + 1;
 
 SELECT 1 + foo[0];
 
-SELECT foo::int4;
+SELECT foo::INTEGER;
 
 SELECT 5! - 6;
 
@@ -187,7 +191,7 @@ SELECT 1 = 1 AND TRUE;
 
 SELECT TRUE AND 1 = 1;
 
-SELECT (1, '2'::text, (1, 2, asdsad));
+SELECT (1, '2'::TEXT, (1, 2, asdsad));
 
 SELECT 1 IN (1, 2, 3);
 

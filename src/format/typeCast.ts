@@ -1,6 +1,7 @@
 import { TypeCast } from "../types/TypeCast";
 import { rawValue } from "./rawExpr";
-import { Line, TRUE, FALSE, symbol, identifier } from "./util";
+import { Line, TRUE, FALSE, symbol } from "./util";
+import typeName from "./typeName";
 
 export default function (c: TypeCast): Line {
   const toBoolean = c.typeName.names?.[1]?.String.str === "bool";
@@ -23,15 +24,7 @@ export default function (c: TypeCast): Line {
   }
 
   if (c.arg) {
-    return [
-      ...rawValue(c.arg).flat(),
-      symbol("::"),
-      identifier(
-        c.typeName.names.length === 1
-          ? c.typeName.names[0].String.str
-          : c.typeName.names[1].String.str
-      ),
-    ];
+    return [...rawValue(c.arg).flat(), symbol("::"), ...typeName(c.typeName)];
   }
 
   throw new Error("Not handled");

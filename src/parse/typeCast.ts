@@ -10,14 +10,9 @@ import {
   quotedString,
   symbol,
 } from "./util";
-import {
-  TypeCast,
-  TypeName,
-  TypeNameKeyword,
-  typeNames,
-  getTypeDetails,
-} from "../types";
+import { TypeCast } from "../types";
 import { rawValuePostfix } from "./rawExpr";
+import { typeName } from "./typeName";
 
 const booleanLiteral: Rule<{
   value: { TypeCast: TypeCast };
@@ -57,20 +52,12 @@ export const typeCast: Rule<{
   codeComment: string;
 }> = booleanLiteral;
 
-// TODO we will want to get a canoical list
-const typeNameRule: Rule<{ start: number; value: TypeNameKeyword }> = or(
-  typeNames.map((typeName) => keyword(typeName)) as any
-);
-
 export const typeCastLiteral: Rule<{
   value: { TypeCast: TypeCast };
   codeComment: string;
-}> = transform(sequence([__, __, typeNameRule, __, quotedString]), (v) => {
-  const typeName = v[2].value;
-  const parsedType = getTypeDetails(typeName);
-
+}> = transform(sequence([__, __, typeName, __, quotedString]), (v) => {
   return {
-    codeComment: combineComments(v[1], v[3]),
+    codeComment: combineComments(v[1], v[2].codeComment, v[3]),
     value: {
       TypeCast: {
         arg: {
@@ -79,26 +66,7 @@ export const typeCastLiteral: Rule<{
             location: v[4].pos,
           },
         },
-        typeName: {
-          names: [
-            ...(parsedType.hasPGCatalog
-              ? [
-                  {
-                    String: {
-                      str: "pg_catalog",
-                    },
-                  },
-                ]
-              : []),
-            {
-              String: {
-                str: parsedType.name,
-              },
-            },
-          ] as TypeName["names"],
-          typemod: -1,
-          location: v[2].start,
-        },
+        typeName: v[2].value,
         location: -1,
       },
     },
@@ -106,35 +74,18 @@ export const typeCastLiteral: Rule<{
 });
 
 export const typeCastConnection = (ctx: Context) =>
-  rawValuePostfix(sequence([__, symbol("::"), __, typeNameRule]), (c1, v) => {
-    const typeName = v[3].value;
-    const parsedType = getTypeDetails(typeName);
-
+  rawValuePostfix(sequence([__, symbol("::"), __, typeName]), (c1, v) => {
     return {
-      codeComment: combineComments(c1.codeComment, v[0], v[2]),
+      codeComment: combineComments(
+        c1.codeComment,
+        v[0],
+        v[2],
+        v[3].codeComment
+      ),
       value: {
         TypeCast: {
           arg: c1.value,
-          typeName: {
-            names: [
-              ...(parsedType.hasPGCatalog
-                ? [
-                    {
-                      String: {
-                        str: "pg_catalog",
-                      },
-                    },
-                  ]
-                : []),
-              {
-                String: {
-                  str: parsedType.name,
-                },
-              },
-            ] as TypeName["names"],
-            typemod: -1,
-            location: v[3].start,
-          },
+          typeName: v[3].value,
           location: v[1].start,
         },
       },

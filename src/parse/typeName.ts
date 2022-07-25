@@ -70,7 +70,7 @@ const keywordSet = (arr: string[]): Rule<string> =>
   );
 
 // const colTypeWithParam = or([]);
-const colTypeWithParamKeywords = [
+export const colTypeWithParamKeywords = [
   "bit varying",
   "varbit",
   "decimal",
@@ -90,7 +90,7 @@ const colTypeWithParamKeywords = [
   "bit",
 ];
 
-const colTypeWithDoubleParamKeywords = ["decimal", "numeric"];
+export const colTypeWithDoubleParamKeywords = ["decimal", "numeric"];
 
 const colTypeNoParamKeywords = [
   ...colTypeWithParamKeywords,
@@ -240,10 +240,9 @@ const typeNameWithNoParam: Rule<{
           A_Const: {
             val: {
               Integer: {
-                ival:
-                  defaultTypeMods[
-                    col.toLowerCase() as keyof typeof defaultTypeMods
-                  ],
+                ival: defaultTypeMods[
+                  col.toLowerCase() as keyof typeof defaultTypeMods
+                ],
               },
             },
             location:

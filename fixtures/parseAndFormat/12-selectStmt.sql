@@ -3,6 +3,8 @@ SELECT false;
 SELECT false, true;
 select 2;
 select 2.0;
+SELECT avg(b)::numeric;
+SELECT avg(b)::numeric(10,3);
 
 SELECT 
 -- foo

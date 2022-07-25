@@ -307,15 +307,6 @@ export const types = [
 type T = typeof types;
 export type TypeNameKeyword = T[number]["name"] | T[number]["alias"][number];
 
-export const typeNames: TypeNameKeyword[] = types.flatMap((t) => [
-  t.name,
-  ...t.alias,
-]);
-
-export const getTypeDetails = (t: TypeNameKeyword): T[number] =>
-  // @ts-expect-error -- dunno
-  types.find((n) => n.name === t || n.alias.includes(t));
-
 export type TypeName = {
   names:
     | [

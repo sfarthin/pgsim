@@ -1,6 +1,6 @@
 import { AlterTableCmd, AlterTableStmt, AlterTableCmdSubType } from "../types";
 import { rawValue } from "./rawExpr";
-import { toType } from "./columnDef";
+import typeName from "./typeName";
 import toConstraints from "./constraint";
 import {
   keyword,
@@ -28,7 +28,7 @@ function alterTableCmd(c: AlterTableCmd): Line {
         _,
         keyword("TYPE"),
         _,
-        ...toType(c.def.ColumnDef),
+        ...typeName(c.def.ColumnDef.typeName),
       ];
     case AlterTableCmdSubType.AT_DropColumn:
       return [keyword("DROP"), _, identifier(c.name ?? "")];
@@ -86,7 +86,7 @@ function alterTableCmd(c: AlterTableCmd): Line {
         _,
         identifier(c.def.ColumnDef.colname),
         _,
-        ...toType(c.def.ColumnDef),
+        ...typeName(c.def.ColumnDef.typeName),
         ...toConstraints(constraints, true),
       ];
     }
