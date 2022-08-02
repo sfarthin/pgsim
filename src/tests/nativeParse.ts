@@ -1,5 +1,5 @@
 import * as d from "decoders";
-import { stmtDecoder, Stmt } from "../types";
+import { stmtDecoder, Stmt } from "~/types";
 import { parseQuerySync } from "libpg-query";
 import { toLineAndColumn } from "../format/print";
 import { NEWLINE } from "../format/print";

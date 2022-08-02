@@ -13,7 +13,7 @@ import {
   _,
   EOS,
 } from "./util";
-import { ViewStmt } from "../types";
+import { ViewStmt } from "~/types";
 import { select } from "./selectStmt";
 
 export const viewStmt: Rule<{ eos: EOS; value: { ViewStmt: ViewStmt } }> =

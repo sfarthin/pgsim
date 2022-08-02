@@ -1,4 +1,4 @@
-import { ColumnRef } from "../types";
+import { ColumnRef } from "~/types";
 import { identifier, symbol, Line } from "./util";
 
 export default function columnRef(c: ColumnRef): Line {

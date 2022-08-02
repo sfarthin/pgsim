@@ -21,7 +21,7 @@ import {
   DEFAULT,
   CURRENT,
 } from "./util";
-import { AlterDatabaseSetStmt } from "../types";
+import { AlterDatabaseSetStmt } from "~/types";
 import { aConst } from "./aConst";
 
 const setVariety: Rule<{

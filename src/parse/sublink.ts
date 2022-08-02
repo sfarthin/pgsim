@@ -12,7 +12,7 @@ import {
   or,
 } from "./util";
 import { select } from "./selectStmt";
-import { SubLink, SubLinkType } from "../types";
+import { SubLink, SubLinkType } from "~/types";
 import { rawValuePostfix } from "./rawExpr";
 
 export const subLinkExists: Rule<{

@@ -1,4 +1,4 @@
-import { List } from "../types";
+import { List } from "~/types";
 
 export function list<I, T>(n: List<I>, fn: (e: I, i: number) => T) {
   if (Array.isArray(n.items)) {

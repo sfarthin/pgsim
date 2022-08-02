@@ -1,4 +1,4 @@
-import { ColumnDef } from "../types";
+import { ColumnDef } from "~/types";
 
 import toConstraints from "./constraint";
 import { comment, identifier, _, Block } from "./util";

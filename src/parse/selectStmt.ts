@@ -20,7 +20,7 @@ import {
   EOS,
 } from "./util";
 import { rawValue } from "./rawExpr";
-import { SelectStmt } from "../types";
+import { SelectStmt } from "~/types";
 import { sortBy } from "./sortBy";
 import { rangeVar } from "./rangeVar";
 import { joinExpr } from "./joinExpr";

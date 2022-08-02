@@ -1,5 +1,5 @@
 import { transform, Rule, tableIdentifier, or, STAR } from "./util";
-import { ColumnRef } from "../types";
+import { ColumnRef } from "~/types";
 
 export const columnRef: Rule<{
   value: { ColumnRef: ColumnRef };

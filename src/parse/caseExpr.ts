@@ -13,7 +13,7 @@ import {
   oneToMany,
   optional,
 } from "./util";
-import { CaseWhen, CaseExpr } from "../types";
+import { CaseWhen, CaseExpr } from "~/types";
 
 const caseWhen: Rule<{
   value: { CaseWhen: CaseWhen };

@@ -1,4 +1,4 @@
-import { AlterEnumStmt } from "../types";
+import { AlterEnumStmt } from "~/types";
 import {
   keyword,
   _,

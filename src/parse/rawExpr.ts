@@ -12,7 +12,7 @@ import {
 import { aConst } from "./aConst";
 import { typeCast } from "./typeCast";
 import { funcCall } from "./funcCall";
-import { RawValue } from "../types";
+import { RawValue } from "~/types";
 import { columnRef } from "./columnRef";
 import { notBoolExpr, boolConnection } from "./boolExpr";
 import { nullTestConnection } from "./nullTest";
@@ -97,11 +97,9 @@ export function connectRawValue<B>(
 ) {
   return transform(
     ruleB,
-    (r2, ctx) => (r1: {
-      value: RawValue;
-      codeComment: string;
-      hasParens: boolean;
-    }) => extensionFn(r1, r2, ctx)
+    (r2, ctx) =>
+      (r1: { value: RawValue; codeComment: string; hasParens: boolean }) =>
+        extensionFn(r1, r2, ctx)
   );
 }
 
@@ -119,10 +117,8 @@ export function rawValuePostfix<B>(
 ) {
   return transform(
     ruleB,
-    (r2, ctx) => (r1: {
-      value: RawValue;
-      codeComment: string;
-      hasParens?: boolean;
-    }) => extensionFn(r1, r2, ctx)
+    (r2, ctx) =>
+      (r1: { value: RawValue; codeComment: string; hasParens?: boolean }) =>
+        extensionFn(r1, r2, ctx)
   );
 }

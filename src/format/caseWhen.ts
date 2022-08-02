@@ -1,4 +1,4 @@
-import { CaseWhen } from "../types";
+import { CaseWhen } from "~/types";
 import { keyword, indent, Block } from "./util";
 import { rawValue } from "./rawExpr";
 

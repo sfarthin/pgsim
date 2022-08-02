@@ -1,4 +1,4 @@
-import { AlterDatabaseSetStmt } from "../types";
+import { AlterDatabaseSetStmt } from "~/types";
 import aConst from "./aConst";
 import { comment, keyword, symbol, Block, _, identifier, Line } from "./util";
 

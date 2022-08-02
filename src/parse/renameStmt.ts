@@ -16,7 +16,7 @@ import {
   endOfStatement,
   EOS,
 } from "./util";
-import { RenameStmt, RenameType, RelationType } from "../types";
+import { RenameStmt, RenameType, RelationType } from "~/types";
 import { rangeVar } from "./rangeVar";
 
 export const renameStmt: Rule<{ eos: EOS; value: { RenameStmt: RenameStmt } }> =

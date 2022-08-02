@@ -1,4 +1,4 @@
-import { BoolExpr, BoolOp } from "../types";
+import { BoolExpr, BoolOp } from "~/types";
 import { rawValue } from "./rawExpr";
 import { addToLastLine, symbol, _, keyword, indent, Block } from "./util";
 

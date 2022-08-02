@@ -40,7 +40,7 @@
 //   AlterTableCmd,
 //   CaseWhen,
 //   CaseExpr,
-// } from "../types";
+// } from "~/types";
 
 // // Full list here: https://doxygen.postgresql.org/nodes_8h.html#a83ba1e84fa23f6619c3d29036b160919
 // export type Node =

@@ -1,4 +1,4 @@
-import { BoolExpr, BoolOp } from "../types";
+import { BoolExpr, BoolOp } from "~/types";
 import { rawValue, connectRawValue } from "./rawExpr";
 import {
   sequence,

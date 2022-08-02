@@ -1,4 +1,4 @@
-import { IndexStmt } from "../types";
+import { IndexStmt } from "~/types";
 import { Block, join, comment, keyword, identifier, _, symbol } from "./util";
 
 export default function (c: IndexStmt): Block {

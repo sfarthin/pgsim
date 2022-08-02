@@ -1,4 +1,4 @@
-import { AExpr, AExprKind } from "../types";
+import { AExpr, AExprKind } from "~/types";
 import { rawValue } from "./rawExpr";
 import { _, keyword, symbol, indent, Block } from "./util";
 import { getPrecedence } from "../parse/aExpr";

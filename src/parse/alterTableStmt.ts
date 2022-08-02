@@ -1,4 +1,4 @@
-import { AlterTableStmt } from "../types";
+import { AlterTableStmt } from "~/types";
 import {
   sequence,
   transform,

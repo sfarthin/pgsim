@@ -1,4 +1,4 @@
-import { AlterOwnerStmt } from "../types";
+import { AlterOwnerStmt } from "~/types";
 import { comment, keyword, _, identifier, symbol, Block } from "./util";
 
 export default function alterOwnerStmt(c: AlterOwnerStmt): Block {

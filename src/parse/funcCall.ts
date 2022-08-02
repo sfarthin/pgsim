@@ -14,7 +14,7 @@ import {
   keyword,
   STAR,
 } from "./util";
-import { FuncCall } from "../types";
+import { FuncCall } from "~/types";
 import { rawValue } from "./rawExpr";
 
 // THis should include equestions and type casts.

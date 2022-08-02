@@ -1,4 +1,4 @@
-import { IndexStmt } from "../types";
+import { IndexStmt } from "~/types";
 import {
   sequence,
   transform,

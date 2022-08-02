@@ -1,4 +1,4 @@
-import { ViewStmt } from "../types";
+import { ViewStmt } from "~/types";
 import { innerSelect } from "./selectStmt";
 
 import { Block, keyword, _, comment, identifier, symbol, indent } from "./util";

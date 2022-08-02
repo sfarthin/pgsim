@@ -13,7 +13,7 @@ import {
   _,
   EOS,
 } from "./util";
-import { AlterOwnerStmt } from "../types";
+import { AlterOwnerStmt } from "~/types";
 
 export const alterOwnerStmt: Rule<{
   eos: EOS;

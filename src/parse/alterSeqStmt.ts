@@ -12,7 +12,7 @@ import {
   commentsOnSameLine,
   EOS,
 } from "./util";
-import { AlterSeqStmt } from "../types";
+import { AlterSeqStmt } from "~/types";
 import { defElemList } from "./defElem";
 
 export const alterSeqStmt: Rule<{

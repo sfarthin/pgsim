@@ -1,4 +1,4 @@
-import { DefElem } from "../types";
+import { DefElem } from "~/types";
 import { identifier, symbol, keyword, _, Line, integerLiteral } from "./util";
 
 export default function defElem(defElem: DefElem): Line {

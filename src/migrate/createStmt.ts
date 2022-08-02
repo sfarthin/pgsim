@@ -1,4 +1,4 @@
-// import { ColumnDef, ConType, CreateStmt, DefaultConstraint } from "../types";
+// import { ColumnDef, ConType, CreateStmt, DefaultConstraint } from "~/types";
 // import formatCreateStmt, { toType } from "../format/createStmt";
 // import { rawValue as formatRawValue } from "../format/rawExpr";
 // import { NEWLINE, textFormatter } from "../format/util";

@@ -6,7 +6,7 @@
 //   ColumnDef,
 //   ConType,
 //   DefaultConstraint,
-// } from "../types";
+// } from "~/types";
 
 // export default function alterTableStmt(
 //   d: CreateStmt[],

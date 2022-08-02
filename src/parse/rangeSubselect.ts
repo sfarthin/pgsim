@@ -1,4 +1,4 @@
-import { RangeSubselect } from "../types";
+import { RangeSubselect } from "~/types";
 import {
   transform,
   identifier,

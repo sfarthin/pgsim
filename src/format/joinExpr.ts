@@ -1,4 +1,4 @@
-import { JoinExpr, JoinType } from "../types";
+import { JoinExpr, JoinType } from "~/types";
 import {
   Block,
   keyword,

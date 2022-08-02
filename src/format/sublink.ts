@@ -1,4 +1,4 @@
-import { SubLink, SubLinkType } from "../types";
+import { SubLink, SubLinkType } from "~/types";
 import { Block, keyword, _, symbol, indent } from "./util";
 import { innerSelect } from "./selectStmt";
 import { rawValue } from "./rawExpr";

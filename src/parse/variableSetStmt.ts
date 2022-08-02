@@ -12,7 +12,7 @@ import {
   EOS,
 } from "./util";
 import { aConst } from "./aConst";
-import { VariableSetStmt } from "../types";
+import { VariableSetStmt } from "~/types";
 
 export const variableSetStmt: Rule<{
   value: { VariableSetStmt: VariableSetStmt };

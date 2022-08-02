@@ -1,4 +1,4 @@
-import { RenameStmt } from "../types";
+import { RenameStmt } from "~/types";
 import rangeVar from "./rangeVar";
 import { comment, keyword, stringLiteral, symbol, Block, _ } from "./util";
 

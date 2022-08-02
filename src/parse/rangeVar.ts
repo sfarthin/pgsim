@@ -1,4 +1,4 @@
-import { RangeVar } from "../types";
+import { RangeVar } from "~/types";
 import {
   transform,
   identifier,

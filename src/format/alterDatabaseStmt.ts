@@ -1,4 +1,4 @@
-import { AlterDatabaseStmt } from "../types";
+import { AlterDatabaseStmt } from "~/types";
 import { comment, keyword, symbol, Block, _, identifier } from "./util";
 
 export default function (c: AlterDatabaseStmt): Block {

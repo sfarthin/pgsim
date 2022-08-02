@@ -1,4 +1,4 @@
-import { DropStmt, RemoveType } from "../types";
+import { DropStmt, RemoveType } from "~/types";
 import { comment, Block, keyword, _, identifier, symbol } from "./util";
 
 export default function (c: DropStmt): Block {

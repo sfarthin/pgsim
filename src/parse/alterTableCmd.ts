@@ -8,7 +8,7 @@ import {
   AlterTableDropNotNull,
   AlterTableColumnType,
   AlterTableDropConstraint,
-} from "../types";
+} from "~/types";
 import {
   sequence,
   transform,

@@ -27,7 +27,7 @@ import {
   DropStmtSequence,
   DropStmtTable,
   DropStmtType,
-} from "../types";
+} from "~/types";
 
 export const dropStmt: Rule<{ eos: EOS; value: { DropStmt: DropStmt } }> =
   transform(

@@ -1,11 +1,16 @@
 {
-    "sourceMaps": true,
-    "jsc": {
-        "parser": {
-            "syntax": "typescript"
-        }
+  "sourceMaps": true,
+  "jsc": {
+    "parser": {
+      "syntax": "typescript"
     },
-    "module": {
-        "type": "commonjs"
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./src/*"]
     }
+  },
+  "module": {
+    "type": "commonjs"
+  },
+  "rootDir": "."
 }

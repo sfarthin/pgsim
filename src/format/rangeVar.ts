@@ -1,4 +1,4 @@
-import { RangeVar } from "../types";
+import { RangeVar } from "~/types";
 import { identifier, symbol, keyword, _, Line } from "./util";
 
 export default function rangeVar(c: RangeVar): Line {

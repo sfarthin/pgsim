@@ -11,7 +11,7 @@ import {
   Rule,
   lookForWhiteSpaceOrComment,
 } from "./util";
-import { RawValue, AExprKind, AExpr } from "../types";
+import { RawValue, AExprKind, AExpr } from "~/types";
 import { rowExpr } from "./rowExpr";
 import { adjustPrecedence } from "./rawValuePrecendence";
 

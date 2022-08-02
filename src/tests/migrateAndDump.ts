@@ -1,4 +1,4 @@
-// import { Stmt } from "../types";
+// import { Stmt } from "~/types";
 // import format from "../format";
 // import parse from "../parse";
 // import migrate from "../migrate";

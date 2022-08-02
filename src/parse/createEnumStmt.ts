@@ -18,7 +18,7 @@ import {
   __,
   EOS,
 } from "./util";
-import { CreateEnumStmt } from "../types";
+import { CreateEnumStmt } from "~/types";
 
 const enumList = transform(
   sequence([

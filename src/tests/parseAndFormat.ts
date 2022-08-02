@@ -2,7 +2,7 @@ import parse, { parseComments } from "../parse";
 import { SuccessResult } from "../parse/util";
 import nParse from "./nativeParse";
 import format, { toString } from "../format";
-import { Stmt, stmtDecoder } from "../types";
+import { Stmt } from "~/types";
 import { join, basename } from "path";
 import { lstatSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import {
@@ -11,7 +11,6 @@ import {
 } from "assert-no-diff";
 import c from "ansi-colors";
 import { NEWLINE } from "../format/print";
-import * as d from "decoders";
 
 Error.stackTraceLimit = Infinity;
 

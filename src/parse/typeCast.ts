@@ -10,7 +10,7 @@ import {
   quotedString,
   symbol,
 } from "./util";
-import { TypeCast } from "../types";
+import { TypeCast } from "~/types";
 import { rawValuePostfix } from "./rawExpr";
 import { typeName } from "./typeName";
 

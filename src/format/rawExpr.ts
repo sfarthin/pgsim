@@ -1,4 +1,4 @@
-import { RawValue } from "../types";
+import { RawValue } from "~/types";
 import typeCast from "./typeCast";
 import aConst from "./aConst";
 import funcCall from "./funcCall";

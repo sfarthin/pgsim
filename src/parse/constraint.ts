@@ -42,7 +42,7 @@ import {
   NotNullConstraint,
   ForeignKeyConstraint,
   ConType,
-} from "../types";
+} from "~/types";
 
 export const defaultConstraint: Rule<{
   codeComment: string;

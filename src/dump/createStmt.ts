@@ -1,4 +1,4 @@
-// import { CreateStmt } from "../types";
+// import { CreateStmt } from "~/types";
 
 // export default function createStmt(d: CreateStmt[], c: CreateStmt): void {
 //   const name = c.relation.relname;

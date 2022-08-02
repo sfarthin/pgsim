@@ -1,4 +1,4 @@
-import { Constraint, ConType } from "../types";
+import { Constraint, ConType } from "~/types";
 import { rawValue } from "./rawExpr";
 import { join, keyword, _, identifier, symbol, Line } from "./util";
 

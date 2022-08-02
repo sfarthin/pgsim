@@ -1,4 +1,4 @@
-import { RowExpr } from "../types";
+import { RowExpr } from "~/types";
 import { rawValue } from "./rawExpr";
 import { join, Line, symbol, _ } from "./util";
 

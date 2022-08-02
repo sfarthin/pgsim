@@ -1,4 +1,4 @@
-import { UpdateStmt } from "../types";
+import { UpdateStmt } from "~/types";
 import { symbol, identifier, keyword, indent, _, comment, Block } from "./util";
 
 import rangeVar from "./rangeVar";

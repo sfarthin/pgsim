@@ -15,7 +15,7 @@ import {
   or,
   EOS,
 } from "./util";
-import { UpdateStmt, ResTarget } from "../types";
+import { UpdateStmt, ResTarget } from "~/types";
 import { aConst } from "./aConst";
 import { typeCast } from "./typeCast";
 

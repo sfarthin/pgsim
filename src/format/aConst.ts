@@ -1,4 +1,4 @@
-import { A_Const } from "../types";
+import { A_Const } from "~/types";
 import {
   Line,
   stringLiteral,

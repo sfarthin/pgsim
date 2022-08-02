@@ -1,4 +1,4 @@
-import { CreateStmt, ColumnDef, Constraint } from "../types";
+import { CreateStmt, ColumnDef, Constraint } from "~/types";
 import { toTableConstraint } from "./constraint";
 import {
   Block,

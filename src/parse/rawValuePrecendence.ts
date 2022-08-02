@@ -1,6 +1,6 @@
-import { RawValue, AExprKind, AExpr } from "../types";
+import { RawValue, AExprKind, AExpr } from "~/types";
 import { negateAConst } from "./aConst";
-import { BoolOp } from "../types";
+import { BoolOp } from "~/types";
 
 const precedence = [
   ["*", "/", "%"],

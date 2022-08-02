@@ -4,7 +4,7 @@
 
 import { Block, Token } from "./util";
 import c from "ansi-colors";
-import { Stmt } from "../types";
+import { Stmt } from "~/types";
 
 export const NEWLINE = "\n";
 export const TAB = "\t";

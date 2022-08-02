@@ -1,4 +1,4 @@
-import { AlterTableCmd, AlterTableStmt, AlterTableCmdSubType } from "../types";
+import { AlterTableCmd, AlterTableStmt, AlterTableCmdSubType } from "~/types";
 import { rawValue } from "./rawExpr";
 import typeName from "./typeName";
 import toConstraints from "./constraint";

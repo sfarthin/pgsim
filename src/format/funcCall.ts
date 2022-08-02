@@ -1,4 +1,4 @@
-import { FuncCall } from "../types";
+import { FuncCall } from "~/types";
 import { rawValue } from "./rawExpr";
 import { Line, join, identifier, symbol, _ } from "./util";
 

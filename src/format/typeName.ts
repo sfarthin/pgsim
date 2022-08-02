@@ -1,4 +1,4 @@
-import { TypeName } from "../types";
+import { TypeName } from "~/types";
 
 import { keyword, _, Line, integerLiteral, symbol } from "./util";
 

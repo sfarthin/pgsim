@@ -1,4 +1,4 @@
-import { NullTest } from "../types";
+import { NullTest } from "~/types";
 import { rawValue } from "./rawExpr";
 import { _, keyword, Line } from "./util";
 

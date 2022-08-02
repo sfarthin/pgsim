@@ -21,7 +21,7 @@ import {
   INCREMENT,
   combineComments,
 } from "./util";
-import { DefElem } from "../types";
+import { DefElem } from "~/types";
 
 export const defElem: Rule<DefElem> = or([
   transform(sequence([OWNED, __, BY, __, NONE]), (v, ctx) => ({

@@ -10,7 +10,7 @@ import {
   __,
   regexChar,
 } from "./util";
-import { A_Const } from "../types";
+import { A_Const } from "~/types";
 
 export const aConstInteger = fromBufferToCodeBlock(
   (ctx) =>

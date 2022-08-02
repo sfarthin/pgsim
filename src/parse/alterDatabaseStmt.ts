@@ -9,16 +9,12 @@ import {
   sequence,
   __,
   _,
-  commentsOnSameLine,
   EOS,
   SET,
-  EQUALS,
-  TO,
   or,
   TABLESPACE,
-  identifierIncludingKeyword,
 } from "./util";
-import { AlterDatabaseStmt } from "../types";
+import { AlterDatabaseStmt } from "~/types";
 
 const setTablespace: Rule<{
   eos: EOS;

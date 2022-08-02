@@ -1,4 +1,4 @@
-import { RangeSubselect } from "../types";
+import { RangeSubselect } from "~/types";
 import { Block, identifier, keyword, _, symbol, indent } from "./util";
 import { innerSelect } from "./selectStmt";
 

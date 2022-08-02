@@ -1,4 +1,4 @@
-// import { Stmt, CreateStmt } from "../types";
+// import { Stmt, CreateStmt } from "~/types";
 // import parse from "../parse";
 // import format from "../format";
 // import formatCreateStmt from "../format/createStmt";

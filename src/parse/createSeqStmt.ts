@@ -13,7 +13,7 @@ import {
   __,
   EOS,
 } from "./util";
-import { CreateSeqStmt } from "../types";
+import { CreateSeqStmt } from "~/types";
 import { defElemList } from "./defElem";
 
 export const createSeqStmt: Rule<{

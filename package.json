@@ -14,8 +14,8 @@
   },
   "devDependencies": {
     "@swc/cli": "^0.1.57",
-    "@swc/core": "^1.2.163",
-    "@swc/helpers": "^0.3.8",
+    "@swc/core": "^1.2.222",
+    "@swc/helpers": "^0.4.3",
     "@types/node": "^17.0.17",
     "@types/yargs": "^17.0.8",
     "@typescript-eslint/eslint-plugin": "^5.11.0",
@@ -27,6 +27,7 @@
     "libpg-query": "^13.2.5",
     "prettier": "^2.5.1",
     "ts-node": "^10.7.0",
+    "tsconfig-paths": "^4.0.0",
     "typescript": "^4.5.5"
   },
   "dependencies": {
