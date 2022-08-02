@@ -15,8 +15,18 @@ import { ViewStmt, viewStmtDecoder } from "./viewStmt";
 import { RenameStmt, renameStmtDecoder } from "./renameStmt";
 import { UpdateStmt, updateStmtDecoder } from "./updateStmt";
 import { TransactionStmt, transactionStmtDecoder } from "./transactionStmt";
+import {
+  AlterDatabaseSetStmt,
+  alterDatabaseSetStmtDecoder,
+} from "./alterDatabaseSetStmt";
+import {
+  AlterDatabaseStmt,
+  alterDatabaseStmtDecoder,
+} from "./alterDatabaseStmt";
 import dispatch from "./dispatch";
 import { Block } from "src/format/util";
+
+// Scaffold... take a bunch of statement names and make corresponding files. export all files from indexs
 
 export * from "./aExpr";
 export * from "./alias";
@@ -57,6 +67,8 @@ export * from "./updateStmt";
 export * from "./variableSetStmt";
 export * from "./viewStmt";
 export * from "./transactionStmt";
+export * from "./alterDatabaseSetStmt";
+export * from "./alterDatabaseStmt";
 
 export type Stmt = {
   stmt_len?: number; // <-- This simulates the same fields we have on the native parser
@@ -78,7 +90,9 @@ export type Stmt = {
     | { ViewStmt: ViewStmt }
     | { RenameStmt: RenameStmt }
     | { UpdateStmt: UpdateStmt }
-    | { TransactionStmt: TransactionStmt }; // BEGIN...END
+    | { TransactionStmt: TransactionStmt }
+    | { AlterDatabaseSetStmt: AlterDatabaseSetStmt }
+    | { AlterDatabaseStmt: AlterDatabaseStmt }; // BEGIN...END
 
   // | { RenameStmt: Record<string, unknown> }
   // | { CompositeTypeStmt: Record<string, unknown> }
@@ -160,12 +174,13 @@ export const stmtDecoder: d.Decoder<Stmt> = d.exact({
     AlterEnumStmt: alterEnumStmtDecoder,
     AlterOwnerStmt: alterOwnerStmtDecoder,
     IndexStmt: indexStmtDecoder,
-    Comment: d.string,
     SelectStmt: selectStmtDecoder,
     ViewStmt: viewStmtDecoder,
     RenameStmt: renameStmtDecoder,
     UpdateStmt: updateStmtDecoder,
     TransactionStmt: transactionStmtDecoder,
+    AlterDatabaseSetStmt: alterDatabaseSetStmtDecoder,
+    AlterDatabaseStmt: alterDatabaseStmtDecoder,
 
     // RenameStmt: pojo,
     // CompositeTypeStmt: pojo,

@@ -682,6 +682,7 @@ export const commentsOnSameLine = transform(
  * Keywords / constants
  */
 const keywordList = [
+  "ALL",
   "AND",
   "ACTION",
   "ADD",
@@ -701,7 +702,9 @@ const keywordList = [
   "COMMIT",
   "CREATE",
   "CYCLE",
+  "CURRENT",
   // "DEFAULT",
+  "DATABASE",
   "DELETE",
   "DESC",
   "DROP",
@@ -738,6 +741,7 @@ const keywordList = [
   "REFERENCES",
   "RENAME",
   "RESTRICT",
+  "RESET",
   "RIGHT",
   "ROLLBACK",
   "SEQUENCE",
@@ -745,6 +749,7 @@ const keywordList = [
   "SELECT",
   "START",
   "TABLE",
+  "TABLESPACE",
   "TO",
   "THEN",
   "UNIQUE",
@@ -792,6 +797,7 @@ export function keyword(
   };
 }
 
+export const ALL = keyword("ALL");
 export const DELETE = keyword("DELETE");
 export const UPDATE = keyword("UPDATE");
 
@@ -813,7 +819,9 @@ export const CONSTRAINT = keyword("CONSTRAINT" as any); // <-- exeption for True
 export const COLUMN = keyword("COLUMN");
 export const COMMIT = keyword("COMMIT");
 export const CREATE = keyword("CREATE");
+export const CURRENT = keyword("CURRENT");
 export const CYCLE = keyword("CYCLE");
+export const DATABASE = keyword("DATABASE");
 export const DEFAULT = keyword("DEFAULT" as any); // <-- exeption for Truebill
 export const DESC = keyword("DESC");
 export const DROP = keyword("DROP");
@@ -850,6 +858,7 @@ export const PRIMARY = keyword("PRIMARY");
 export const PUBLIC = keyword("PUBLIC" as any); // <-- One exeption where we can use it ad an identifier
 export const REFERENCES = keyword("REFERENCES");
 export const RENAME = keyword("RENAME");
+export const RESET = keyword("RESET");
 export const RESTRICT = keyword("RESTRICT");
 export const ROLLBACK = keyword("ROLLBACK");
 export const SEQUENCE = keyword("SEQUENCE");
@@ -857,6 +866,7 @@ export const SELECT = keyword("SELECT");
 export const SET = keyword("SET");
 export const START = keyword("START");
 export const TABLE = keyword("TABLE");
+export const TABLESPACE = keyword("TABLESPACE");
 export const TO = keyword("TO");
 export const THEN = keyword("THEN");
 export const TYPE = keyword("TYPE" as any); // <-- One exeption where we can use it ad an identifier
@@ -884,7 +894,7 @@ export const ifNotExists: Rule<{ codeComment: string }> = transform(
   (v) => ({ codeComment: combineComments(v[1], v[3]) })
 );
 
-export const identifier: Rule<string> = (ctx: Context) => {
+export const identifierIncludingKeyword: Rule<string> = (ctx: Context) => {
   const result = fromBufferToCodeBlock(
     or([
       transform(
@@ -918,6 +928,17 @@ export const identifier: Rule<string> = (ctx: Context) => {
     };
   }
 
+  return result;
+};
+
+export const identifier: Rule<string> = (ctx: Context) => {
+  const result = identifierIncludingKeyword(ctx);
+
+  if (result.type === ResultType.Fail) {
+    return result;
+  }
+
+  // Lets also remove these keywords.
   if ((keywordList as readonly string[]).includes(result.value.toUpperCase())) {
     return {
       type: ResultType.Fail,
@@ -1004,7 +1025,7 @@ export type EOS = {
 
 export const endOfStatement: Rule<EOS> = transform(
   sequence([
-    zeroToMany(
+    oneToMany(
       // ^^^ We don't require a semicolon, but the real parser does. oneToMany would require a semicolon.
       sequence([
         SEMICOLON,

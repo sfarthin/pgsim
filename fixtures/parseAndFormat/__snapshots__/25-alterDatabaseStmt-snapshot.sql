@@ -1,0 +1,1 @@
+ALTER DATABASE some_name SET TABLESPACE new_tablespace;

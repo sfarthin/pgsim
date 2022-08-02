@@ -2,7 +2,7 @@ import parse, { parseComments } from "../parse";
 import { SuccessResult } from "../parse/util";
 import nParse from "./nativeParse";
 import format, { toString } from "../format";
-import { Stmt } from "../types";
+import { Stmt, stmtDecoder } from "../types";
 import { join, basename } from "path";
 import { lstatSync, readdirSync, readFileSync, writeFileSync } from "fs";
 import {
@@ -11,6 +11,7 @@ import {
 } from "assert-no-diff";
 import c from "ansi-colors";
 import { NEWLINE } from "../format/print";
+import * as d from "decoders";
 
 Error.stackTraceLimit = Infinity;
 
@@ -293,13 +294,13 @@ export default function parseAndFormat(
  * If a file is provided then lets just verify that file.
  */
 if (process.argv[2]) {
-  const filepath = join(process.cwd(), process.argv[2]);
+  const filepath = process.argv[2];
 
   let files;
   if (lstatSync(filepath).isDirectory()) {
     files = readdirSync(filepath)
       .filter((f) => f.match(/\.sql$/))
-      .map((f) => join(process.cwd(), process.argv[2], f));
+      .map((f) => join(process.argv[2], f));
   } else {
     files = [filepath];
   }

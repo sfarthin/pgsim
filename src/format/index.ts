@@ -11,6 +11,8 @@ import viewStmt from "./viewStmt";
 import selectStmt from "./selectStmt";
 import renameStmt from "./renameStmt";
 import transactionStmt from "./transactionStmt";
+import alterDatabaseSetStmt from "./alterDatabaseSetStmt";
+import alterDatabaseStmt from "./alterDatabaseStmt";
 
 import updateStmt from "./updateStmt";
 import { Stmt } from "../types";
@@ -58,6 +60,10 @@ function formatStmt(stmt: Stmt): Block {
     return updateStmt(s.UpdateStmt);
   } else if ("TransactionStmt" in s) {
     return transactionStmt(s.TransactionStmt);
+  } else if ("AlterDatabaseSetStmt" in s) {
+    return alterDatabaseSetStmt(s.AlterDatabaseSetStmt);
+  } else if ("AlterDatabaseStmt" in s) {
+    return alterDatabaseStmt(s.AlterDatabaseStmt);
   }
 
   throw new Error(`Cannot format ${Object.keys(s)}`);

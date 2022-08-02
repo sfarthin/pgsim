@@ -30,6 +30,8 @@ import { codeComments } from "./codeComments";
 import { renameStmt } from "./renameStmt";
 import { updateStmt } from "./updateStmt";
 import { transactionStmt } from "./transactionStmt";
+import { alterDatabaseSetStmt } from "./alterDatabaseSetStmt";
+import { alterDatabaseStmt } from "./alterDatabaseStmt";
 
 class ParseError extends Error {}
 
@@ -63,6 +65,8 @@ export const stmt = transform(
     renameStmt,
     updateStmt,
     transactionStmt,
+    alterDatabaseSetStmt,
+    alterDatabaseStmt,
 
     // Standalone comments
     CommentStatement,
