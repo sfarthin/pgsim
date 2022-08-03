@@ -1,14 +1,15 @@
 import { resolve } from "path";
-import { writeFileSync, readdirSync } from "fs";
+import { writeFileSync, readdirSync, existsSync } from "fs";
 import prettier from "prettier";
 import warning from "./warning";
 import { stmtTypes } from "./constants";
 import { camelCase } from "lodash";
 
+const toDecoder = (n: string) => camelCase(`${n}Decoder`);
+
 export default async function writeTypesIndex() {
   const typesIndexPath = resolve(__dirname, "../types/index.ts");
 
-  const toDecoder = (n: string) => camelCase(`${n}Decoder`);
   const mapStmtTypes = (mapFn: (n: string) => string) =>
     stmtTypes.map(mapFn).join(`\n`);
 
@@ -42,7 +43,6 @@ export default async function writeTypesIndex() {
     import dispatch from "./dispatch";
     import { Block } from "~/format/util";
     import { KeysOfUnion } from "./util";
-
     ${importedTypesAndDecoders}
     ${exportedStmt}
 
@@ -67,4 +67,27 @@ export default async function writeTypesIndex() {
       { parser: "babel" }
     )
   );
+
+  for (const stmtType of stmtTypes) {
+    const stmtFilePath = resolve(
+      __dirname,
+      `../types/${camelCase(stmtType)}.ts`
+    );
+    if (!existsSync(stmtFilePath)) {
+      writeFileSync(
+        stmtFilePath,
+        prettier.format(
+          /* ts */ ` 
+        import * as d from 'decoders';
+
+        export const ${toDecoder(
+          stmtType
+        )} = d.fail('${stmtType} not implemented');
+        export type ${stmtType} = d.DecoderType<typeof ${toDecoder(stmtType)}>;
+      `,
+          { parser: "babel" }
+        )
+      );
+    }
+  }
 }

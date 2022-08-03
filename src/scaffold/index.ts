@@ -1,7 +1,7 @@
-import writeTypesIndex from "./typesIndex";
+import writeTypes from "./types";
 
 async function scaffold() {
-  await writeTypesIndex();
+  await writeTypes();
 }
 
 export default scaffold;
