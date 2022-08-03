@@ -1,40 +1,18 @@
--- SELECT 8 FOFDOK
-SELECT 1;
-SELECT 2;
-SELECT 1;
-SELECT 2;
-SELECT 1;
-SELECT 2;
-SELECT 1;
-SELECT 2;
-SELECT 1;
-SELECT 2;
-SELECT 1;
-SELECT 2;
-SELECT 1;
-SELECT 2;
-SELECT 1;
-SELECT 2;
-create table foo(idd INT);
+COPY x (a, b, c, d, e) from 'foobar';
 
-SELECT 8 FROM d dasa sdad 8
+-- TODO, automatically
+COPY x (a, b, c, d, e) from stdin;
+9999	\N	\\N	\NN	\N
+10000	21	31	41	51
+\.
 
-create table foo(idd INT);
-create table foo(idd INT);
-create table foo(idd INT);
-create table foo(idd INT);
-create table foo(idd INT);
-create table foo(idd INT);
-create table foo(idd INT);
-create table foo(idd INT);
-create table foo(idd INT);
-SELECT 1;
-SELECT 2;
-SELECT 1;
-SELECT 2;
-SELECT 1;
-SELECT 2;
-SELECT 1;
-SELECT 2;
-SELECT 1;
-SELECT 2;
+    -- COPY x (b, d) from stdin;
+    -- 1	test_1
+    -- \.
+
+    -- COPY x (b, d) from stdin;
+    -- 2	test_2
+    -- 3	test_3
+    -- 4	test_4
+    -- 5	test_5
+    -- \.

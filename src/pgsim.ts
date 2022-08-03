@@ -1,9 +1,11 @@
 import yargs from "yargs/yargs";
 import { readFileSync } from "fs";
 import "regenerator-runtime/runtime.js";
-import parse from "./parse";
-import format, { toString } from "./format";
+import parse from "~/parse";
+import format, { toString } from "~/format";
 import { resolve } from "path";
+import { assertError } from "~/assertError";
+import { NEWLINE } from "~/format/print";
 
 Error.stackTraceLimit = Infinity;
 yargs(process.argv.splice(2))
@@ -72,13 +74,18 @@ yargs(process.argv.splice(2))
     },
     (r) => {
       const sql = readFileSync(resolve(process.cwd(), r.filename)).toString();
-      const response = parse(sql, r.filename);
-      console.log(
-        toString(response.tokens, {
-          colors: r.colors,
-          lineNumbers: false,
-        })
-      );
+      try {
+        const response = parse(sql, r.filename);
+        console.log(
+          toString(response.tokens, {
+            colors: r.colors,
+            lineNumbers: false,
+          })
+        );
+      } catch (e) {
+        assertError(e);
+        console.log(`${NEWLINE}${e.message}`);
+      }
     }
   )
   .demandCommand(1, 1, "Choose a command")
