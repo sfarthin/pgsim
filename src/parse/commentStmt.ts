@@ -1,20 +1,7 @@
-import {
-  transform,
-  sequence,
-  zeroToMany,
-  whitespace,
-  sqlStyleComment,
-  cStyleComment,
-  or,
-} from "./util";
+import { CommentStmt } from "~/types";
+import { Rule, EOS, fail } from "./util";
 
-export const commentStatement = transform(
-  sequence([
-    zeroToMany(whitespace),
-    or([cStyleComment, sqlStyleComment]),
-    zeroToMany(whitespace),
-  ]),
-  (v) => {
-    return { value: { Comment: v[1] }, eos: null };
-  }
-);
+export const commentStmt: Rule<{
+  value: { CommentStmt: CommentStmt },
+  eos: EOS,
+}> = fail;

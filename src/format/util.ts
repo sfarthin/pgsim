@@ -199,10 +199,12 @@ export function comment(s: string | undefined): Block {
     return [];
   }
 
-  return s
+  const comments: Block = s
     .split(NEWLINE)
     .filter(Boolean)
     .map((line) => [{ type: "comment", text: `-- ${line}`, style: "sql" }]);
+
+  return comments;
 }
 
 // export function literal(s: string | number | boolean): Token {

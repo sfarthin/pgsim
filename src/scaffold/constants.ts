@@ -16,7 +16,6 @@ export const stmtTypes = [
   "AlterTSDictionaryStmt",
   "ClosePortalStmt",
   "ClusterStmt",
-  "Comment", // <-- only this parser
   "CommentStmt",
   "CompositeTypeStmt",
   "CopyStmt",
@@ -71,4 +70,8 @@ export const stmtTypes = [
   "VariableSetStmt",
   "VariableShowStmt",
   "ViewStmt",
+  "Comment", // <-- only this parser, needs to be last
 ];
+
+export const mapStmtTypes = (mapFn: (n: string) => string) =>
+  stmtTypes.map(mapFn).join(`\n`);

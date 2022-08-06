@@ -1,7 +1,9 @@
-import writeTypes from "./types";
+import scaffoldTypes from "./types";
+import scaffoldParser from "./parse";
 
 async function scaffold() {
-  await writeTypes();
+  await scaffoldTypes();
+  await scaffoldParser();
 }
 
 export default scaffold;

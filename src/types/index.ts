@@ -1,5 +1,5 @@
 /**
- * This file was generated, DO NOT EDIT directly. See ./scaffold and run pgsim-generate
+ * This file was generated, DO NOT EDIT directly. See ./scaffold or run pgsim-scaffold
  **/
 import * as d from "decoders";
 import dispatch from "./dispatch";
@@ -49,7 +49,6 @@ import {
 } from "./alterTsDictionaryStmt";
 import { ClosePortalStmt, closePortalStmtDecoder } from "./closePortalStmt";
 import { ClusterStmt, clusterStmtDecoder } from "./clusterStmt";
-import { Comment, commentDecoder } from "./comment";
 import { CommentStmt, commentStmtDecoder } from "./commentStmt";
 import {
   CompositeTypeStmt,
@@ -131,6 +130,7 @@ import { VacuumStmt, vacuumStmtDecoder } from "./vacuumStmt";
 import { VariableSetStmt, variableSetStmtDecoder } from "./variableSetStmt";
 import { VariableShowStmt, variableShowStmtDecoder } from "./variableShowStmt";
 import { ViewStmt, viewStmtDecoder } from "./viewStmt";
+import { Comment, commentDecoder } from "./comment";
 export * from "./aExpr";
 export * from "./aIndirection";
 export * from "./alias";
@@ -254,7 +254,6 @@ export type Stmt = {
     | { AlterTSDictionaryStmt: AlterTSDictionaryStmt }
     | { ClosePortalStmt: ClosePortalStmt }
     | { ClusterStmt: ClusterStmt }
-    | { Comment: Comment }
     | { CommentStmt: CommentStmt }
     | { CompositeTypeStmt: CompositeTypeStmt }
     | { CopyStmt: CopyStmt }
@@ -308,7 +307,8 @@ export type Stmt = {
     | { VacuumStmt: VacuumStmt }
     | { VariableSetStmt: VariableSetStmt }
     | { VariableShowStmt: VariableShowStmt }
-    | { ViewStmt: ViewStmt },
+    | { ViewStmt: ViewStmt }
+    | { Comment: Comment },
 };
 
 export const stmtDecoder: d.Decoder<Stmt> = d.exact({
@@ -332,7 +332,6 @@ export const stmtDecoder: d.Decoder<Stmt> = d.exact({
     AlterTSDictionaryStmt: alterTsDictionaryStmtDecoder,
     ClosePortalStmt: closePortalStmtDecoder,
     ClusterStmt: clusterStmtDecoder,
-    Comment: commentDecoder,
     CommentStmt: commentStmtDecoder,
     CompositeTypeStmt: compositeTypeStmtDecoder,
     CopyStmt: copyStmtDecoder,
@@ -387,6 +386,7 @@ export const stmtDecoder: d.Decoder<Stmt> = d.exact({
     VariableSetStmt: variableSetStmtDecoder,
     VariableShowStmt: variableShowStmtDecoder,
     ViewStmt: viewStmtDecoder,
+    Comment: commentDecoder,
   }),
 });
 

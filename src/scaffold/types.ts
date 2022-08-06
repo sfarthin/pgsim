@@ -2,16 +2,13 @@ import { resolve } from "path";
 import { writeFileSync, readdirSync, existsSync } from "fs";
 import prettier from "prettier";
 import warning from "./warning";
-import { stmtTypes } from "./constants";
+import { stmtTypes, mapStmtTypes } from "./constants";
 import { camelCase } from "lodash";
 
 const toDecoder = (n: string) => camelCase(`${n}Decoder`);
 
-export default async function writeTypesIndex() {
+export default async function () {
   const typesIndexPath = resolve(__dirname, "../types/index.ts");
-
-  const mapStmtTypes = (mapFn: (n: string) => string) =>
-    stmtTypes.map(mapFn).join(`\n`);
 
   const files = readdirSync(resolve(__dirname, "../types/")).flatMap((f) =>
     f === "index.ts" ? [] : f.substring(0, f.length - 3)

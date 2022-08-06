@@ -1058,3 +1058,11 @@ export function optional<T>(rule: Rule<T>): Rule<T | null> {
   const newRule: Rule<T | null> = or([rule, placeholder]);
   return newRule;
 }
+
+export const fail: Rule<never> = (ctx) => {
+  return {
+    type: ResultType.Fail,
+    expected: [],
+    pos: ctx.pos,
+  };
+};

@@ -9,7 +9,7 @@ const precedence = [
   ["=", "!="],
 ];
 
-export const getPrecedence = (aExpr: AExpr | undefined) => {
+const getPrecedence = (aExpr: AExpr | undefined) => {
   if (!aExpr) {
     return 0;
   }
