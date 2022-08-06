@@ -30,6 +30,7 @@ export * from "./codeComments";
 export * from "./columnDef";
 export * from "./columnRef";
 export * from "./comment";
+export * from "./commentStmt";
 export * from "./compositeTypeStmt";
 export * from "./constraint";
 export * from "./copyStmt";
