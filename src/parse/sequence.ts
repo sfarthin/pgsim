@@ -7,7 +7,7 @@ import {
   combineBlocks,
 } from "./util";
 import { expectedReducer } from "./expectedReducer";
-import { Block } from "src/format/util";
+import { Block } from "~/format/util";
 
 export function sequence<A, B>(
   rules: [BufferRule<A>, BufferRule<B>]

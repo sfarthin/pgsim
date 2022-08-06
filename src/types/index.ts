@@ -49,6 +49,7 @@ import {
 } from "./alterTsDictionaryStmt";
 import { ClosePortalStmt, closePortalStmtDecoder } from "./closePortalStmt";
 import { ClusterStmt, clusterStmtDecoder } from "./clusterStmt";
+import { Comment, commentDecoder } from "./comment";
 import { CommentStmt, commentStmtDecoder } from "./commentStmt";
 import {
   CompositeTypeStmt,
@@ -130,7 +131,6 @@ import { VacuumStmt, vacuumStmtDecoder } from "./vacuumStmt";
 import { VariableSetStmt, variableSetStmtDecoder } from "./variableSetStmt";
 import { VariableShowStmt, variableShowStmtDecoder } from "./variableShowStmt";
 import { ViewStmt, viewStmtDecoder } from "./viewStmt";
-export * from "./insertStmt";
 export * from "./aExpr";
 export * from "./aIndirection";
 export * from "./alias";
@@ -155,6 +155,7 @@ export * from "./caseExpr";
 export * from "./closePortalStmt";
 export * from "./clusterStmt";
 export * from "./columnRef";
+export * from "./comment";
 export * from "./commentStmt";
 export * from "./compositeTypeStmt";
 export * from "./constant";
@@ -198,6 +199,7 @@ export * from "./fromClause";
 export * from "./funcCall";
 export * from "./grantStmt";
 export * from "./indexStmt";
+export * from "./insertStmt";
 export * from "./joinExpr";
 export * from "./list";
 export * from "./listenStmt";
@@ -231,9 +233,9 @@ export * from "./variableShowStmt";
 export * from "./viewStmt";
 
 export type Stmt = {
-  stmt_len?: number; // <-- This simulates the same fields we have on the native parser
-  stmt_location?: number; // <-- This simulates the same fields we have on the native parser
-  tokens?: Block; // <-- This is only supported by our parser
+  stmt_len?: number, // <-- This simulates the same fields we have on the native parser
+  stmt_location?: number, // <-- This simulates the same fields we have on the native parser
+  tokens?: Block, // <-- This is only supported by our parser
   stmt:
     | { AlterDatabaseSetStmt: AlterDatabaseSetStmt }
     | { AlterDatabaseStmt: AlterDatabaseStmt }
@@ -252,6 +254,7 @@ export type Stmt = {
     | { AlterTSDictionaryStmt: AlterTSDictionaryStmt }
     | { ClosePortalStmt: ClosePortalStmt }
     | { ClusterStmt: ClusterStmt }
+    | { Comment: Comment }
     | { CommentStmt: CommentStmt }
     | { CompositeTypeStmt: CompositeTypeStmt }
     | { CopyStmt: CopyStmt }
@@ -305,7 +308,7 @@ export type Stmt = {
     | { VacuumStmt: VacuumStmt }
     | { VariableSetStmt: VariableSetStmt }
     | { VariableShowStmt: VariableShowStmt }
-    | { ViewStmt: ViewStmt };
+    | { ViewStmt: ViewStmt },
 };
 
 export const stmtDecoder: d.Decoder<Stmt> = d.exact({
@@ -329,6 +332,7 @@ export const stmtDecoder: d.Decoder<Stmt> = d.exact({
     AlterTSDictionaryStmt: alterTsDictionaryStmtDecoder,
     ClosePortalStmt: closePortalStmtDecoder,
     ClusterStmt: clusterStmtDecoder,
+    Comment: commentDecoder,
     CommentStmt: commentStmtDecoder,
     CompositeTypeStmt: compositeTypeStmtDecoder,
     CopyStmt: copyStmtDecoder,

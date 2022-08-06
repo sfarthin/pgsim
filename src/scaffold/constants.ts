@@ -16,6 +16,7 @@ export const stmtTypes = [
   "AlterTSDictionaryStmt",
   "ClosePortalStmt",
   "ClusterStmt",
+  "Comment", // <-- only this parser
   "CommentStmt",
   "CompositeTypeStmt",
   "CopyStmt",

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TypeNameKeyword } from "src/types";
+import { TypeNameKeyword } from "~/types";
 import { NEWLINE, TAB } from "../format/print";
 import { Block } from "../format/util";
 import { expectedReducer } from "./expectedReducer";

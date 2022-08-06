@@ -1,7 +1,7 @@
 import { FailResult, blockLength, combineBlocks } from "./util";
 import c from "ansi-colors";
 import { NEWLINE, PrintOptions, toString } from "../format/print";
-import { Block } from "src/format/util";
+import { Block } from "~/format/util";
 
 const NUM_CONTEXT_LINES_BEFORE = 4;
 const NUM_CONTEXT_LINES_AFTER = 3;

@@ -1,4 +1,4 @@
-import { TransactionStmt } from "src/types";
+import { TransactionStmt } from "~/types";
 import {
   transform,
   sequence,

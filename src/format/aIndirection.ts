@@ -1,4 +1,4 @@
-import { AIndirection } from "src/types/aIndirection";
+import { AIndirection } from "~/types";
 import { symbol, _, Block } from "./util";
 import { rawValue } from "./rawExpr";
 
