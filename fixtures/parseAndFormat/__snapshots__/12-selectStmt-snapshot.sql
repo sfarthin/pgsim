@@ -212,3 +212,7 @@ SELECT TRUE = TRUE;
 SELECT 1;
 
 -- select 2
+
+SELECT '2 days ago'::INTERVAL;
+
+SELECT '1.1'::BIGINT;

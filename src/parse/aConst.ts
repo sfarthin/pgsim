@@ -10,22 +10,38 @@ import {
   __,
   regexChar,
 } from "./util";
-import { A_Const } from "~/types";
+import { A_Const, A_Const_Float, A_Const_Null, A_Const_String } from "~/types";
 
-export const aConstInteger = fromBufferToCodeBlock(
+export const aConstInteger: Rule<{
+  value: { A_Const: A_Const };
+  codeComment: string;
+}> = fromBufferToCodeBlock(
   (ctx) =>
     transform(oneToMany(regexChar(/[0-9]/)), (s, ctx) => {
-      return {
-        value:
-          BigInt(s.join("")) > BigInt("2147483647")
-            ? {
+      if (BigInt(s.join("")) > BigInt("2147483647")) {
+        return {
+          value: {
+            A_Const: {
+              val: {
                 Float: { str: s.join("") },
-              }
-            : {
-                Integer: { ival: Number(s.join("")) },
               },
+              location: ctx.pos,
+            },
+          },
+          codeComment: "",
+        };
+      }
+
+      return {
+        value: {
+          A_Const: {
+            val: {
+              Integer: { ival: Number(s.join("")) },
+            },
+            location: ctx.pos,
+          },
+        },
         codeComment: "",
-        location: ctx.pos,
       };
     })(ctx),
   (text) => {
@@ -33,21 +49,36 @@ export const aConstInteger = fromBufferToCodeBlock(
   }
 );
 
-const aConstFloat = transform(float, (str) => ({
+export const aConstFloat: Rule<{
+  value: { A_Const: A_Const_Float };
+  codeComment: string;
+}> = transform(float, (str, ctx) => ({
   value: {
-    Float: { str },
+    A_Const: {
+      val: { Float: { str } },
+      location: ctx.pos,
+    },
   },
   codeComment: "",
 }));
 
-const nullKeyword = transform(keyword("null" as any), () => ({
+export const nullKeyword: Rule<{
+  value: { A_Const: A_Const_Null };
+  codeComment: string;
+}> = transform(keyword("null" as any), (_v, ctx) => ({
   value: {
-    Null: {},
+    A_Const: {
+      val: { Null: {} },
+      location: ctx.pos,
+    },
   },
   codeComment: "",
 }));
 
-const aConstKeyword = transform(
+const aConstKeyword: Rule<{
+  value: { A_Const: A_Const };
+  codeComment: string;
+}> = transform(
   or([
     keyword("on" as any),
     keyword("off" as any),
@@ -57,12 +88,23 @@ const aConstKeyword = transform(
     keyword("content" as any),
     keyword("heap" as any),
   ]),
-  (s) => ({ value: { String: { str: s.value } }, codeComment: "" })
+  (s, ctx) => ({
+    value: {
+      A_Const: { val: { String: { str: s.value } }, location: ctx.pos },
+    },
+    codeComment: "",
+  })
 );
 
-const aConstString = transform(quotedString, (v) => ({
+export const aConstString: Rule<{
+  value: { A_Const: A_Const_String };
+  codeComment: string;
+}> = transform(quotedString, (v, ctx) => ({
   value: {
-    String: { str: v.value },
+    A_Const: {
+      val: { String: { str: v.value } },
+      location: ctx.pos,
+    },
   },
   codeComment: "",
 }));
@@ -70,25 +112,14 @@ const aConstString = transform(quotedString, (v) => ({
 export const aConst: Rule<{
   value: { A_Const: A_Const };
   codeComment: string;
-}> = transform(
-  or([
-    aConstString,
-    aConstFloat,
-    // integer need to be after float
-    aConstInteger,
-    nullKeyword,
-    aConstKeyword,
-  ]),
-  (s, ctx) => ({
-    value: {
-      A_Const: {
-        val: s.value,
-        location: ctx.pos,
-      },
-    },
-    codeComment: s.codeComment,
-  })
-);
+}> = or([
+  aConstString,
+  aConstFloat,
+  // integer need to be after float
+  aConstInteger,
+  nullKeyword,
+  aConstKeyword,
+]);
 
 export function negateAConst(aConst: A_Const): A_Const {
   if ("String" in aConst.val || "Null" in aConst.val) {

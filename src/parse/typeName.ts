@@ -175,7 +175,7 @@ const typeNameWithTwoParams: Rule<{
     __,
     LPAREN,
     __,
-    aConstInteger,
+    aConstInteger, // 4
     __,
     COMMA,
     __,
@@ -188,10 +188,7 @@ const typeNameWithTwoParams: Rule<{
       value: {
         names: getNames(value[0]),
         typemod: -1,
-        typmods: [
-          { A_Const: { val: value[4].value, location: value[4].location } },
-          { A_Const: { val: value[8].value, location: value[8].location } },
-        ],
+        typmods: [value[4].value, value[8].value],
         location: ctx.pos,
       },
       codeComment: combineComments(
@@ -217,9 +214,7 @@ const typeNameWithParam: Rule<{
       value: {
         names: getNames(value[0]),
         typemod: -1,
-        typmods: [
-          { A_Const: { val: value[4].value, location: value[4].location } },
-        ],
+        typmods: [value[4].value],
         location: ctx.pos,
       },
       codeComment: combineComments(value[1], value[3], value[5]),

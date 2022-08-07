@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { StmtType, TypeNameKeyword } from "~/types";
+import { TypeOrAlias } from "~/constants";
+import { StmtType } from "~/types";
 import { NEWLINE, TAB } from "../format/print";
 import { Block } from "../format/util";
 import { expectedReducer } from "./expectedReducer";
@@ -721,9 +722,11 @@ const keywordList = [
   "FOREIGN",
   "FROM",
   "GROUP",
+  "HOUR",
   "IF",
   "IN",
   "INCREMENT",
+  "INTERVAL",
   "INDEX",
   "INNER",
   "JOIN",
@@ -731,6 +734,7 @@ const keywordList = [
   "LEFT",
   "MAXVALUE",
   "MINVALUE",
+  "MINUTE",
   "NO",
   "NONE",
   "NOT",
@@ -756,6 +760,7 @@ const keywordList = [
   "TABLE",
   "TABLESPACE",
   "TO",
+  "TIME",
   "THEN",
   "UNIQUE",
   "UPDATE",
@@ -765,10 +770,11 @@ const keywordList = [
   "WITH",
   "WHERE",
   "WHEN",
+  "ZONE",
 ] as const;
 
 export function keyword(
-  str: typeof keywordList[number] | TypeNameKeyword
+  str: typeof keywordList[number] | TypeOrAlias
 ): Rule<{ start: number; value: string }> {
   return (ctx) => {
     const result = transform(
@@ -837,16 +843,19 @@ export const EXISTS = keyword("EXISTS");
 export const FOREIGN = keyword("FOREIGN");
 export const GROUP = keyword("GROUP");
 export const FROM = keyword("FROM");
+export const HOUR = keyword("HOUR");
 export const IN = keyword("IN");
 export const IF = keyword("IF");
 export const INCREMENT = keyword("INCREMENT");
 export const INDEX = keyword("INDEX");
+export const INTERVAL = keyword("INTERVAL");
 export const INNER = keyword("INNER");
 export const JOIN = keyword("JOIN");
 export const KEY = keyword("KEY");
 export const LEFT = keyword("LEFT");
 export const MAXVALUE = keyword("MAXVALUE");
 export const MINVALUE = keyword("MINVALUE");
+export const MINUTE = keyword("MINUTE");
 export const NO = keyword("NO");
 export const NONE = keyword("NONE");
 export const NOT = keyword("NOT");
@@ -873,6 +882,7 @@ export const START = keyword("START");
 export const TABLE = keyword("TABLE");
 export const TABLESPACE = keyword("TABLESPACE");
 export const TO = keyword("TO");
+export const TIME = keyword("TIME");
 export const THEN = keyword("THEN");
 export const TYPE = keyword("TYPE" as any); // <-- One exeption where we can use it ad an identifier
 export const UNIQUE = keyword("UNIQUE");
@@ -882,6 +892,7 @@ export const VIEW = keyword("VIEW");
 export const WITH = keyword("WITH");
 export const WHERE = keyword("WHERE");
 export const WHEN = keyword("WHEN");
+export const ZONE = keyword("ZONE");
 
 export const SEMICOLON = symbol(";");
 export const EQUALS = symbol("=");

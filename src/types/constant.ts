@@ -29,24 +29,48 @@ export const constantDecoder: d.Decoder<Constant> = d.exact({
 });
 
 export type Null = {};
-export type A_Const = {
-  val:
-    | { Float: Float }
-    | { String: String }
-    | { Integer: Integer }
-    | { Null: Null };
+
+export type A_Const_String = {
+  val: { String: String };
   location: Location;
 };
 
-export const aConstDecoder: d.Decoder<A_Const> = d.exact({
-  val: d.either4(
-    d.exact({ Float: floatValueDecoder }),
-    d.exact({ String: stringValueDecoder }),
-    d.exact({ Integer: integerValueDecoder }),
-    d.exact({ Null: d.exact({}) })
-  ),
-  location: locationDecoder,
-});
+export type A_Const_Float = {
+  val: { Float: Float };
+  location: Location;
+};
+
+export type A_Const_Integer = {
+  val: { Integer: Integer };
+  location: Location;
+};
+
+export type A_Const_Null = {
+  val: { Null: Null };
+  location: Location;
+};
+
+export type A_Const =
+  | A_Const_String
+  | A_Const_Float
+  | A_Const_Integer
+  | A_Const_Null;
+
+export const aConstDecoder: d.Decoder<A_Const> = d.either4(
+  d.exact({
+    val: d.exact({ Float: floatValueDecoder }),
+    location: locationDecoder,
+  }),
+  d.exact({
+    val: d.exact({ String: stringValueDecoder }),
+    location: locationDecoder,
+  }),
+  d.exact({
+    val: d.exact({ Integer: integerValueDecoder }),
+    location: locationDecoder,
+  }),
+  d.exact({ val: d.exact({ Null: d.exact({}) }), location: locationDecoder })
+);
 
 export const stringDecoder: d.Decoder<{ String: String }> = d.exact({
   String: stringValueDecoder,

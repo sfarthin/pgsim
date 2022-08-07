@@ -16,3 +16,8 @@ SET /* 1 */ statement_timeout   =    0; -- foo
 
 
 SET client_encoding =    ' UTF8'   ;
+
+
+SET client_min_messages TO warning;
+
+-- SET TIME ZONE INTERVAL '+00:00' HOUR TO MINUTE; 

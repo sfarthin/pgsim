@@ -106,6 +106,7 @@ export const aExprSingleParm: Rule<{
                 val:
                   "Float" in v[2].value.A_Const.val
                     ? {
+                        // @ts-expect-error -- Union issue
                         Float: {
                           str: `-${v[2].value.A_Const.val.Float.str}`,
                         },

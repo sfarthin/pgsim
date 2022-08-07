@@ -124,3 +124,6 @@ SELECT true = true;
 
 select 1;
 -- select 2
+
+SELECT INTERVAL '2 days ago';
+SELECT bigint '1.1';
