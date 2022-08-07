@@ -42,13 +42,13 @@ export default async function () {
       /* ts */ `
 
     ${warning}
-    import { or } from "./util";
+    import { or, addStmtType } from "./util";
     ${importedParsers}
 
     export const stmt = or([
       ${mapStmtChunks(
         (chunk) => /* ts */ `or([
-          ${chunk.map((f) => `${camelCase(f)}`).join(",")}
+          ${chunk.map((f) => `addStmtType('${f}', ${camelCase(f)})`).join(",")}
         ]),`
       )}
     ]);

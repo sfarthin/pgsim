@@ -10,6 +10,8 @@ import {
   _,
   __,
   EOS,
+  TO,
+  or,
 } from "./util";
 import { aConst } from "./aConst";
 import { VariableSetStmt } from "~/types";
@@ -24,7 +26,7 @@ export const variableSetStmt: Rule<{
     __,
     identifier,
     __,
-    EQUALS,
+    or([EQUALS, TO]),
     __,
     aConst,
     __,

@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { TypeNameKeyword } from "~/types";
+import { StmtType, TypeNameKeyword } from "~/types";
 import { NEWLINE, TAB } from "../format/print";
 import { Block } from "../format/util";
 import { expectedReducer } from "./expectedReducer";
@@ -20,6 +20,11 @@ export type Expected = {
   type: "keyword" | "notKeyword" | "regex" | "identifier" | "endOfInput";
   pos: number;
   value: string;
+
+  /**
+   * We can add references that will help give more details about
+   */
+  stmtType?: StmtType;
 };
 
 type SuccessResultBase<R> = {
@@ -1066,3 +1071,15 @@ export const fail: Rule<never> = (ctx) => {
     pos: ctx.pos,
   };
 };
+
+export function addStmtType<T>(stmtType: StmtType, rule: Rule<T>): Rule<T> {
+  return (ctx) => {
+    const result = rule(ctx);
+
+    for (let i = 0; i < result.expected.length; i += 1) {
+      result.expected[i].stmtType = stmtType;
+    }
+
+    return result;
+  };
+}

@@ -77,6 +77,8 @@ export const getFriendlyErrorMessage = (
 
   const pos = result.expected[0].pos;
 
+  const stmtType = result.expected[0].stmtType;
+
   // Sometimes tokens is missing some text. This is a bug I should fix. In the meantime
   // Lets throw this unformatted text in here.
   const missingTextHack = sql.substring(
@@ -110,7 +112,9 @@ export const getFriendlyErrorMessage = (
   let error = "";
   error += `Parse error${filename ? ` in ${c.cyan(filename)}` : ""}(${c.cyan(
     String(line + 1)
-  )},${c.cyan(String(column + 1))}): ${message}${NEWLINE}`;
+  )},${c.cyan(String(column + 1))}): ${message} in ${c.magenta(
+    stmtType ?? "statement"
+  )} ${NEWLINE}`;
   error += NEWLINE;
 
   error += toString(block, {

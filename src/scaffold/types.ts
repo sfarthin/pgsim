@@ -58,7 +58,7 @@ export default async function () {
         })
     });
 
-    export type StatementType = KeysOfUnion<Stmt["stmt"]>;
+    export type StmtType = KeysOfUnion<Stmt["stmt"]>;
 
     `,
       { parser: "babel" }

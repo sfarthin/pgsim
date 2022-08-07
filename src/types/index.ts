@@ -390,4 +390,4 @@ export const stmtDecoder: d.Decoder<Stmt> = d.exact({
   }),
 });
 
-export type StatementType = KeysOfUnion<Stmt["stmt"]>;
+export type StmtType = KeysOfUnion<Stmt["stmt"]>;
