@@ -1,4 +1,5 @@
 import { TypeName } from "~/types";
+import { defaultTypeMods } from "~/constants";
 
 import { keyword, _, Line, integerLiteral, symbol } from "./util";
 
@@ -118,10 +119,14 @@ export default function typeName(typeName: TypeName): Line {
     }
     case "interval": {
       const val = typeName.typmods?.[0].A_Const.val;
-      const size = (val && "Integer" in val && val.Integer.ival) ?? null;
+      const modeNum = (val && "Integer" in val && val.Integer.ival) ?? null;
 
-      if (size === 1032) {
-        return [keyword("interval day to hour")];
+      const foundMod = Object.entries(defaultTypeMods).find(
+        ([_key, value]) => value === modeNum
+      );
+
+      if (foundMod) {
+        return [keyword(foundMod[0])];
       }
       return [keyword("interval")];
     }

@@ -106,7 +106,20 @@ create table buckets.foo (
 
 -- we can parse the schema, and automatically remove public from schema name.
 create table public.foo (
-    b int
+    b int,
+    interval1 interval YEAR,
+    interval2 interval MONTH,
+    interval3 interval DAY,
+    interval4 interval HOUR,
+    interval5 interval MINUTE,
+    interval6 interval SECOND,
+    interval7 interval YEAR TO MONTH,
+    interval8 interval DAY TO HOUR,
+    interval9 interval DAY TO MINUTE,
+    interval10 interval DAY TO SECOND,
+    interval11 interval HOUR TO MINUTE,
+    interval12 interval HOUR TO SECOND,
+    interval13 interval MINUTE TO SECOND
 );
 
 CREATE TABLE 

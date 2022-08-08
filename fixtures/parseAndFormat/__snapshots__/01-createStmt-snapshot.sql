@@ -116,7 +116,22 @@ CREATE TABLE foo (a SOME_CUSTOM_TYPE);
 CREATE TABLE buckets.foo (a INTEGER);
 
 -- we can parse the schema, and automatically remove public from schema name.
-CREATE TABLE public.foo (b INTEGER);
+CREATE TABLE public.foo (
+	b INTEGER,
+	interval1 INTERVAL YEAR,
+	interval2 INTERVAL MONTH,
+	interval3 INTERVAL DAY,
+	interval4 INTERVAL HOUR,
+	interval5 INTERVAL MINUTE,
+	interval6 INTERVAL SECOND,
+	interval7 INTERVAL YEAR TO MONTH,
+	interval8 INTERVAL DAY TO HOUR,
+	interval9 INTERVAL DAY TO MINUTE,
+	interval10 INTERVAL DAY TO SECOND,
+	interval11 INTERVAL HOUR TO MINUTE,
+	interval12 INTERVAL HOUR TO SECOND,
+	interval13 INTERVAL MINUTE TO SECOND
+);
 
 CREATE TABLE IF NOT EXISTS foobar (
 	id SERIAL,
