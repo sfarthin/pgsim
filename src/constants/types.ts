@@ -100,8 +100,8 @@ export const types = [
   {
     description: "time span",
     name: "interval",
-    // This is kind of a hack, if multiple spaces are put between these keywords, our parser
-    // won't parse them correctly. In the future, we can probably improve this.
+    // This is kind of a hack, if multiple spaces or comments are put between these keywords,
+    // our parser won't parse them correctly. In the future, we can probably improve this.
     alias: [
       "interval year",
       "interval month",

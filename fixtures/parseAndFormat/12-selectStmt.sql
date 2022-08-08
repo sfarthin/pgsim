@@ -127,3 +127,7 @@ select 1;
 
 SELECT INTERVAL '2 days ago';
 SELECT bigint '1.1';
+
+-- TODO properally fill out support for interval.
+-- SELECT INTERVAL '145 seconds ago' MINUTE;
+-- SELECT INTERVAL '145 seconds ago' HOUR;

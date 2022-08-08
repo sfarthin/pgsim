@@ -1,10 +1,11 @@
 import { TypeCast } from "../types/TypeCast";
 import { rawValue } from "./rawExpr";
-import { Line, TRUE, FALSE, symbol } from "./util";
+import { Line, TRUE, FALSE, symbol, _ } from "./util";
 import typeName from "./typeName";
 
 export default function (c: TypeCast): Line {
   const toBoolean = c.typeName.names?.[1]?.String.str === "bool";
+  const toInterval = c.typeName.names?.[1]?.String.str === "interval";
   const strKeyword =
     c.arg &&
     "A_Const" in c.arg &&
@@ -21,6 +22,10 @@ export default function (c: TypeCast): Line {
     if (strKeyword === "f") {
       return [FALSE];
     }
+  }
+
+  if (toInterval && c.arg) {
+    return [...typeName(c.typeName), _, ...rawValue(c.arg).flat()];
   }
 
   if (c.arg) {
