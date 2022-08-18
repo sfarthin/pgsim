@@ -17,16 +17,7 @@ class ParseError extends Error {}
 
 export const stmts: Rule<Stmt[]> = transform(
   sequence([
-    zeroToMany(
-      transform(stmt, (v, ctx, r) => {
-        if (!ctx.numStatements) {
-          ctx.numStatements = 1;
-        } else {
-          ctx.numStatements++;
-        }
-        return { ...v, tokens: r.tokens };
-      })
-    ),
+    zeroToMany(stmt),
     endOfInput, // <-- This ensures we don't return before hitting the end of our SQL.
   ]),
   (v) => {
@@ -48,7 +39,6 @@ export const stmts: Rule<Stmt[]> = transform(
         ...(previousStmtLocation
           ? { stmt_location: previousStmtLocation }
           : {}),
-        tokens: c.tokens,
       });
 
       if (c.eos?.lastSemicolonPos != null) {
@@ -102,7 +92,6 @@ export function parseComments(inputSql: string) {
   const result = codeComments({
     str: inputSql,
     pos: 0,
-    numStatements: 0,
   });
 
   if (result.type == ResultType.Success) {
@@ -127,7 +116,7 @@ export function parse(
     colors?: boolean | undefined;
   }
 ): SuccessResult<Stmt[]> {
-  const context = { str: sql, pos: 0, numStatements: 0 };
+  const context = { str: sql, pos: 0 };
   const result = stmts(context);
 
   if (result.type == ResultType.Success) {

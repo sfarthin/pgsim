@@ -79,12 +79,6 @@ export type Context = {
    * position we have parsed so far
    */
   pos: number;
-
-  /**
-   * Number of statements we have encountered.
-   * This is only useful to reconcile which statement we failed to parse and expected parse statements when testing.
-   */
-  numStatements?: number;
 };
 
 export type Rule<R> = (c: Context) => RuleResult<R>;
