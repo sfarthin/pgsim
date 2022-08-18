@@ -1,4 +1,4 @@
-import parse, { parseComments } from "../parse";
+import parse, { parseComments, ParseError } from "../parse";
 import { SuccessResult } from "../parse/util";
 import nParse from "./nativeParse";
 import format, { toString } from "../format";
@@ -166,7 +166,16 @@ export default function parseAndFormat(
     throw e;
   }
 
-  const ast = parse(sql, basename(filename));
+  let ast;
+  try {
+    ast = parse(sql, basename(filename));
+  } catch (e) {
+    if (e instanceof ParseError) {
+      console.log(JSON.stringify(realAst[e.statementNum].stmt, null, 2));
+    }
+
+    throw e;
+  }
 
   assertStr(
     toString(ast.tokens, {

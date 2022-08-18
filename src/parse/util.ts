@@ -79,6 +79,11 @@ export type Context = {
    * position we have parsed so far
    */
   pos: number;
+
+  /**
+   * We can take on how many statements we were able to
+   */
+  numStatements: number;
 };
 
 export type Rule<R> = (c: Context) => RuleResult<R>;
@@ -271,7 +276,10 @@ function multiply<T>(
     let tokens: Block = [];
     let buffer = "";
     while (pos < ctx.str.length && (max === null || values.length < max)) {
-      curr = rule({ ...ctx, pos });
+      const prevPos = ctx.pos;
+      ctx.pos = pos;
+      curr = rule(ctx);
+      ctx.pos = prevPos;
 
       expected = expected
         .concat(

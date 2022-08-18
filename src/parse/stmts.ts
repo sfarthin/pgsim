@@ -13,11 +13,21 @@ import { getFriendlyErrorMessage } from "./error";
 import { codeComments } from "./codeComments";
 import { stmt } from "./stmt";
 
-class ParseError extends Error {}
+export class ParseError extends Error {
+  statementNum: number;
+  constructor(message: string, statementNum: number) {
+    super(message);
+    this.statementNum = statementNum;
+  }
+}
 
 export const stmts: Rule<Stmt[]> = transform(
   sequence([
-    zeroToMany(stmt),
+    transform(zeroToMany(stmt), (r, ctx) => {
+      // Lets igngore "Comment" statements, because the regular parser doesn't consider those.
+      ctx.numStatements = r.filter((r) => !("Comment" in r.value)).length;
+      return r;
+    }),
     endOfInput, // <-- This ensures we don't return before hitting the end of our SQL.
   ]),
   (v) => {
@@ -92,6 +102,7 @@ export function parseComments(inputSql: string) {
   const result = codeComments({
     str: inputSql,
     pos: 0,
+    numStatements: 0,
   });
 
   if (result.type == ResultType.Success) {
@@ -116,7 +127,7 @@ export function parse(
     colors?: boolean | undefined;
   }
 ): SuccessResult<Stmt[]> {
-  const context = { str: sql, pos: 0 };
+  const context = { str: sql, pos: 0, numStatements: 0 };
   const result = stmts(context);
 
   if (result.type == ResultType.Success) {
@@ -131,7 +142,7 @@ export function parse(
     filename,
   });
 
-  const error = new ParseError(errorMessage);
+  const error = new ParseError(errorMessage, context.numStatements);
 
   throw error;
 }

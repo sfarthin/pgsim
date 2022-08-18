@@ -131,3 +131,11 @@ SELECT bigint '1.1';
 -- TODO properally fill out support for interval.
 -- SELECT INTERVAL '145 seconds ago' MINUTE;
 -- SELECT INTERVAL '145 seconds ago' HOUR;
+
+
+WITH regional_sales AS (
+    SELECT 1
+), top_regions AS (
+    SELECT 2
+)
+SELECT 3;

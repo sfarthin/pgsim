@@ -1266,7 +1266,10 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
     let expected: Expected[] = [];
 
     for (const rule of rules) {
-      const result = rule({ ...ctx, pos });
+      const prevPos = ctx.pos;
+      ctx.pos = pos;
+      const result = rule(ctx);
+      ctx.pos = prevPos;
 
       expected = expected
         .concat(
