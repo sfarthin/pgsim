@@ -1,7 +1,8 @@
 import { TypeCast } from "../types/TypeCast";
 import { rawValue } from "./rawExpr";
-import { Line, TRUE, FALSE, symbol, _ } from "./util";
+import { Line, TRUE, FALSE, symbol, _, keyword } from "./util";
 import typeName from "./typeName";
+import { defaultTypeMods } from "~/constants";
 
 export default function (c: TypeCast): Line {
   const toBoolean = c.typeName.names?.[1]?.String.str === "bool";
@@ -25,7 +26,18 @@ export default function (c: TypeCast): Line {
   }
 
   if (toInterval && c.arg) {
-    return [...typeName(c.typeName), _, ...rawValue(c.arg).flat()];
+    const val = c.typeName.typmods?.[0].A_Const.val;
+    const modeNum = (val && "Integer" in val && val.Integer.ival) ?? null;
+    const [foundMod] = Object.entries(defaultTypeMods).find(
+      ([_key, value]) => value === modeNum
+    ) ?? [""];
+
+    return [
+      keyword("interval"),
+      _,
+      ...rawValue(c.arg).flat(),
+      keyword(foundMod.replace(/interval/, "")),
+    ];
   }
 
   if (c.arg) {

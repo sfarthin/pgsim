@@ -19,7 +19,59 @@ import {
   MINUTE,
 } from "./util";
 import { aConst, aConstString } from "./aConst";
-import { VariableSetStmt } from "~/types";
+import { A_Const, TypeCast, VariableSetStmt } from "~/types";
+
+const typMod: Rule<{
+  value: { A_Const: A_Const };
+  codeComment: string;
+}> = transform(sequence([HOUR, __, TO, __, MINUTE]), (v, ctx) => {
+  return {
+    value: {
+      A_Const: {
+        val: {
+          Integer: {
+            ival: 3072,
+          },
+        },
+        location: ctx.pos,
+      },
+    },
+    codeComment: combineComments(v[1], v[3]),
+  } as const;
+});
+
+// SET TIME ZONE INTERVAL '+00:00' HOUR TO MINUTE;
+const interval: Rule<{
+  value: { TypeCast: TypeCast };
+  codeComment: string;
+}> = transform(sequence([INTERVAL, __, aConstString, __, typMod]), (v, ctx) => {
+  return {
+    value: {
+      TypeCast: {
+        arg: v[2].value,
+        typeName: {
+          names: [
+            {
+              String: {
+                str: "pg_catalog",
+              },
+            },
+            {
+              String: {
+                str: "interval",
+              },
+            },
+          ],
+          typmods: [v[4].value],
+          typemod: -1,
+          location: ctx.pos,
+        },
+        location: -1,
+      },
+    },
+    codeComment: combineComments(v[1], v[3]),
+  };
+});
 
 const timezoneSetStmt: Rule<{
   value: { VariableSetStmt: VariableSetStmt };
@@ -33,72 +85,23 @@ const timezoneSetStmt: Rule<{
     __,
     ZONE,
     __,
-    INTERVAL,
-    __,
-    aConstString,
-    __, // 10
-    HOUR,
-    __,
-    TO,
-    __,
-    MINUTE,
-    __,
+    or([interval]), // 7
     endOfStatement,
   ]),
   (v) => ({
-    eos: v[17],
+    eos: v[8],
     value: {
       VariableSetStmt: {
         kind: "VAR_SET_VALUE",
         name: "timezone",
-        args: [
-          {
-            TypeCast: {
-              arg: v[9].value,
-              typeName: {
-                names: [
-                  {
-                    String: {
-                      str: "pg_catalog",
-                    },
-                  },
-                  {
-                    String: {
-                      str: "interval",
-                    },
-                  },
-                ],
-                typmods: [
-                  {
-                    A_Const: {
-                      val: {
-                        Integer: {
-                          ival: 3072,
-                        },
-                      },
-                      location: 352,
-                    },
-                  },
-                ],
-                typemod: -1,
-                location: 334,
-              },
-              location: -1,
-            },
-          },
-        ],
+        args: [v[7].value],
         codeComment: combineComments(
           v[0],
           v[2],
           v[4],
           v[6],
-          v[8],
-          v[9].codeComment,
-          v[10],
-          v[12],
-          v[14],
-          v[16],
-          v[17].comment
+          v[7].codeComment,
+          v[8].comment
         ),
       },
     },

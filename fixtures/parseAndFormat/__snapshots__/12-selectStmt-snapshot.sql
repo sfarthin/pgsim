@@ -213,6 +213,10 @@ SELECT 1;
 
 -- select 2
 
-SELECT '2 days ago'::INTERVAL;
+SELECT INTERVAL '2 days ago';
 
 SELECT '1.1'::BIGINT;
+
+-- TODO properally fill out support for interval.
+-- SELECT INTERVAL '145 seconds ago' MINUTE;
+-- SELECT INTERVAL '145 seconds ago' HOUR;
