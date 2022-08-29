@@ -16,6 +16,7 @@ import {
   AS,
   combineComments,
   maybeInParens,
+  OUTER,
 } from "./util";
 import { rangeVar } from "./rangeVar";
 import { rangeSubselect } from "./rangeSubselect";
@@ -28,7 +29,16 @@ export const joinExpr: Rule<{
     sequence([
       rangeVar,
       __,
-      optional(or([INNER, RIGHT, LEFT])),
+      optional(
+        or([
+          INNER,
+          RIGHT,
+          transform(sequence([LEFT, __, OUTER]), () => ({
+            value: "LEFT",
+          })),
+          LEFT,
+        ])
+      ),
       __, // 3
       JOIN,
       __, // 5

@@ -746,6 +746,7 @@ const keywordList = [
   "OR",
   "ORDER",
   "ONLY",
+  "OUTER",
   "OWNED",
   "OWNER",
   "PRIMARY",
@@ -852,6 +853,7 @@ export const INCREMENT = keyword("INCREMENT");
 export const INDEX = keyword("INDEX");
 export const INTERVAL = keyword("INTERVAL");
 export const INNER = keyword("INNER");
+export const OUTER = keyword("OUTER");
 export const JOIN = keyword("JOIN");
 export const KEY = keyword("KEY");
 export const LEFT = keyword("LEFT");
