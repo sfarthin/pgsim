@@ -18,6 +18,9 @@ import {
   GROUP,
   BY,
   EOS,
+  WITH,
+  LPAREN,
+  RPAREN,
 } from "./util";
 import { rawValue } from "./rawExpr";
 import { SelectStmt } from "~/types";
@@ -137,6 +140,8 @@ const target = transform(
 // We need to make endOfStatement optional, for use with viewStmt.
 export const select: Rule<{ value: SelectStmt; start: number }> = transform(
   sequence([
+    optional((ctx) => withClause(ctx)),
+    __,
     SELECT,
     __,
     target,
@@ -147,34 +152,81 @@ export const select: Rule<{ value: SelectStmt; start: number }> = transform(
     optional(sortBy), // 7
   ]),
   (v) => {
-    const from = v[5];
-    const sortBy = v[7];
-    const groupBy = v[6];
+    const withClause = v[0];
+    const from = v[7];
+    const sortBy = v[9];
+    const groupBy = v[8];
 
     return {
-      start: v[0].start,
+      start: v[2].start,
       value: {
         targetList: [
-          v[2].value,
-          ...v[3].map((r) => ({
+          v[4].value,
+          ...v[5].map((r) => ({
             ...r[3].value,
           })),
         ],
         ...from,
         ...(groupBy ? { groupClause: groupBy.value } : {}),
         ...(sortBy ? { sortClause: sortBy } : {}),
+        ...(withClause ? { withClause: withClause.value } : {}),
         limitOption: "LIMIT_OPTION_DEFAULT",
         op: "SETOP_NONE",
         codeComments: {
+          withClause: withClause?.codeComment,
           fromClause: from?.codeComments?.fromClause,
           targetList: [
-            combineComments(v[1], v[2].codeComment, v[4]),
-            ...v[3].map((r) => combineComments(r[0], r[2], r[3].codeComment)),
+            combineComments(v[1], v[3], v[4].codeComment, v[6]),
+            ...v[5].map((r) => combineComments(r[0], r[2], r[3].codeComment)),
           ],
           whereClause: from?.codeComments?.whereClause,
           groupClause: groupBy?.codeComments.groupClause,
         },
       },
+    };
+  }
+);
+
+const singlewithClause = transform(
+  sequence([identifier, __, AS, __, LPAREN, __, select, __, RPAREN]),
+  (v, ctx) => {
+    return {
+      value: {
+        CommonTableExpr: {
+          ctename: v[0],
+          ctematerialized: "CTEMaterializeDefault" as const,
+          ctequery: {
+            SelectStmt: v[6].value,
+          },
+          location: ctx.pos,
+        },
+      },
+      codeComment: combineComments(v[1], v[3], v[5], v[7]),
+    };
+  }
+);
+
+const withClause: Rule<{
+  value: SelectStmt["withClause"];
+  codeComment: string;
+}> = transform(
+  sequence([
+    WITH,
+    __,
+    singlewithClause,
+    zeroToMany(sequence([__, COMMA, __, singlewithClause])),
+  ]),
+  (v, ctx) => {
+    return {
+      value: {
+        ctes: [v[2].value, ...v[3].map((r) => r[3].value)],
+        location: ctx.pos,
+      },
+      codeComment: combineComments(
+        v[1],
+        v[2].codeComment,
+        ...v[3].map((r) => combineComments(r[0], r[2], r[3].codeComment))
+      ),
     };
   }
 );

@@ -6,6 +6,15 @@ import { JoinExpr, joinExprDecoder } from "./joinExpr";
 import { ColumnRef, columnRefDecoder } from "./columnRef";
 import { ResTarget, resTargetDecoder } from "./resTarget";
 
+export type CommonTableExpr = {
+  ctename: string;
+  ctematerialized: "CTEMaterializeDefault";
+  ctequery: {
+    SelectStmt: SelectStmt;
+  };
+  location: number;
+};
+
 export type SelectStmt = {
   op: "SETOP_NONE";
   limitOption: "LIMIT_OPTION_DEFAULT";
@@ -15,13 +24,18 @@ export type SelectStmt = {
   fromClause?: ({ RangeVar: RangeVar } | { JoinExpr: JoinExpr })[];
   whereClause?: RawValue;
   groupClause?: { ColumnRef: ColumnRef }[];
-  withClause?: unknown;
-  intoClause?: unknown; // SELECT * INTO TABLE onek2 FROM onek;
-  limitOffset?: unknown;
-  limitCount?: unknown;
-  distinctClause?: unknown;
-  havingClause?: unknown;
-  lockingClause?: unknown; // SELECT ctid,cmin,* FROM combocidtest FOR UPDATE;
+  withClause?: {
+    ctes: {
+      CommonTableExpr: CommonTableExpr;
+    }[];
+    location: number;
+  };
+  // intoClause?: unknown; // SELECT * INTO TABLE onek2 FROM onek;
+  // limitOffset?: unknown;
+  // limitCount?: unknown;
+  // distinctClause?: unknown;
+  // havingClause?: unknown;
+  // lockingClause?: unknown; // SELECT ctid,cmin,* FROM combocidtest FOR UPDATE;
   sortClause?: {
     SortBy: SortBy;
   }[];
@@ -76,13 +90,29 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
   ),
   whereClause: d.optional((blob) => rawValueDecoder(blob)),
   groupClause: d.optional(d.array(d.exact({ ColumnRef: columnRefDecoder }))),
-  intoClause: d.unknown,
-  withClause: d.unknown,
-  limitOffset: d.unknown,
-  limitCount: d.unknown,
-  havingClause: d.unknown,
-  distinctClause: d.unknown,
-  lockingClause: d.unknown,
+  // intoClause: d.fail,
+  withClause: d.optional(
+    d.exact({
+      ctes: d.array(
+        d.exact({
+          CommonTableExpr: d.exact({
+            ctename: d.string,
+            ctematerialized: d.constant("CTEMaterializeDefault"),
+            ctequery: d.exact({
+              SelectStmt: d.lazy(() => selectStmtDecoder),
+            }),
+            location: d.number,
+          }),
+        })
+      ),
+      location: d.number,
+    })
+  ),
+  // limitOffset: d.unknown,
+  // limitCount: d.unknown,
+  // havingClause: d.unknown,
+  // distinctClause: d.unknown,
+  // lockingClause: d.unknown,
   sortClause: d.optional(d.array(d.exact({ SortBy: sortByDecoder }))),
   op: d.constant("SETOP_NONE"),
   limitOption: d.constant("LIMIT_OPTION_DEFAULT"),

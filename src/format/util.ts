@@ -42,6 +42,10 @@ export const addToLastLine = (lines: Block, addition: Line) => {
   return [...lines.slice(0, -1), [...lines[lines.length - 1], ...addition]];
 };
 
+export const addToFirstLine = (addition: Line, lines: Block) => {
+  return [[...addition, ...lines[0]], ...lines.slice(1)];
+};
+
 export function length(token: Token): number {
   switch (token.type) {
     case "tab":

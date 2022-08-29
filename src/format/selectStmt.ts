@@ -1,5 +1,5 @@
 import sortBy from "./sortBy";
-import { SelectStmt } from "../types/selectStmt";
+import { CommonTableExpr, SelectStmt } from "~/types";
 import { rawValue } from "./rawExpr";
 import rangeVar from "./rangeVar";
 import joinExpr from "./joinExpr";
@@ -14,6 +14,7 @@ import {
   comment,
   addToLastLine,
   Block,
+  addToFirstLine,
 } from "./util";
 
 function toTargetList(c: SelectStmt): Block {
@@ -46,7 +47,29 @@ function toTargetList(c: SelectStmt): Block {
   ];
 }
 
+function commonTableExpr(c: CommonTableExpr): Block {
+  return [
+    [identifier(c.ctename), _, keyword("AS"), _, symbol("(")],
+    ...indent(toSingleLineIfPossible(innerSelect(c.ctequery.SelectStmt))),
+    [symbol(")")],
+  ];
+}
+
 export function innerSelect(c: SelectStmt): Block {
+  const withClause: Block = c.withClause
+    ? addToFirstLine(
+        [keyword("WITH"), _],
+        c.withClause.ctes.flatMap((r, i) =>
+          c.withClause && i !== c.withClause.ctes.length - 1
+            ? addToLastLine(commonTableExpr(r.CommonTableExpr), [
+                symbol(","),
+                _,
+              ])
+            : commonTableExpr(r.CommonTableExpr)
+        )
+      )
+    : [];
+
   const select = toTargetList(c);
 
   const from = c.fromClause
@@ -104,6 +127,7 @@ export function innerSelect(c: SelectStmt): Block {
 
   // Lets add the appropiate amount of tabs.
   return [
+    ...withClause,
     ...select,
     ...from,
     ...toSingleLineIfPossible(where),

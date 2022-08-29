@@ -21,7 +21,6 @@ GROUP BY
 SELECT * FROM foo JOIN f ON (TRUE = TRUE);
 
 -- SELECT * FROM foo JOIN f ON (true=true);
-
 SELECT
 	*
 FROM

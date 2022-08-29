@@ -212,7 +212,6 @@ SELECT TRUE = TRUE;
 SELECT 1;
 
 -- select 2
-
 SELECT INTERVAL '2 days ago';
 
 SELECT '1.1'::BIGINT;
@@ -220,19 +219,14 @@ SELECT '1.1'::BIGINT;
 -- TODO properally fill out support for interval.
 -- SELECT INTERVAL '145 seconds ago' MINUTE;
 -- SELECT INTERVAL '145 seconds ago' HOUR;
--- WITH regional_sales AS (
---     SELECT region, SUM(amount) AS total_sales
---     FROM orders
---     GROUP BY region
--- ), top_regions AS (
---     SELECT region
---     FROM regional_sales
---     WHERE total_sales > (SELECT SUM(total_sales)/10 FROM regional_sales)
--- )
--- SELECT region,
---        product,
---        SUM(quantity) AS product_units,
---        SUM(amount) AS product_sales
--- FROM orders
--- WHERE region IN (SELECT region FROM top_regions)
--- GROUP BY region, product;
+
+WITH regional_sales AS (SELECT 1) SELECT 2;
+
+WITH regional_sales AS (
+	SELECT 1
+), 
+top_regions AS (
+	SELECT TRUE AND FALSE OR TRUE OR FALSE
+)
+SELECT
+	3;

@@ -132,10 +132,12 @@ SELECT bigint '1.1';
 -- SELECT INTERVAL '145 seconds ago' MINUTE;
 -- SELECT INTERVAL '145 seconds ago' HOUR;
 
+WITH regional_sales AS ( SELECT 1 ) SELECT 2;
+
 
 WITH regional_sales AS (
     SELECT 1
 ), top_regions AS (
-    SELECT 2
+    SELECT TRUE AND FALSE OR TRUE OR False
 )
 SELECT 3;
