@@ -141,3 +141,5 @@ WITH regional_sales AS (
     SELECT TRUE AND FALSE OR TRUE OR False
 )
 SELECT 3;
+
+SELECT * FROM foo WHERE foo.t like '%foo%';

@@ -230,3 +230,5 @@ top_regions AS (
 )
 SELECT
 	3;
+
+SELECT * FROM foo WHERE foo.t LIKE '%foo%';

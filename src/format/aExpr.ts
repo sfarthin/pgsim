@@ -3,6 +3,7 @@ import { rawValue } from "./rawExpr";
 import { _, keyword, symbol, indent, Block } from "./util";
 import { getPrecedence } from "../parse/aExpr";
 import { list } from "./list";
+import aConst from "./aConst";
 
 function doesSecondConditionNeedParens(c: AExpr) {
   if (!c.lexpr || !c.rexpr) {
@@ -68,7 +69,7 @@ export default function aExpr(c: AExpr, includeParens?: boolean): Block {
         includeParens
       );
     }
-  } else {
+  } else if (c.kind === AExprKind.AEXPR_IN) {
     const condition = rawValue(c.lexpr);
     const rexpr = list(c.rexpr.List, (r) => rawValue(r)).flat();
 
@@ -89,6 +90,15 @@ export default function aExpr(c: AExpr, includeParens?: boolean): Block {
         ...indent(rexprWithCommas),
         [symbol(")")],
       ];
+    }
+  } else if (c.kind === AExprKind.AEXPR_LIKE) {
+    const condition = rawValue(c.lexpr);
+    const rexpr = aConst(c.rexpr.A_Const);
+
+    if (condition.length === 1) {
+      return [[...condition[0], _, keyword("LIKE"), _, ...rexpr]];
+    } else {
+      return [...condition, [keyword("LIKE"), _, ...rexpr]];
     }
   }
 }

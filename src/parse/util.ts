@@ -734,6 +734,7 @@ const keywordList = [
   "JOIN",
   "KEY",
   "LEFT",
+  "LIKE",
   "MAXVALUE",
   "MINVALUE",
   "MINUTE",

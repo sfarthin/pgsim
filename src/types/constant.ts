@@ -35,6 +35,11 @@ export type A_Const_String = {
   location: Location;
 };
 
+export const aConstStringDecoder = d.exact({
+  val: d.exact({ String: stringValueDecoder }),
+  location: locationDecoder,
+});
+
 export type A_Const_Float = {
   val: { Float: Float };
   location: Location;
@@ -61,10 +66,7 @@ export const aConstDecoder: d.Decoder<A_Const> = d.either4(
     val: d.exact({ Float: floatValueDecoder }),
     location: locationDecoder,
   }),
-  d.exact({
-    val: d.exact({ String: stringValueDecoder }),
-    location: locationDecoder,
-  }),
+  aConstStringDecoder,
   d.exact({
     val: d.exact({ Integer: integerValueDecoder }),
     location: locationDecoder,

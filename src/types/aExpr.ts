@@ -1,5 +1,10 @@
 import * as d from "decoders";
-import { stringDecoder, String } from "./constant";
+import {
+  stringDecoder,
+  String,
+  A_Const_String,
+  aConstStringDecoder,
+} from "./constant";
 import { Location, locationDecoder } from "./location";
 import { RawValue, rawValueDecoder } from "./rawExpr";
 import { List, listDecoder } from "./list";
@@ -22,6 +27,7 @@ import { List, listDecoder } from "./list";
 export enum AExprKind {
   AEXPR_OP = "AEXPR_OP", // normal operator
   AEXPR_IN = "AEXPR_IN", // IN - name must be "=" or "<>"
+  AEXPR_LIKE = "AEXPR_LIKE",
 }
 
 export type AExpr =
@@ -38,21 +44,35 @@ export type AExpr =
       lexpr: RawValue;
       rexpr: { List: List<RawValue> };
       location: Location;
+    }
+  | {
+      kind: AExprKind.AEXPR_LIKE;
+      name: [{ String: String }];
+      lexpr: RawValue;
+      rexpr: { A_Const: A_Const_String };
+      location: Location;
     };
 
 export const aExprDecoder: d.Decoder<AExpr> = d.dispatch("kind", {
   [AExprKind.AEXPR_OP]: d.exact({
-    kind: d.oneOf(Object.values(AExprKind)) as d.Decoder<AExprKind.AEXPR_OP>,
+    kind: d.constant(AExprKind.AEXPR_OP),
     name: d.array(stringDecoder),
     lexpr: d.optional((blob) => rawValueDecoder(blob)),
     rexpr: d.optional((blob) => rawValueDecoder(blob)),
     location: locationDecoder,
   }),
   [AExprKind.AEXPR_IN]: d.exact({
-    kind: d.oneOf(Object.values(AExprKind)) as d.Decoder<AExprKind.AEXPR_IN>,
+    kind: d.constant(AExprKind.AEXPR_IN),
     name: d.array(stringDecoder),
     lexpr: (blob) => rawValueDecoder(blob),
     rexpr: d.exact({ List: listDecoder((blob) => rawValueDecoder(blob)) }),
+    location: locationDecoder,
+  }),
+  [AExprKind.AEXPR_LIKE]: d.exact({
+    kind: d.constant(AExprKind.AEXPR_LIKE),
+    name: d.tuple1(stringDecoder),
+    lexpr: (blob) => rawValueDecoder(blob),
+    rexpr: d.exact({ A_Const: aConstStringDecoder }),
     location: locationDecoder,
   }),
 });

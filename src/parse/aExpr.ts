@@ -10,8 +10,9 @@ import {
   transform,
   Rule,
   lookForWhiteSpaceOrComment,
+  quotedString,
 } from "./util";
-import { RawValue, AExprKind, AExpr } from "~/types";
+import { RawValue, AExprKind, AExpr, A_Const_String } from "~/types";
 import { rowExpr } from "./rowExpr";
 import { adjustPrecedence } from "./rawValuePrecendence";
 
@@ -219,6 +220,38 @@ export const aExprIn = (ctx: Context) =>
             ],
             lexpr: c1.value as RawValue, // TODO ... this currently allows "(1 AND 1) = 'foo'". Fix in the future.
             rexpr: { List: { items: v[3].value.RowExpr.args } },
+            location: v[1].start,
+          },
+        },
+      };
+    }
+  )(ctx);
+
+export const aExprLike = (ctx: Context) =>
+  connectRawValue(
+    sequence([__, keyword("LIKE"), __, quotedString]),
+    (c1, v) => {
+      const aConstString: A_Const_String = {
+        val: { String: { str: v[3].value } },
+        location: v[3].pos,
+      };
+
+      return {
+        codeComment: combineComments(c1.codeComment, v[0], v[2]),
+        value: {
+          A_Expr: {
+            kind: AExprKind.AEXPR_LIKE,
+            name: [
+              {
+                String: {
+                  str: "~~",
+                },
+              },
+            ],
+            lexpr: c1.value, // TODO ... this currently allows "(1 AND 1) = 'foo'". Fix in the future.
+            rexpr: {
+              A_Const: aConstString,
+            },
             location: v[1].start,
           },
         },
