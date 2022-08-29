@@ -2,7 +2,8 @@ import { resolve } from "path";
 import { writeFileSync, readdirSync, existsSync } from "fs";
 import prettier from "prettier";
 import warning from "./warning";
-import { stmtTypes, mapStmtTypes } from "./constants";
+import { mapStmtTypes } from "./constants";
+import { stmtTypes } from "~/constants";
 import { camelCase } from "lodash";
 
 function mapStmtChunks(fn: (i: string[]) => string) {

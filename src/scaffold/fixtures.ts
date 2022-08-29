@@ -1,6 +1,6 @@
 import { resolve } from "path";
 import { writeFileSync, readdirSync } from "fs";
-import { stmtTypes } from "./constants";
+import { stmtTypes } from "~/constants";
 import { camelCase } from "lodash";
 
 export default async function () {
