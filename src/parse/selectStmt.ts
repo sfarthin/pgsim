@@ -21,6 +21,7 @@ import {
   WITH,
   LPAREN,
   RPAREN,
+  identifierIncludingKeyword,
 } from "./util";
 import { rawValue } from "./rawExpr";
 import { SelectStmt } from "~/types";
@@ -122,7 +123,10 @@ const target = transform(
   sequence([
     (ctx) => rawValue(ctx),
     optional(
-      or([sequence([__, AS, __, identifier]), sequence([__, identifier])])
+      or([
+        sequence([__, AS, __, identifierIncludingKeyword]),
+        sequence([__, identifier]),
+      ])
     ),
   ]),
   (v, ctx) => ({

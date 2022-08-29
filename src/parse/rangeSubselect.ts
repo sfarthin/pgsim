@@ -10,6 +10,7 @@ import {
   combineComments,
   LPAREN,
   RPAREN,
+  identifierIncludingKeyword,
 } from "./util";
 import { select } from "./selectStmt";
 
@@ -20,7 +21,10 @@ export const rangeSubselect: Rule<{
   sequence([
     sequence([LPAREN, __, (ctx) => select(ctx), __, RPAREN]),
 
-    or([sequence([__, AS, __, identifier]), sequence([__, identifier])]),
+    or([
+      sequence([__, AS, __, identifierIncludingKeyword]),
+      sequence([__, identifier]),
+    ]),
   ]),
   (v) => {
     const codeComment = combineComments(

@@ -101,4 +101,6 @@ export default function aExpr(c: AExpr, includeParens?: boolean): Block {
       return [...condition, [keyword("LIKE"), _, ...rexpr]];
     }
   }
+
+  throw new Error(`Unexpected case`);
 }

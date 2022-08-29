@@ -10,6 +10,7 @@ import {
   __,
   combineComments,
   PERIOD,
+  identifierIncludingKeyword,
 } from "./util";
 
 export const rangeVar: Rule<{
@@ -21,7 +22,10 @@ export const rangeVar: Rule<{
     // column [AS alias | alias]
     // identifier('foo') ... v[3].foo
     optional(
-      or([sequence([__, AS, __, identifier]), sequence([__, identifier])])
+      or([
+        sequence([__, AS, __, identifierIncludingKeyword]),
+        sequence([__, identifier]),
+      ])
     ),
   ]),
   (v, ctx) => {
