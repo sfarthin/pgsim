@@ -618,7 +618,7 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
     const values = [];
 
     let tokens: Block | undefined = [];
-    let buffer: [number, number] = [ctx.pos, ctx.pos];
+    let loc: [number, number] = [ctx.pos, ctx.pos];
     let expected: Expected[] = [];
 
     for (const rule of rules) {
@@ -644,7 +644,7 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
       }
 
       tokens = combineBlocks(tokens ?? [], result?.tokens ?? []);
-      buffer = [buffer[0], result.buffer[1]];
+      loc = [loc[0], result.loc[1]];
 
       pos = pos + result.length;
       length = length + result.length;
@@ -656,7 +656,7 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
       expected,
       value: values,
       length,
-      buffer: [ctx.pos, ctx.pos + length],
+      loc: [ctx.pos, ctx.pos + length],
       tokens,
     };
   };

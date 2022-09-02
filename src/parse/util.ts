@@ -45,7 +45,7 @@ export type SuccessResult<R> = {
   /**
    * The location within the string
    */
-  buffer: [
+  loc: [
     /* start position */
     number,
     /* end position */
@@ -144,7 +144,7 @@ export const placeholder: Rule<null> = (ctx) => ({
   value: null,
   expected: [],
   length: 0,
-  buffer: [ctx.pos, ctx.pos],
+  loc: [ctx.pos, ctx.pos],
 });
 
 export const endOfInput: Rule<number> = (ctx) => {
@@ -153,27 +153,8 @@ export const endOfInput: Rule<number> = (ctx) => {
       type: ResultType.Success,
       value: ctx.pos,
       length: 0, // <-- unlike most rules, this one does not progress the position
-      buffer: [ctx.pos, ctx.pos],
+      loc: [ctx.pos, ctx.pos],
       expected: [],
-    };
-  }
-
-  return {
-    type: ResultType.Fail,
-    expected: [{ type: "endOfInput", value: "End of Input", pos: ctx.pos }],
-    pos: ctx.pos,
-  };
-};
-
-const endOfInputBuffer: Rule<number> = (ctx) => {
-  if (ctx.pos == ctx.str.length) {
-    return {
-      type: ResultType.Success,
-      value: ctx.pos,
-      length: 0, // <-- unlike most rules, this one does not progress the position
-      expected: [],
-      buffer: [ctx.pos, ctx.pos],
-      blocks: [],
     };
   }
 
@@ -199,7 +180,7 @@ export function constant(
         value: { start: ctx.pos, value: keyword },
         length: keyword.length,
         expected: [],
-        buffer: [ctx.pos, ctx.pos + keyword.length],
+        loc: [ctx.pos, ctx.pos + keyword.length],
       };
     }
 
@@ -239,7 +220,7 @@ export function regexChar(r: RegExp): Rule<string> {
         length: 1,
         expected: [],
         pos,
-        buffer: [pos, pos + 1],
+        loc: [pos, pos + 1],
       };
     }
     return {
@@ -267,7 +248,7 @@ function multiply<T>(
 
     // It can be one or the other.
     let tokens: Block | undefined = [];
-    let buffer: [number, number] = [pos, pos];
+    let loc: [number, number] = [pos, pos];
     while (pos < ctx.str.length && (max === null || values.length < max)) {
       const prevPos = ctx.pos;
       ctx.pos = pos;
@@ -287,7 +268,7 @@ function multiply<T>(
         if ("tokens" in curr) {
           tokens = combineBlocks(tokens, curr.tokens);
         } else {
-          buffer = [buffer[0], curr.buffer[1]];
+          loc = [loc[0], curr.loc[1]];
         }
 
         pos += curr.length;
@@ -299,9 +280,9 @@ function multiply<T>(
       }
     }
 
-    if (tokens?.length && buffer[1] === pos) {
+    if (tokens?.length && loc[1] === pos) {
       throw new Error(
-        `Invalid expression, expression must be nodes or buffer: ${tokens.length},${buffer.length}`
+        `Invalid expression, expression must be nodes or loc: ${tokens.length},${loc.length}`
       );
     }
 
@@ -317,7 +298,7 @@ function multiply<T>(
       type: ResultType.Success,
       value: values,
       length: pos - start,
-      buffer,
+      loc,
       expected,
       tokens,
       // ...(tokens.length ? { tokens } : {}),
@@ -371,7 +352,7 @@ export function notConstant(keyword: string): Rule<string> {
         value: ctx.str.charAt(ctx.pos),
         expected: [],
         length: 1,
-        buffer: [ctx.pos, ctx.pos + 1],
+        loc: [ctx.pos, ctx.pos + 1],
       };
     }
 
@@ -411,17 +392,17 @@ export function transform<T, R>(
 
 export function fromBufferToCodeBlock<T>(
   rule: Rule<T>,
-  func: (buffer: string, result: RuleResult<T>) => Block
+  func: (loc: string, result: RuleResult<T>) => Block
 ): Rule<T> {
   const _fromBufferToCodeBlock: Rule<T> = (ctx) => {
     const result = rule(ctx);
 
     if (result.type === ResultType.Success) {
-      const { buffer, ...everythingButBuffer } = result;
+      const { loc, ...everythingButLoc } = result;
       return {
-        ...everythingButBuffer,
-        buffer,
-        tokens: func(ctx.str.substring(buffer[0], buffer[1]), result),
+        ...everythingButLoc,
+        loc,
+        tokens: func(ctx.str.substring(loc[0], loc[1]), result),
       };
     } else {
       return result;
@@ -482,11 +463,11 @@ export const cStyleCommentWithoutNewline: Rule<string> = fromBufferToCodeBlock(
           .replace(/\n$/, "")
       ).trim()
   ),
-  (buffer) => [
+  (text) => [
     [
       {
         type: "comment",
-        text: buffer,
+        text,
         style: "c",
       },
     ],
@@ -499,7 +480,7 @@ export const sqlStyleComment: Rule<string> = fromBufferToCodeBlock(
       constant("--"),
       zeroToOne(regexChar(/[ \t\r]/)),
       zeroToMany(notConstant(NEWLINE)),
-      or([constant(NEWLINE), endOfInputBuffer]),
+      or([constant(NEWLINE), endOfInput]),
     ]),
     (v) => combineComments(v[2].join(""))
   ),
@@ -536,11 +517,11 @@ export const sqlStyleCommentWithoutNewline: Rule<string> =
       ]),
       (v) => combineComments(v[2].join(""))
     ),
-    (buffer) => [
+    (text) => [
       [
         {
           type: "comment",
-          text: buffer,
+          text,
           style: "sql",
         },
       ],
@@ -555,7 +536,7 @@ export function lookAhead<T>(rule: Rule<T>): Rule<T> {
       return {
         type: ResultType.Success,
         value: curr.value,
-        buffer: [ctx.pos, ctx.pos],
+        loc: [ctx.pos, ctx.pos],
         length: 0, // <-- unlike most rules, this one does not progress the position
         expected: [],
       };
