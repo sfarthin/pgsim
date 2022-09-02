@@ -47,10 +47,14 @@ export type SuccessResult<R> = {
   ];
 
   /**
+   *
+   * If we are including expected results.
+   * We only do this if we failed to parse the query.
+   *
    * Sometimes we get a successful result but it may fail later and we still need to
    * refer to this expected result
    */
-  expected: Expected[];
+  expected?: Expected[];
 
   /**
    * This is the original SQL segmented into nodes so we can
@@ -61,11 +65,16 @@ export type SuccessResult<R> = {
 
 export type FailResult = {
   type: ResultType.Fail;
-  expected: Expected[];
   /**
    * The ending location where the parser could no longer parse
    */
   pos: number;
+
+  /**
+   * If we are including expected results.
+   * We only do this if we failed to parse the query.
+   */
+  expected?: Expected[];
 };
 
 export type RuleResult<R> = FailResult | SuccessResult<R>;
@@ -85,6 +94,12 @@ export type Context = {
    * We can take on how many statements we were able to
    */
   numStatements: number;
+
+  /**
+   * We don't want to keep trakc of tokens
+   * and expected results until we have to.
+   */
+  includeExpectedAndTokens?: boolean;
 };
 
 export type Rule<R> = (c: Context) => RuleResult<R>;
@@ -136,8 +151,6 @@ export function blockLength(block: Block): number {
 export const placeholder: Rule<null> = (ctx) => ({
   type: ResultType.Success,
   value: null,
-  expected: [],
-  length: 0,
   loc: [ctx.pos, ctx.pos],
 });
 
@@ -146,15 +159,19 @@ export const endOfInput: Rule<number> = (ctx) => {
     return {
       type: ResultType.Success,
       value: ctx.pos,
-      length: 0, // <-- unlike most rules, this one does not progress the position
-      loc: [ctx.pos, ctx.pos],
-      expected: [],
+      loc: [ctx.pos, ctx.pos], // <-- unlike most rules, this one does not progress the position
     };
   }
 
   return {
     type: ResultType.Fail,
-    expected: [{ type: "endOfInput", value: "End of Input", pos: ctx.pos }],
+    ...(ctx.includeExpectedAndTokens
+      ? {
+          expected: [
+            { type: "endOfInput", value: "End of Input", pos: ctx.pos },
+          ],
+        }
+      : {}),
     pos: ctx.pos,
   };
 };
@@ -172,21 +189,23 @@ export function constant(
       return {
         type: ResultType.Success,
         value: { start: ctx.pos, value: keyword },
-        length: keyword.length,
-        expected: [],
         loc: [ctx.pos, ctx.pos + keyword.length],
       };
     }
 
     return {
       type: ResultType.Fail,
-      expected: [
-        {
-          type: "keyword",
-          value: `"${keyword}"`,
-          pos: ctx.pos,
-        },
-      ],
+      ...(ctx.includeExpectedAndTokens
+        ? {
+            expected: [
+              {
+                type: "keyword",
+                value: `"${keyword}"`,
+                pos: ctx.pos,
+              },
+            ],
+          }
+        : {}),
       pos: ctx.pos,
     };
   };
@@ -205,22 +224,21 @@ export function regexChar(r: RegExp): Rule<string> {
       "Cannot use global match. See https://stackoverflow.com/questions/209732/why-am-i-seeing-inconsistent-javascript-logic-behavior-looping-with-an-alert-v"
     );
   }
-  const rule: Rule<string> = ({ str, pos }) => {
-    const char = str.charAt(pos);
+  const rule: Rule<string> = (ctx) => {
+    const char = ctx.str.charAt(ctx.pos);
     if (r.test(char)) {
       return {
         type: ResultType.Success,
         value: char,
-        length: 1,
-        expected: [],
-        pos,
-        loc: [pos, pos + 1],
+        loc: [ctx.pos, ctx.pos + 1],
       };
     }
     return {
       type: ResultType.Fail,
-      expected: [{ type: "regex", value: r.toString(), pos }],
-      pos,
+      ...(ctx.includeExpectedAndTokens
+        ? { expected: [{ type: "regex", value: r.toString(), pos: ctx.pos }] }
+        : {}),
+      pos: ctx.pos,
     };
   };
 
@@ -249,18 +267,22 @@ function multiply<T>(
       curr = rule(ctx);
       ctx.pos = prevPos;
 
-      expected = expected
-        .concat(
-          curr.expected.map((e) => ({
-            ...e,
-            tokens: combineBlocks(tokens, e.tokens),
-          }))
-        )
-        .reduce(expectedReducer, []);
+      if (ctx.includeExpectedAndTokens) {
+        expected = expected
+          .concat(
+            (curr.expected ?? []).map((e) => ({
+              ...e,
+              tokens: combineBlocks(tokens, e.tokens),
+            }))
+          )
+          .reduce(expectedReducer, []);
+      }
 
       if (curr.type === ResultType.Success) {
         if ("tokens" in curr) {
-          tokens = combineBlocks(tokens, curr.tokens);
+          if (ctx.includeExpectedAndTokens) {
+            tokens = combineBlocks(tokens, curr.tokens);
+          }
         } else {
           loc = [loc[0], curr.loc[1]];
         }
@@ -284,7 +306,7 @@ function multiply<T>(
     if (values.length < min) {
       return {
         type: ResultType.Fail,
-        expected,
+        ...(ctx.includeExpectedAndTokens ? { expected } : {}),
         pos: lastPos,
       };
     }
@@ -294,8 +316,7 @@ function multiply<T>(
       value: values,
       length: pos - start,
       loc: [ctx.pos, ctx.pos + pos - start],
-      expected,
-      tokens,
+      ...(ctx.includeExpectedAndTokens ? { expected, tokens } : {}),
     };
   };
 
@@ -344,7 +365,6 @@ export function notConstant(keyword: string): Rule<string> {
       return {
         type: ResultType.Success,
         value: ctx.str.charAt(ctx.pos),
-        expected: [],
         length: 1,
         loc: [ctx.pos, ctx.pos + 1],
       };
@@ -352,13 +372,17 @@ export function notConstant(keyword: string): Rule<string> {
 
     return {
       type: ResultType.Fail,
-      expected: [
-        {
-          type: "notKeyword",
-          value: `not "${keyword}"`,
-          pos: ctx.pos,
-        },
-      ],
+      ...(ctx.includeExpectedAndTokens
+        ? {
+            expected: [
+              {
+                type: "notKeyword",
+                value: `not "${keyword}"`,
+                pos: ctx.pos,
+              },
+            ],
+          }
+        : {}),
       pos: ctx.pos,
     };
   };
@@ -396,7 +420,9 @@ export function fromBufferToCodeBlock<T>(
       return {
         ...everythingButLoc,
         loc,
-        tokens: func(ctx.str.substring(loc[0], loc[1]), result),
+        ...(ctx.includeExpectedAndTokens
+          ? { tokens: func(ctx.str.substring(loc[0], loc[1]), result) }
+          : {}),
       };
     } else {
       return result;
@@ -531,8 +557,6 @@ export function lookAhead<T>(rule: Rule<T>): Rule<T> {
         type: ResultType.Success,
         value: curr.value,
         loc: [ctx.pos, ctx.pos],
-        length: 0, // <-- unlike most rules, this one does not progress the position
-        expected: [],
       };
     }
 
@@ -752,7 +776,9 @@ export function keyword(
     } else {
       return {
         ...result,
-        expected: [{ type: "keyword", value: `"${str}"`, pos: ctx.pos }],
+        ...(ctx.includeExpectedAndTokens
+          ? { expected: [{ type: "keyword", value: `"${str}"`, pos: ctx.pos }] }
+          : {}),
       };
     }
   };
@@ -891,7 +917,13 @@ export const identifierIncludingKeyword: Rule<string> = (ctx: Context) => {
   if (result.type === ResultType.Fail) {
     return {
       ...result,
-      expected: [{ type: "identifier", value: "identifier", pos: ctx.pos }],
+      ...(ctx.includeExpectedAndTokens
+        ? {
+            expected: [
+              { type: "identifier", value: "identifier", pos: ctx.pos },
+            ],
+          }
+        : {}),
     };
   }
 
@@ -909,8 +941,14 @@ export const identifier: Rule<string> = (ctx: Context) => {
   if ((keywordList as readonly string[]).includes(result.value.toUpperCase())) {
     return {
       type: ResultType.Fail,
-      expected: [{ type: "identifier", value: "identifier", pos: ctx.pos }],
       pos: ctx.pos,
+      ...(ctx.includeExpectedAndTokens
+        ? {
+            expected: [
+              { type: "identifier", value: "identifier", pos: ctx.pos },
+            ],
+          }
+        : {}),
     };
   }
 
@@ -1036,8 +1074,10 @@ export function addStmtType<T>(stmtType: StmtType, rule: Rule<T>): Rule<T> {
   const _addStmtType: Rule<T> = (ctx) => {
     const result = rule(ctx);
 
-    for (let i = 0; i < result.expected.length; i += 1) {
-      result.expected[i].stmtType = stmtType;
+    if (result.expected) {
+      for (let i = 0; i < result.expected.length; i += 1) {
+        result.expected[i].stmtType = stmtType;
+      }
     }
 
     return result;

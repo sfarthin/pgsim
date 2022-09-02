@@ -152,9 +152,11 @@ export function or(rules: Rule<any>[]): Rule<any> {
       return r.type === ResultType.Success;
     });
 
-    const expected = results
-      .reduce((acc, r) => acc.concat(r.expected), [] as Expected[])
-      .reduce(expectedReducer, []);
+    const expected = ctx.includeExpectedAndTokens
+      ? results
+          .reduce((acc, r) => acc.concat(r.expected ?? []), [] as Expected[])
+          .reduce(expectedReducer, [])
+      : undefined;
 
     if (firstMatch) {
       return { ...firstMatch, expected };

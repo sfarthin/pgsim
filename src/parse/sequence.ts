@@ -627,14 +627,16 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
       const result = rule(ctx);
       ctx.pos = prevPos;
 
-      expected = expected
-        .concat(
-          result.expected.map((e) => ({
-            ...e,
-            tokens: combineBlocks(tokens, e.tokens),
-          }))
-        )
-        .reduce(expectedReducer, []);
+      if (ctx.includeExpectedAndTokens) {
+        expected = expected
+          .concat(
+            (result.expected ?? []).map((e) => ({
+              ...e,
+              tokens: combineBlocks(tokens, e.tokens),
+            }))
+          )
+          .reduce(expectedReducer, []);
+      }
 
       if (result.type === ResultType.Fail) {
         return {
@@ -643,7 +645,10 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
         };
       }
 
-      tokens = combineBlocks(tokens ?? [], result?.tokens ?? []);
+      if (ctx.includeExpectedAndTokens) {
+        tokens = combineBlocks(tokens ?? [], result?.tokens ?? []);
+      }
+
       loc = [loc[0], result.loc[1]];
 
       const resultLength = result.loc[1] - result.loc[0];
@@ -654,11 +659,9 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
 
     return {
       type: ResultType.Success,
-      expected,
       value: values,
-      length,
       loc: [ctx.pos, ctx.pos + length],
-      tokens,
+      ...(ctx.includeExpectedAndTokens ? { expected, tokens } : {}),
     };
   };
 

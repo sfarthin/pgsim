@@ -168,7 +168,7 @@ export default function parseAndFormat(
 
   let ast;
   try {
-    ast = parse(sql, basename(filename));
+    ast = parse(sql, basename(filename), { includeTokens: true });
   } catch (e) {
     if (e instanceof ParseError) {
       console.log(JSON.stringify(realAst[e.statementNum].stmt, null, 2));
@@ -233,7 +233,9 @@ export default function parseAndFormat(
 
   let formattedAst;
   try {
-    formattedAst = parse(formattedSql, basename(filename));
+    formattedAst = parse(formattedSql, basename(filename), {
+      includeTokens: true,
+    });
   } catch (_e) {
     const e = _e as Error;
     e.name = `Format provided invalid SQL`;

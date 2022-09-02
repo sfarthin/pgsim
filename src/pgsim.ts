@@ -53,6 +53,22 @@ yargs(process.argv.splice(2))
     }
   )
   .command(
+    "parse <filename>",
+    "parse SQL file and return AST",
+    {
+      filename: {
+        type: "string",
+        required: true,
+        describe: "Path to file SQL file",
+      },
+    },
+    (r) => {
+      const str = readFileSync(resolve(process.cwd(), r.filename)).toString();
+      const response = parse(str, r.filename);
+      console.log(response.value);
+    }
+  )
+  .command(
     "print <filename>",
     "parse SQL file and print colorized SQL",
     {
@@ -75,7 +91,7 @@ yargs(process.argv.splice(2))
     (r) => {
       const sql = readFileSync(resolve(process.cwd(), r.filename)).toString();
       try {
-        const response = parse(sql, r.filename);
+        const response = parse(sql, r.filename, { includeTokens: true });
         console.log(
           toString(response.tokens, {
             colors: r.colors,

@@ -8,6 +8,8 @@ import {
   combineComments,
   endOfInput,
   SuccessResult,
+  Context,
+  Expected,
 } from "./util";
 import { getFriendlyErrorMessage } from "./error";
 import { codeComments } from "./codeComments";
@@ -22,13 +24,28 @@ export class ParseError extends Error {
   }
 }
 
+function onErrorTryAgainWithExpectedAndTokens<T>(rule: Rule<T>): Rule<T> {
+  return (ctx: Context) => {
+    const result = rule(ctx);
+    if (result.type === ResultType.Fail && !ctx.includeExpectedAndTokens) {
+      ctx.includeExpectedAndTokens = true;
+      const t = rule(ctx);
+      return t;
+    }
+    return result;
+  };
+}
+
 export const stmts: Rule<Stmt[]> = transform(
   sequence([
-    transform(zeroToMany(stmt), (r, ctx) => {
-      // Lets igngore "Comment" statements, because the regular parser doesn't consider those.
-      ctx.numStatements = r.filter((r) => !("Comment" in r.value)).length;
-      return r;
-    }),
+    transform(
+      zeroToMany(onErrorTryAgainWithExpectedAndTokens(stmt)),
+      (r, ctx) => {
+        // Lets igngore "Comment" statements, because the regular parser doesn't consider those.
+        ctx.numStatements = r.filter((r) => !("Comment" in r.value)).length;
+        return r;
+      }
+    ),
     endOfInput, // <-- This ensures we don't return before hitting the end of our SQL.
   ]),
   (v) => {
@@ -120,20 +137,48 @@ export function parseComments(inputSql: string) {
  */
 export function parse(
   sql: string,
+  filename: string,
+  opts: {
+    /**
+     * When printing errors, should we use colors ?
+     */
+    colors?: boolean | undefined;
+    includeTokens: true;
+  }
+): SuccessResult<Stmt[]> & { tokens: Block; expected: Expected[] };
+export function parse(
+  sql: string,
+  filename: string,
+  opts?: {
+    /**
+     * When printing errors, should we use colors ?
+     */
+    colors?: boolean | undefined;
+    includeTokens?: false;
+  }
+): SuccessResult<Stmt[]>;
+export function parse(
+  sql: string,
   filename = "unknown",
   opts?: {
     /**
      * When printing errors, should we use colors ?
      */
     colors?: boolean | undefined;
+    includeTokens?: boolean;
   }
-): SuccessResult<Stmt[]> & { tokens: Block } {
-  const context = { str: sql, pos: 0, numStatements: 0 };
+): SuccessResult<Stmt[]> {
+  const context: Context = {
+    str: sql,
+    pos: 0,
+    numStatements: 0,
+    includeExpectedAndTokens: opts?.includeTokens ? true : false,
+  };
   const result = stmts(context);
 
   if (result.type == ResultType.Success) {
     result.value = result.value.reduce(reduceComments, []);
-    return result as SuccessResult<Stmt[]> & { tokens: Block };
+    return result as SuccessResult<Stmt[]>;
   }
 
   const errorMessage = getFriendlyErrorMessage(result, {

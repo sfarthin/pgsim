@@ -70,6 +70,13 @@ export const getFriendlyErrorMessage = (
 ): string => {
   const { filename, sql } = opts;
 
+  // See onErrorTryAgainWithExpectedAndTokens
+  // We always should have an expected result when we get an error.
+  // We may only have it for statement that broke.
+  if (!result.expected || !result.expected.length) {
+    throw new Error("Internal Error: expected values not present");
+  }
+
   // Get possible strings.
   let expected = result.expected.map((v) => v.value);
   // Remove duplicates
