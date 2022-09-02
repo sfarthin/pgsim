@@ -37,12 +37,6 @@ export type SuccessResult<R> = {
   value: R;
 
   /**
-   * The character length of the rule. For Stmt this is always the entire SQL length,
-   * but is useful in sub-rules.
-   */
-  length: number;
-
-  /**
    * The location within the string
    */
   loc: [
@@ -271,7 +265,8 @@ function multiply<T>(
           loc = [loc[0], curr.loc[1]];
         }
 
-        pos += curr.length;
+        const length = curr.loc[1] - curr.loc[0];
+        pos += length;
         values.push(curr.value);
         lastPos = pos;
       } else {
@@ -298,10 +293,9 @@ function multiply<T>(
       type: ResultType.Success,
       value: values,
       length: pos - start,
-      loc,
+      loc: [ctx.pos, ctx.pos + pos - start],
       expected,
       tokens,
-      // ...(tokens.length ? { tokens } : {}),
     };
   };
 

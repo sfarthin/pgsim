@@ -646,8 +646,9 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
       tokens = combineBlocks(tokens ?? [], result?.tokens ?? []);
       loc = [loc[0], result.loc[1]];
 
-      pos = pos + result.length;
-      length = length + result.length;
+      const resultLength = result.loc[1] - result.loc[0];
+      pos = pos + resultLength;
+      length = length + resultLength;
       values.push(result.value);
     }
 
