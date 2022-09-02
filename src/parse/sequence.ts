@@ -1287,19 +1287,19 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
         };
       }
 
-      if ("tokens" in result) {
-        if (mode && mode === "buffer") {
-          throw new Error("Buffer and Node mishap");
-        }
-        mode = "tokens";
-        tokens = combineBlocks(tokens, result.tokens);
-      } else if ("buffer" in result && result.buffer[1] !== pos) {
-        if (mode && mode === "tokens") {
-          throw new Error("Buffer and Node mishap");
-        }
-        mode = "buffer";
-        buffer = [buffer[0], result.buffer[1]];
-      }
+      // if ("tokens" in result) {
+      //   if (mode && mode === "buffer") {
+      //     throw new Error("Buffer and Node mishap");
+      //   }
+      //   mode = "tokens";
+      tokens = combineBlocks(tokens ?? [], result?.tokens ?? []);
+      // } else if ("buffer" in result && result.buffer[1] !== pos) {
+      //   if (mode && mode === "tokens") {
+      //     throw new Error("Buffer and Node mishap");
+      //   }
+      //   mode = "buffer";
+      buffer = [buffer[0], result.buffer[1]];
+      // }
 
       pos = pos + result.length;
       length = length + result.length;
@@ -1312,7 +1312,8 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
       value: values,
       length,
       buffer: [ctx.pos, ctx.pos + length],
-      ...(mode !== "buffer" ? { tokens } : {}),
+      tokens,
+      // ...(mode !== "buffer" ? { tokens } : {}),
     };
   };
 

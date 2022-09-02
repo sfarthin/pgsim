@@ -326,7 +326,8 @@ function multiply<T>(
       length: pos - start,
       buffer,
       expected,
-      ...(tokens.length ? { tokens } : {}),
+      tokens,
+      // ...(tokens.length ? { tokens } : {}),
     };
   };
 
