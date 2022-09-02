@@ -134,7 +134,6 @@ export const placeholder: Rule<null> = (ctx) => ({
   value: null,
   expected: [],
   length: 0,
-  pos: ctx.pos,
   tokens: [],
 });
 
@@ -145,7 +144,6 @@ export const endOfInput: Rule<number> = (ctx) => {
       value: ctx.pos,
       length: 0, // <-- unlike most rules, this one does not progress the position
       expected: [],
-      pos: ctx.pos,
       tokens: [],
     };
   }
@@ -166,7 +164,6 @@ const endOfInputBuffer: BufferRule<number> = (ctx) => {
       value: ctx.pos,
       length: 0, // <-- unlike most rules, this one does not progress the position
       expected: [],
-      pos: ctx.pos,
       buffer: [ctx.pos, ctx.pos],
     };
   }
@@ -195,7 +192,6 @@ export function constant(
         value: { start: ctx.pos, value: keyword },
         length: keyword.length,
         expected: [],
-        pos: ctx.pos,
         buffer: [ctx.pos, ctx.pos + keyword.length],
       };
     }
@@ -327,7 +323,6 @@ function multiply<T>(
       value: values,
       length: pos - start,
       expected,
-      pos: lastPos,
       ...(tokens.length ? { tokens } : { buffer }),
     };
   };
@@ -387,7 +382,6 @@ export function notConstant(keyword: string): BufferRule<string> {
         value: ctx.str.charAt(ctx.pos),
         expected: [],
         length: 1,
-        pos: ctx.pos,
         buffer: [ctx.pos, ctx.pos + 1],
       };
     }
@@ -587,7 +581,6 @@ export function lookAhead<T>(rule: Rule<T>): Rule<T> {
         value: curr.value,
         length: 0, // <-- unlike most rules, this one does not progress the position
         expected: [],
-        pos: ctx.pos,
         tokens: [],
       };
     }

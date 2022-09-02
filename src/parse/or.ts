@@ -317,7 +317,7 @@ export function or<A, B, C, D, E, F, G, H, I, J, K, L, M, N, O>(
 ): BufferRule<A | B | C | D | E | F | G | H | I | J | K | L | M | N | O>;
 
 export function or(rules: EitherRule<any>[]): EitherRule<any> {
-  const _or: Rule<any> = (ctx: Context) => {
+  const _or: EitherRule<any> = (ctx: Context) => {
     const results = rules.map((r) => r(ctx));
 
     const firstMatch = results.find((r) => {
