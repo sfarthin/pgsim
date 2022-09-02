@@ -55,7 +55,9 @@ export type SuccessResult<R> =
    */
   SuccessResultBase<R> & { tokens: Block };
 
-type SuccessBufferResult<R> = SuccessResultBase<R> & { buffer: string };
+type SuccessBufferResult<R> = SuccessResultBase<R> & {
+  buffer: [number, number];
+};
 
 export type FailResult = {
   type: ResultType.Fail;
@@ -165,7 +167,7 @@ const endOfInputBuffer: BufferRule<number> = (ctx) => {
       length: 0, // <-- unlike most rules, this one does not progress the position
       expected: [],
       pos: ctx.pos,
-      buffer: "",
+      buffer: [ctx.pos, ctx.pos],
     };
   }
 
@@ -194,7 +196,7 @@ export function constant(
         length: keyword.length,
         expected: [],
         pos: ctx.pos,
-        buffer: potentialKeyword,
+        buffer: [ctx.pos, ctx.pos + keyword.length],
       };
     }
 
@@ -235,7 +237,7 @@ export function regexChar(r: RegExp): BufferRule<string> {
         length: 1,
         expected: [],
         pos,
-        buffer: char,
+        buffer: [pos, pos + 1],
       };
     }
     return {
@@ -274,7 +276,7 @@ function multiply<T>(
 
     // It can be one or the other.
     let tokens: Block = [];
-    let buffer = "";
+    let buffer: [number, number] = [pos, pos];
     while (pos < ctx.str.length && (max === null || values.length < max)) {
       const prevPos = ctx.pos;
       ctx.pos = pos;
@@ -294,7 +296,7 @@ function multiply<T>(
         if ("tokens" in curr) {
           tokens = combineBlocks(tokens, curr.tokens);
         } else {
-          buffer = `${buffer}${curr.buffer}`;
+          buffer = [buffer[0], curr.buffer[1]];
         }
 
         pos += curr.length;
@@ -306,7 +308,7 @@ function multiply<T>(
       }
     }
 
-    if (tokens.length && buffer.length) {
+    if (tokens.length && buffer[1] === pos) {
       throw new Error(
         `Invalid expression, expression must be nodes or buffer: ${tokens.length},${buffer.length}`
       );
@@ -386,7 +388,7 @@ export function notConstant(keyword: string): BufferRule<string> {
         expected: [],
         length: 1,
         pos: ctx.pos,
-        buffer: ctx.str.charAt(ctx.pos),
+        buffer: [ctx.pos, ctx.pos + 1],
       };
     }
 
@@ -448,7 +450,7 @@ export function fromBufferToCodeBlock<T>(
       const { buffer, ...everythingButBuffer } = result;
       return {
         ...everythingButBuffer,
-        tokens: func(buffer ?? "", result),
+        tokens: func(ctx.str.substring(buffer[0], buffer[1]), result),
       };
     } else {
       return result;

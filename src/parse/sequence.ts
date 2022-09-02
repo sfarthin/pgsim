@@ -1261,7 +1261,7 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
     const values = [];
 
     let tokens: Block = [];
-    let buffer = "";
+    let buffer: [number, number] = [ctx.pos, ctx.pos];
     let mode: "tokens" | "buffer" | null = null;
     let expected: Expected[] = [];
 
@@ -1293,12 +1293,12 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
         }
         mode = "tokens";
         tokens = combineBlocks(tokens, result.tokens);
-      } else if ("buffer" in result && result.buffer !== "") {
+      } else if ("buffer" in result && result.buffer[1] !== pos) {
         if (mode && mode === "tokens") {
           throw new Error("Buffer and Node mishap");
         }
         mode = "buffer";
-        buffer = `${buffer}${result.buffer}`;
+        buffer = [buffer[0], result.buffer[1]];
       }
 
       pos = pos + result.length;
