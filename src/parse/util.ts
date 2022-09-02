@@ -41,6 +41,8 @@ type SuccessResultBase<R> = {
    */
   length: number;
 
+  buffer: [number, number];
+
   /**
    * Sometimes we get a successful result but it may fail later and we still need to
    * refer to this expected result
@@ -55,9 +57,7 @@ export type SuccessResult<R> =
    */
   SuccessResultBase<R> & { tokens: Block };
 
-type SuccessBufferResult<R> = SuccessResultBase<R> & {
-  buffer: [number, number];
-};
+type SuccessBufferResult<R> = SuccessResultBase<R>;
 
 export type FailResult = {
   type: ResultType.Fail;
@@ -134,6 +134,7 @@ export const placeholder: Rule<null> = (ctx) => ({
   value: null,
   expected: [],
   length: 0,
+  buffer: [ctx.pos, ctx.pos],
   tokens: [],
 });
 
@@ -143,6 +144,7 @@ export const endOfInput: Rule<number> = (ctx) => {
       type: ResultType.Success,
       value: ctx.pos,
       length: 0, // <-- unlike most rules, this one does not progress the position
+      buffer: [ctx.pos, ctx.pos],
       expected: [],
       tokens: [],
     };
@@ -322,6 +324,7 @@ function multiply<T>(
       type: ResultType.Success,
       value: values,
       length: pos - start,
+      buffer: [lastPos, lastPos + pos - start],
       expected,
       ...(tokens.length ? { tokens } : { buffer }),
     };
@@ -444,6 +447,7 @@ export function fromBufferToCodeBlock<T>(
       const { buffer, ...everythingButBuffer } = result;
       return {
         ...everythingButBuffer,
+        buffer,
         tokens: func(ctx.str.substring(buffer[0], buffer[1]), result),
       };
     } else {
@@ -576,9 +580,9 @@ export function lookAhead<T>(rule: Rule<T>): Rule<T> {
 
     if (curr.type === ResultType.Success) {
       return {
-        ...curr,
         type: ResultType.Success,
         value: curr.value,
+        buffer: [ctx.pos, ctx.pos],
         length: 0, // <-- unlike most rules, this one does not progress the position
         expected: [],
         tokens: [],

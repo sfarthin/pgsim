@@ -1311,6 +1311,7 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
       expected,
       value: values,
       length,
+      buffer: [ctx.pos, ctx.pos + length],
       ...(mode !== "buffer" ? { tokens } : { buffer }),
     };
   };
