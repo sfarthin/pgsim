@@ -12,6 +12,7 @@ import {
 import { getFriendlyErrorMessage } from "./error";
 import { codeComments } from "./codeComments";
 import { stmt } from "./stmt";
+import { Block } from "~/format";
 
 export class ParseError extends Error {
   statementNum: number;
@@ -126,13 +127,13 @@ export function parse(
      */
     colors?: boolean | undefined;
   }
-): SuccessResult<Stmt[]> {
+): SuccessResult<Stmt[]> & { tokens: Block } {
   const context = { str: sql, pos: 0, numStatements: 0 };
   const result = stmts(context);
 
   if (result.type == ResultType.Success) {
     result.value = result.value.reduce(reduceComments, []);
-    return result;
+    return result as SuccessResult<Stmt[]> & { tokens: Block };
   }
 
   const errorMessage = getFriendlyErrorMessage(result, {

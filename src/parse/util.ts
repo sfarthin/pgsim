@@ -17,7 +17,6 @@ export enum ResultType {
 
 // Todo reconcile this more with Tokens
 export type Expected = {
-  tokens: Block;
   type: "keyword" | "notKeyword" | "regex" | "identifier" | "endOfInput";
   pos: number;
   value: string;
@@ -26,9 +25,11 @@ export type Expected = {
    * We can add references that will help give more details about
    */
   stmtType?: StmtType;
+
+  tokens?: Block;
 };
 
-type SuccessResultBase<R> = {
+export type SuccessResult<R> = {
   type: ResultType.Success;
   /**
    * The Abstract Syntax Tree
@@ -41,23 +42,28 @@ type SuccessResultBase<R> = {
    */
   length: number;
 
-  buffer: [number, number];
+  /**
+   * The location within the string
+   */
+  buffer: [
+    /* start position */
+    number,
+    /* end position */
+    number
+  ];
 
   /**
    * Sometimes we get a successful result but it may fail later and we still need to
    * refer to this expected result
    */
   expected: Expected[];
-};
 
-export type SuccessResult<R> =
   /**
-   * This is the original SQL segmented in Unformatted Nodes so we can
+   * This is the original SQL segmented into nodes so we can
    * print the SQL back in color.
    */
-  SuccessResultBase<R> & { tokens: Block };
-
-type SuccessBufferResult<R> = SuccessResultBase<R>;
+  tokens?: Block;
+};
 
 export type FailResult = {
   type: ResultType.Fail;
@@ -69,7 +75,6 @@ export type FailResult = {
 };
 
 export type RuleResult<R> = FailResult | SuccessResult<R>;
-type BufferRuleResult<R> = FailResult | SuccessBufferResult<R>;
 
 export type Context = {
   /**
@@ -90,13 +95,18 @@ export type Context = {
 
 export type Rule<R> = (c: Context) => RuleResult<R>;
 
-// TODO Type Buffer and Node Rule seperately.
-// use generics one methods that can be both.
-export type BufferRule<R> = (s: Context) => BufferRuleResult<R>;
+export function combineBlocks(
+  input1: Block | undefined,
+  input2: Block | undefined
+): Block | undefined {
+  if (!input1) {
+    return input2;
+  }
 
-export type EitherRule<R> = (c: Context) => RuleResult<R> | BufferRuleResult<R>;
+  if (!input2) {
+    return input1;
+  }
 
-export function combineBlocks(input1: Block, input2: Block): Block {
   if (input1.length === 0) {
     return input2;
   }
@@ -135,7 +145,6 @@ export const placeholder: Rule<null> = (ctx) => ({
   expected: [],
   length: 0,
   buffer: [ctx.pos, ctx.pos],
-  tokens: [],
 });
 
 export const endOfInput: Rule<number> = (ctx) => {
@@ -146,20 +155,17 @@ export const endOfInput: Rule<number> = (ctx) => {
       length: 0, // <-- unlike most rules, this one does not progress the position
       buffer: [ctx.pos, ctx.pos],
       expected: [],
-      tokens: [],
     };
   }
 
   return {
     type: ResultType.Fail,
-    expected: [
-      { type: "endOfInput", value: "End of Input", pos: ctx.pos, tokens: [] },
-    ],
+    expected: [{ type: "endOfInput", value: "End of Input", pos: ctx.pos }],
     pos: ctx.pos,
   };
 };
 
-const endOfInputBuffer: BufferRule<number> = (ctx) => {
+const endOfInputBuffer: Rule<number> = (ctx) => {
   if (ctx.pos == ctx.str.length) {
     return {
       type: ResultType.Success,
@@ -167,22 +173,21 @@ const endOfInputBuffer: BufferRule<number> = (ctx) => {
       length: 0, // <-- unlike most rules, this one does not progress the position
       expected: [],
       buffer: [ctx.pos, ctx.pos],
+      blocks: [],
     };
   }
 
   return {
     type: ResultType.Fail,
-    expected: [
-      { type: "endOfInput", value: "End of Input", pos: ctx.pos, tokens: [] },
-    ],
+    expected: [{ type: "endOfInput", value: "End of Input", pos: ctx.pos }],
     pos: ctx.pos,
   };
 };
 
 export function constant(
   keyword: string
-): BufferRule<{ start: number; value: string }> {
-  const rule: BufferRule<{ start: number; value: string }> = (ctx: Context) => {
+): Rule<{ start: number; value: string }> {
+  const rule: Rule<{ start: number; value: string }> = (ctx: Context) => {
     const potentialKeyword = ctx.str.substring(
       ctx.pos,
       ctx.pos + keyword.length
@@ -205,7 +210,6 @@ export function constant(
           type: "keyword",
           value: `"${keyword}"`,
           pos: ctx.pos,
-          tokens: [],
         },
       ],
       pos: ctx.pos,
@@ -220,13 +224,13 @@ export const symbol = (keyword: string) =>
     [{ type: "symbol", text: buffer }],
   ]);
 
-export function regexChar(r: RegExp): BufferRule<string> {
+export function regexChar(r: RegExp): Rule<string> {
   if (r.global) {
     throw new Error(
       "Cannot use global match. See https://stackoverflow.com/questions/209732/why-am-i-seeing-inconsistent-javascript-logic-behavior-looping-with-an-alert-v"
     );
   }
-  const rule: BufferRule<string> = ({ str, pos }) => {
+  const rule: Rule<string> = ({ str, pos }) => {
     const char = str.charAt(pos);
     if (r.test(char)) {
       return {
@@ -240,7 +244,7 @@ export function regexChar(r: RegExp): BufferRule<string> {
     }
     return {
       type: ResultType.Fail,
-      expected: [{ type: "regex", value: r.toString(), pos, tokens: [] }],
+      expected: [{ type: "regex", value: r.toString(), pos }],
       pos,
     };
   };
@@ -249,22 +253,11 @@ export function regexChar(r: RegExp): BufferRule<string> {
 }
 
 function multiply<T>(
-  rule: BufferRule<T>,
+  rule: Rule<T>,
   min: number,
   max: number | null
-): BufferRule<T[]>;
-function multiply<T>(rule: Rule<T>, min: number, max: number | null): Rule<T[]>;
-function multiply<T>(
-  rule: EitherRule<T>,
-  min: number,
-  max: number | null
-): EitherRule<T[]>;
-function multiply<T>(
-  rule: EitherRule<T>,
-  min: number,
-  max: number | null
-): EitherRule<T[]> {
-  const _multiply: EitherRule<T[]> = (ctx: Context) => {
+): Rule<T[]> {
+  const _multiply: Rule<T[]> = (ctx: Context) => {
     let curr;
     const start = ctx.pos;
     let pos = ctx.pos;
@@ -273,7 +266,7 @@ function multiply<T>(
     let lastPos = pos;
 
     // It can be one or the other.
-    let tokens: Block = [];
+    let tokens: Block | undefined = [];
     let buffer: [number, number] = [pos, pos];
     while (pos < ctx.str.length && (max === null || values.length < max)) {
       const prevPos = ctx.pos;
@@ -306,7 +299,7 @@ function multiply<T>(
       }
     }
 
-    if (tokens.length && buffer[1] === pos) {
+    if (tokens?.length && buffer[1] === pos) {
       throw new Error(
         `Invalid expression, expression must be nodes or buffer: ${tokens.length},${buffer.length}`
       );
@@ -334,27 +327,19 @@ function multiply<T>(
   return _multiply;
 }
 
-export function zeroToMany<T>(rule: Rule<T>): Rule<T[]>;
-export function zeroToMany<T>(rule: BufferRule<T>): BufferRule<T[]>;
-export function zeroToMany<T>(rule: EitherRule<T>): EitherRule<T[]> {
+export function zeroToMany<T>(rule: Rule<T>): Rule<T[]> {
   return multiply(rule, 0, null);
 }
 
-export function oneToMany<T>(rule: Rule<T>): Rule<T[]>;
-export function oneToMany<T>(rule: BufferRule<T>): BufferRule<T[]>;
-export function oneToMany<T>(rule: EitherRule<T>): EitherRule<T[]> {
+export function oneToMany<T>(rule: Rule<T>): Rule<T[]> {
   return multiply(rule, 1, null);
 }
 
-export function zeroToOne<T>(rule: Rule<T>): Rule<T[]>;
-export function zeroToOne<T>(rule: BufferRule<T>): BufferRule<T[]>;
-export function zeroToOne<T>(rule: EitherRule<T>) {
+export function zeroToOne<T>(rule: Rule<T>): Rule<T[]> {
   return multiply(rule, 0, 1);
 }
 
-export function zeroToTen<T>(rule: Rule<T>): Rule<T[]>;
-export function zeroToTen<T>(rule: BufferRule<T>): BufferRule<T[]>;
-export function zeroToTen<T>(rule: EitherRule<T>) {
+export function zeroToTen<T>(rule: Rule<T>): Rule<T[]> {
   return multiply(rule, 0, 10);
 }
 
@@ -373,8 +358,8 @@ export const whitespaceWithoutNewline = fromBufferToCodeBlock(
   (str) => [[str === " " ? { type: "space" } : { type: "tab" }]]
 );
 
-export function notConstant(keyword: string): BufferRule<string> {
-  const rule: BufferRule<string> = (ctx: Context) => {
+export function notConstant(keyword: string): Rule<string> {
+  const rule: Rule<string> = (ctx: Context) => {
     const potentialKeyword = ctx.str.substring(
       ctx.pos,
       ctx.pos + keyword.length
@@ -397,7 +382,6 @@ export function notConstant(keyword: string): BufferRule<string> {
           type: "notKeyword",
           value: `not "${keyword}"`,
           pos: ctx.pos,
-          tokens: [],
         },
       ],
       pos: ctx.pos,
@@ -408,22 +392,10 @@ export function notConstant(keyword: string): BufferRule<string> {
 }
 
 export function transform<T, R>(
-  rule: BufferRule<T>,
-  transform: (i: T, c: Context, r: SuccessResult<T>) => R
-): BufferRule<R>;
-export function transform<T, R>(
   rule: Rule<T>,
   transform: (i: T, c: Context, r: SuccessResult<T>) => R
-): Rule<R>;
-export function transform<T, R>(
-  rule: EitherRule<T>,
-  transform: (
-    i: T,
-    c: Context,
-    r: SuccessResult<T> // <-- THis is really right, but we never access this during bufferResults
-  ) => R
-): EitherRule<R> {
-  const _transform: EitherRule<R> = (ctx) => {
+): Rule<R> {
+  const _transform: Rule<R> = (ctx) => {
     const result = rule(ctx);
     if (result.type === ResultType.Success) {
       return {
@@ -438,8 +410,8 @@ export function transform<T, R>(
 }
 
 export function fromBufferToCodeBlock<T>(
-  rule: BufferRule<T>,
-  func: (buffer: string, result: BufferRuleResult<T>) => Block
+  rule: Rule<T>,
+  func: (buffer: string, result: RuleResult<T>) => Block
 ): Rule<T> {
   const _fromBufferToCodeBlock: Rule<T> = (ctx) => {
     const result = rule(ctx);
@@ -586,7 +558,6 @@ export function lookAhead<T>(rule: Rule<T>): Rule<T> {
         buffer: [ctx.pos, ctx.pos],
         length: 0, // <-- unlike most rules, this one does not progress the position
         expected: [],
-        tokens: [],
       };
     }
 
@@ -806,9 +777,7 @@ export function keyword(
     } else {
       return {
         ...result,
-        expected: [
-          { type: "keyword", value: `"${str}"`, pos: ctx.pos, tokens: [] },
-        ],
+        expected: [{ type: "keyword", value: `"${str}"`, pos: ctx.pos }],
       };
     }
   };
@@ -947,9 +916,7 @@ export const identifierIncludingKeyword: Rule<string> = (ctx: Context) => {
   if (result.type === ResultType.Fail) {
     return {
       ...result,
-      expected: [
-        { type: "identifier", value: "identifier", pos: ctx.pos, tokens: [] },
-      ],
+      expected: [{ type: "identifier", value: "identifier", pos: ctx.pos }],
     };
   }
 
@@ -967,9 +934,7 @@ export const identifier: Rule<string> = (ctx: Context) => {
   if ((keywordList as readonly string[]).includes(result.value.toUpperCase())) {
     return {
       type: ResultType.Fail,
-      expected: [
-        { type: "identifier", value: "identifier", pos: ctx.pos, tokens: [] },
-      ],
+      expected: [{ type: "identifier", value: "identifier", pos: ctx.pos }],
       pos: ctx.pos,
     };
   }

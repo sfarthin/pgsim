@@ -82,7 +82,7 @@ export const getFriendlyErrorMessage = (
   // Sometimes tokens is missing some text. This is a bug I should fix. In the meantime
   // Lets throw this unformatted text in here.
   const missingTextHack = sql.substring(
-    blockLength(result.expected[0].tokens) - 1,
+    blockLength(result.expected[0].tokens as Block) - 1,
     pos
   );
 
@@ -93,7 +93,7 @@ export const getFriendlyErrorMessage = (
       [{ type: "unknown", text: missingTextHack }],
     ]),
     toUnknownBlock(sql.substring(pos), { markFirstTokenAsError: true })
-  );
+  ) as Block;
 
   const { line, column, token } = getErrorDetailsFromBlock(block);
 
