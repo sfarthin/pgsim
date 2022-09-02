@@ -266,7 +266,7 @@ function multiply<T>(
   min: number,
   max: number | null
 ): EitherRule<T[]> {
-  const newRule: EitherRule<T[]> = (ctx: Context) => {
+  const _multiply: EitherRule<T[]> = (ctx: Context) => {
     let curr;
     const start = ctx.pos;
     let pos = ctx.pos;
@@ -332,7 +332,7 @@ function multiply<T>(
     };
   };
 
-  return newRule;
+  return _multiply;
 }
 
 export function zeroToMany<T>(rule: Rule<T>): Rule<T[]>;
@@ -425,7 +425,7 @@ export function transform<T, R>(
     r: SuccessResult<T> // <-- THis is really right, but we never access this during bufferResults
   ) => R
 ): EitherRule<R> {
-  const newRule: EitherRule<R> = (ctx) => {
+  const _transform: EitherRule<R> = (ctx) => {
     const result = rule(ctx);
     if (result.type === ResultType.Success) {
       return {
@@ -436,14 +436,14 @@ export function transform<T, R>(
     return result;
   };
 
-  return newRule;
+  return _transform;
 }
 
 export function fromBufferToCodeBlock<T>(
   rule: BufferRule<T>,
   func: (buffer: string, result: BufferRuleResult<T>) => Block
 ): Rule<T> {
-  const newRule: Rule<T> = (ctx) => {
+  const _fromBufferToCodeBlock: Rule<T> = (ctx) => {
     const result = rule(ctx);
 
     if (result.type === ResultType.Success) {
@@ -457,7 +457,7 @@ export function fromBufferToCodeBlock<T>(
     }
   };
 
-  return newRule;
+  return _fromBufferToCodeBlock;
 }
 
 export function combineComments(...c: (string | null | undefined)[]) {
@@ -577,7 +577,7 @@ export const sqlStyleCommentWithoutNewline: Rule<string> =
   );
 
 export function lookAhead<T>(rule: Rule<T>): Rule<T> {
-  const newRule: Rule<T> = (ctx: Context) => {
+  const _lookAhead: Rule<T> = (ctx: Context) => {
     const curr = rule(ctx);
 
     if (curr.type === ResultType.Success) {
@@ -595,7 +595,7 @@ export function lookAhead<T>(rule: Rule<T>): Rule<T> {
     return curr;
   };
 
-  return newRule;
+  return _lookAhead;
 }
 
 /**
@@ -784,7 +784,7 @@ const keywordList = [
 export function keyword(
   str: typeof keywordList[number] | TypeOrAlias
 ): Rule<{ start: number; value: string }> {
-  return (ctx) => {
+  const _keyword: Rule<{ start: number; value: string }> = (ctx) => {
     const result = transform(
       sequence([
         fromBufferToCodeBlock(constant(str), (text) => [
@@ -814,6 +814,8 @@ export function keyword(
       };
     }
   };
+
+  return _keyword;
 }
 
 export const ALL = keyword("ALL");
@@ -1080,8 +1082,8 @@ export const endOfStatement: Rule<EOS> = transform(
 );
 
 export function optional<T>(rule: Rule<T>): Rule<T | null> {
-  const newRule: Rule<T | null> = or([rule, placeholder]);
-  return newRule;
+  const _optional: Rule<T | null> = or([rule, placeholder]);
+  return _optional;
 }
 
 export const fail: Rule<never> = (ctx) => {
@@ -1093,7 +1095,7 @@ export const fail: Rule<never> = (ctx) => {
 };
 
 export function addStmtType<T>(stmtType: StmtType, rule: Rule<T>): Rule<T> {
-  return (ctx) => {
+  const _addStmtType: Rule<T> = (ctx) => {
     const result = rule(ctx);
 
     for (let i = 0; i < result.expected.length; i += 1) {
@@ -1102,4 +1104,6 @@ export function addStmtType<T>(stmtType: StmtType, rule: Rule<T>): Rule<T> {
 
     return result;
   };
+
+  return _addStmtType;
 }

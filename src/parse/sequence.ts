@@ -1255,7 +1255,7 @@ export function sequence<
   [A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z]
 >;
 export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
-  const newBufferRule: EitherRule<any> = (ctx) => {
+  const _sequence: EitherRule<any> = (ctx) => {
     let pos = ctx.pos;
     let length = 0;
     const values = [];
@@ -1316,5 +1316,5 @@ export function sequence(rules: EitherRule<any>[]): EitherRule<any> {
     };
   };
 
-  return newBufferRule;
+  return _sequence;
 }
