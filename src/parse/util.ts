@@ -324,9 +324,9 @@ function multiply<T>(
       type: ResultType.Success,
       value: values,
       length: pos - start,
-      buffer: [lastPos, lastPos + pos - start],
+      buffer,
       expected,
-      ...(tokens.length ? { tokens } : { buffer }),
+      ...(tokens.length ? { tokens } : {}),
     };
   };
 
