@@ -8,7 +8,6 @@ import {
   combineComments,
   sequence,
   __,
-  _,
   EOS,
   SET,
   or,
@@ -21,7 +20,6 @@ const setTablespace: Rule<{
   value: { AlterDatabaseStmt: AlterDatabaseStmt };
 }> = transform(
   sequence([
-    _,
     ALTER,
     __,
     DATABASE,
@@ -49,20 +47,19 @@ const setTablespace: Rule<{
   ]),
   (v) => {
     return {
-      eos: v[13],
+      eos: v[12],
       value: {
         AlterDatabaseStmt: {
-          dbname: v[5],
-          options: [{ DefElem: v[11] }],
+          dbname: v[4],
+          options: [{ DefElem: v[10] }],
           codeComment: combineComments(
-            v[0],
-            v[2],
-            v[4],
-            v[6],
-            v[8],
-            v[10],
-            v[12],
-            v[13].comment
+            v[1],
+            v[3],
+            v[5],
+            v[7],
+            v[9],
+            v[11],
+            v[12].comment
           ),
         },
       },

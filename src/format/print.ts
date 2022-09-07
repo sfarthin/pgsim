@@ -95,7 +95,7 @@ function printToken(
 
 export function toString(
   _block: Block,
-  opts: Omit<PrintOptions, "sql" | "filename">
+  opts: Omit<PrintOptions, "sql" | "filename"> & { lineOffset?: number }
 ) {
   let block = _block;
 
@@ -123,7 +123,7 @@ export function toString(
       return [
         {
           type: "lineNumber",
-          text: `${prefixSpaces}${lineNumber}   `,
+          text: `${prefixSpaces}${lineNumber + (opts.lineOffset ?? 0)}   `,
         },
         ...line,
       ];

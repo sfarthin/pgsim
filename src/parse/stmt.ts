@@ -1,7 +1,7 @@
 /**
  * This file was generated, DO NOT EDIT directly. See ./scaffold or run pgsim-scaffold
  **/
-import { or, addStmtType } from "./util";
+import { or, addStmtType, _ } from "./util";
 import { alterDatabaseSetStmt } from "./alterDatabaseSetStmt";
 import { alterDatabaseStmt } from "./alterDatabaseStmt";
 import { alterDefaultPrivilegesStmt } from "./alterDefaultPrivilegesStmt";
@@ -73,7 +73,6 @@ import { vacuumStmt } from "./vacuumStmt";
 import { variableSetStmt } from "./variableSetStmt";
 import { variableShowStmt } from "./variableShowStmt";
 import { viewStmt } from "./viewStmt";
-import { comment } from "./comment";
 
 export const stmt = or([
   or([
@@ -160,5 +159,5 @@ export const stmt = or([
     addStmtType("VariableSetStmt", variableSetStmt),
     addStmtType("VariableShowStmt", variableShowStmt),
   ]),
-  or([addStmtType("ViewStmt", viewStmt), addStmtType("Comment", comment)]),
+  or([addStmtType("ViewStmt", viewStmt)]),
 ]);

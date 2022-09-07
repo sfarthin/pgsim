@@ -14,7 +14,6 @@ import {
   quotedString,
   COMMA,
   combineComments,
-  _,
   __,
   EOS,
 } from "./util";
@@ -52,7 +51,6 @@ export const createEnumStmt: Rule<{
   value: { CreateEnumStmt: CreateEnumStmt };
 }> = transform(
   sequence([
-    _,
     CREATE,
     __,
     TYPE,
@@ -68,20 +66,19 @@ export const createEnumStmt: Rule<{
     endOfStatement,
   ]),
   (v) => ({
-    eos: v[13],
+    eos: v[12],
     value: {
       CreateEnumStmt: {
-        typeName: [{ String: { str: v[5] } }],
-        vals: v[11],
+        typeName: [{ String: { str: v[4] } }],
+        vals: v[10],
         codeComment: combineComments(
-          v[0],
-          v[2],
-          v[4],
-          v[6],
-          v[8],
-          v[10],
-          v[12],
-          v[13].comment
+          v[1],
+          v[3],
+          v[5],
+          v[7],
+          v[9],
+          v[11],
+          v[12].comment
         ),
       },
     },

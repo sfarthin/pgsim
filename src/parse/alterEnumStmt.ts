@@ -1,7 +1,6 @@
 import {
   Rule,
   __,
-  _,
   sequence,
   ALTER,
   TYPE,
@@ -40,7 +39,6 @@ export const alterEnumStmtAdd: Rule<{
   value: { AlterEnumStmt: AlterEnumStmt };
 }> = transform(
   sequence([
-    _, // 0
     ALTER,
     __,
     TYPE,
@@ -61,34 +59,33 @@ export const alterEnumStmtAdd: Rule<{
   ]),
   (v) => {
     return {
-      eos: v[17],
+      eos: v[16],
       value: {
         AlterEnumStmt: {
           typeName: [
             {
               String: {
-                str: v[5],
+                str: v[4],
               },
             },
           ],
-          newVal: v[13].value,
+          newVal: v[12].value,
           codeComment: combineComments(
-            v[0],
-            v[2],
-            v[4],
-            v[6],
-            v[8],
-            v[10],
-            v[11]?.codeComment,
-            v[12],
-            v[14],
-            v[15]?.codeComment,
-            v[16],
-            v[17].comment
+            v[1],
+            v[3],
+            v[5],
+            v[7],
+            v[9],
+            v[10]?.codeComment,
+            v[11],
+            v[13],
+            v[14]?.codeComment,
+            v[15],
+            v[16].comment
           ),
-          ...(v[15]?.where !== "BEFORE" ? { newValIsAfter: true } : {}),
-          ...(v[15] ? { newValNeighbor: v[15].value } : {}),
-          ...(v[11] !== null ? { skipIfNewValExists: true } : {}),
+          ...(v[14]?.where !== "BEFORE" ? { newValIsAfter: true } : {}),
+          ...(v[14] ? { newValNeighbor: v[14].value } : {}),
+          ...(v[10] !== null ? { skipIfNewValExists: true } : {}),
         },
       },
     };
@@ -100,7 +97,6 @@ export const alterEnumStmtRename: Rule<{
   value: { AlterEnumStmt: AlterEnumStmt };
 }> = transform(
   sequence([
-    _, // 0
     ALTER,
     __,
     TYPE,
@@ -121,30 +117,29 @@ export const alterEnumStmtRename: Rule<{
   ]),
   (v) => {
     return {
-      eos: v[17],
+      eos: v[16],
       value: {
         AlterEnumStmt: {
           typeName: [
             {
               String: {
-                str: v[5],
+                str: v[4],
               },
             },
           ],
           codeComment: combineComments(
-            v[0],
-            v[2],
-            v[4],
-            v[6],
-            v[8],
-            v[10],
-            v[12],
-            v[14],
-            v[16],
-            v[17].comment
+            v[1],
+            v[3],
+            v[5],
+            v[7],
+            v[9],
+            v[11],
+            v[13],
+            v[15],
+            v[16].comment
           ),
-          oldVal: v[11].value,
-          newVal: v[15].value,
+          oldVal: v[10].value,
+          newVal: v[14].value,
         },
       },
     };

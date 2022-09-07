@@ -30,9 +30,10 @@ export default async function () {
   const mapFiles = (mapFn: (n: string) => string) =>
     files.map(mapFn).join(`\n`);
 
-  const importedParsers = mapStmtTypes(
-    (stmtName) =>
-      `import { ${camelCase(stmtName)} } from "./${camelCase(stmtName)}";`
+  const importedParsers = mapStmtTypes((stmtName) =>
+    stmtName === "Comment"
+      ? ""
+      : `import { ${camelCase(stmtName)} } from "./${camelCase(stmtName)}";`
   );
 
   const exportedStmt = mapFiles((stmtName) => `export * from "./${stmtName}";`);
@@ -43,16 +44,19 @@ export default async function () {
       /* ts */ `
 
     ${warning}
-    import { or, addStmtType } from "./util";
+    import { or, addStmtType, _ } from "./util";
     ${importedParsers}
 
     export const stmt = or([
       ${mapStmtChunks(
         (chunk) => /* ts */ `or([
-          ${chunk.map((f) => `addStmtType('${f}', ${camelCase(f)})`).join(",")}
+          ${chunk
+            .filter((f) => f !== "Comment")
+            .map((f) => `addStmtType('${f}', ${camelCase(f)})`)
+            .join(",")}
         ]),`
       )}
-    ]);
+  ])
 
     `,
       { parser: "babel" }

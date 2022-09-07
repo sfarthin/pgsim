@@ -443,8 +443,6 @@ export function fromBufferToCodeBlock<T>(
 }
 
 export function combineComments(...c: (string | null | undefined)[]) {
-  // return c.flatMap((s) => (Boolean(s) ? [s ?? ""] : [])).join(NEWLINE);
-
   return c
     .filter(Boolean)
     .map((s) => s ?? "")

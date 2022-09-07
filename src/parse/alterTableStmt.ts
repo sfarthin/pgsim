@@ -10,7 +10,6 @@ import {
   TABLE,
   Rule,
   identifier,
-  _,
   __,
   zeroToMany,
   endOfStatement,
@@ -26,7 +25,6 @@ export const alterTableStmt: Rule<{
   value: { AlterTableStmt: AlterTableStmt };
 }> = transform(
   sequence([
-    _,
     ALTER,
     __,
     TABLE,
@@ -51,40 +49,39 @@ export const alterTableStmt: Rule<{
     endOfStatement,
   ]),
   (v) => {
-    const alterCmds = [v[11]].concat(v[12].map((i) => i[3]));
+    const alterCmds = [v[10]].concat(v[11].map((i) => i[3]));
 
     /**
      * Lets add the comments to the alterCmd level
      */
-    alterCmds[0].codeComment = combineComments(v[10], alterCmds[0].codeComment);
-    for (let index = 0; index < v[12].length; index++) {
+    alterCmds[0].codeComment = combineComments(v[9], alterCmds[0].codeComment);
+    for (let index = 0; index < v[11].length; index++) {
       alterCmds[index + 1].codeComment = combineComments(
-        v[12][index][0],
-        v[12][index][2],
+        v[11][index][0],
+        v[11][index][2],
         alterCmds[index + 1].codeComment
       );
     }
 
     return {
-      eos: v[14],
+      eos: v[13],
       value: {
         AlterTableStmt: {
           relation: {
-            ...v[9],
-            ...(!v[7] ? { inh: true } : {}),
+            ...v[8],
+            ...(!v[6] ? { inh: true } : {}),
           },
           cmds: alterCmds.map((AlterTableCmd) => ({ AlterTableCmd })),
           relkind: "OBJECT_TABLE",
-          ...(v[5] ? { missing_ok: true } : {}),
+          ...(v[4] ? { missing_ok: true } : {}),
           codeComment: combineComments(
-            v[0],
-            v[2],
-            v[4],
-            v[5]?.[1],
-            v[6],
-            v[8],
-            v[13],
-            v[14].comment
+            v[1],
+            v[3],
+            v[4]?.[1],
+            v[5],
+            v[7],
+            v[12],
+            v[13].comment
           ),
         },
       },

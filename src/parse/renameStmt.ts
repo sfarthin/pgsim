@@ -12,7 +12,6 @@ import {
   COLUMN,
   TO,
   combineComments,
-  _,
   endOfStatement,
   EOS,
 } from "./util";
@@ -22,7 +21,6 @@ import { rangeVar } from "./rangeVar";
 export const renameStmt: Rule<{ eos: EOS; value: { RenameStmt: RenameStmt } }> =
   transform(
     sequence([
-      _,
       ALTER,
       __,
       TABLE,
@@ -44,24 +42,23 @@ export const renameStmt: Rule<{ eos: EOS; value: { RenameStmt: RenameStmt } }> =
       const result: RenameStmt = {
         renameType: RenameType.OBJECT_COLUMN,
         relationType: RelationType.OBJECT_TABLE,
-        relation: v[5].value.RangeVar,
-        subname: v[11],
-        newname: v[15],
+        relation: v[4].value.RangeVar,
+        subname: v[10],
+        newname: v[14],
         behavior: "DROP_RESTRICT",
         codeComment: combineComments(
-          v[0],
-          v[2],
-          v[4],
-          v[5].codeComment,
-          v[6],
-          v[8],
-          v[10],
-          v[12],
-          v[14],
-          v[16].comment
+          v[1],
+          v[3],
+          v[4].codeComment,
+          v[5],
+          v[7],
+          v[9],
+          v[11],
+          v[13],
+          v[15].comment
         ),
       };
 
-      return { eos: v[16], value: { RenameStmt: result } };
+      return { eos: v[15], value: { RenameStmt: result } };
     }
   );

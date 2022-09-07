@@ -13,7 +13,6 @@ import {
   COMMA,
   sequence,
   __,
-  _,
   zeroToMany,
   commentsOnSameLine,
   or,
@@ -83,7 +82,6 @@ const columnDefs = transform(
 export const createStmt: Rule<{ eos: EOS; value: { CreateStmt: CreateStmt } }> =
   transform(
     sequence([
-      _,
       CREATE,
       __,
       TABLE,
@@ -108,23 +106,22 @@ export const createStmt: Rule<{ eos: EOS; value: { CreateStmt: CreateStmt } }> =
 
     (value) => {
       //
-      const tableElts = "codeComment" in value[9] ? [] : value[9];
-      const relation = value[7];
-      const ifNotExists = value[5];
+      const tableElts = "codeComment" in value[8] ? [] : value[8];
+      const relation = value[6];
+      const ifNotExists = value[4];
       const comment = combineComments(
-        value[0],
-        value[2],
-        value[4],
-        value[5]?.codeComment,
-        value[6],
-        value[8],
-        "codeComment" in value[9] ? value[9].codeComment : null,
-        value[10],
-        value[11].comment
+        value[1],
+        value[3],
+        value[4]?.codeComment,
+        value[5],
+        value[7],
+        "codeComment" in value[8] ? value[8].codeComment : null,
+        value[9],
+        value[10].comment
       );
 
       return {
-        eos: value[11],
+        eos: value[10],
         value: {
           CreateStmt: {
             relation,

@@ -6,7 +6,6 @@ import {
   SEQUENCE,
   TYPE,
   transform,
-  _,
   __,
   identifier,
   sequence,
@@ -32,7 +31,6 @@ import {
 export const dropStmt: Rule<{ eos: EOS; value: { DropStmt: DropStmt } }> =
   transform(
     sequence([
-      _,
       DROP,
       __,
       or([TABLE, SEQUENCE, TYPE, VIEW]),
@@ -50,20 +48,19 @@ export const dropStmt: Rule<{ eos: EOS; value: { DropStmt: DropStmt } }> =
     ]),
     (value) => {
       const codeComment = combineComments(
-        value[0],
-        value[2],
+        value[1],
+        value[3],
         value[4],
-        value[5],
-        value[7],
-        value[9],
-        value[10].comment
+        value[6],
+        value[8],
+        value[9].comment
       );
-      const restrictOrCascade = value[8]?.value;
+      const restrictOrCascade = value[7]?.value;
       const behavior =
         restrictOrCascade === "CASCADE" ? "DROP_CASCADE" : "DROP_RESTRICT";
-      const type = value[3].value;
-      const item = value[6].value;
-      const missing_ok = value[5] !== null;
+      const type = value[2].value;
+      const item = value[5].value;
+      const missing_ok = value[4] !== null;
 
       let result;
       if (type === "TYPE") {
@@ -79,7 +76,7 @@ export const dropStmt: Rule<{ eos: EOS; value: { DropStmt: DropStmt } }> =
                   },
                 ],
                 typemod: -1,
-                location: value[6].pos,
+                location: value[5].pos,
               },
             },
           ] as [{ TypeName: TypeName }],
@@ -116,7 +113,7 @@ export const dropStmt: Rule<{ eos: EOS; value: { DropStmt: DropStmt } }> =
       }
 
       return {
-        eos: value[10],
+        eos: value[9],
         value: { DropStmt: result },
       };
     }

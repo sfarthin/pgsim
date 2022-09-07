@@ -2,7 +2,6 @@ import {
   transform,
   Rule,
   sequence,
-  _,
   __,
   identifier,
   endOfStatement,
@@ -41,7 +40,6 @@ const resTarget: Rule<{
 export const updateStmt: Rule<{ eos: EOS; value: { UpdateStmt: UpdateStmt } }> =
   transform(
     sequence([
-      _,
       UPDATE,
       __,
       transform(identifier, (value, ctx) => ({ value, pos: ctx.pos })),
@@ -55,25 +53,24 @@ export const updateStmt: Rule<{ eos: EOS; value: { UpdateStmt: UpdateStmt } }> =
     ]),
     (v) => {
       return {
-        eos: v[10],
+        eos: v[9],
         value: {
           UpdateStmt: {
             relation: {
-              relname: v[3].value,
+              relname: v[2].value,
               relpersistence: "p",
-              location: v[3].pos,
+              location: v[2].pos,
               inh: true,
             },
-            targetList: [v[7].value, ...v[8].map((k) => k[3].value)],
+            targetList: [v[6].value, ...v[7].map((k) => k[3].value)],
             codeComment: combineComments(
-              v[0],
-              v[2],
-              v[4],
-              v[6],
-              v[7].codeComment,
-              ...v[8].flatMap((k) => [k[0], k[2], k[3].codeComment]),
-              v[9],
-              v[10].comment
+              v[1],
+              v[3],
+              v[5],
+              v[6].codeComment,
+              ...v[7].flatMap((k) => [k[0], k[2], k[3].codeComment]),
+              v[8],
+              v[9].comment
             ),
           },
         },

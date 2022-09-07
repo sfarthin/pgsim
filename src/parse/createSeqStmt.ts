@@ -9,7 +9,6 @@ import {
   ifNotExists,
   combineComments,
   sequence,
-  _,
   __,
   EOS,
 } from "./util";
@@ -21,7 +20,6 @@ export const createSeqStmt: Rule<{
   value: { CreateSeqStmt: CreateSeqStmt };
 }> = transform(
   sequence([
-    _,
     CREATE,
     __,
     SEQUENCE,
@@ -41,24 +39,23 @@ export const createSeqStmt: Rule<{
   ]),
   (v) => {
     return {
-      eos: v[11],
+      eos: v[10],
       value: {
         CreateSeqStmt: {
-          sequence: v[7],
-          ...(v[9]?.length
+          sequence: v[6],
+          ...(v[8]?.length
             ? {
-                options: v[9],
+                options: v[8],
               }
             : {}),
-          ...(v[5] !== null ? { if_not_exists: true } : {}),
+          ...(v[4] !== null ? { if_not_exists: true } : {}),
           codeComment: combineComments(
-            v[0],
-            v[2],
-            v[4],
-            v[6],
-            v[8],
-            v[10],
-            v[11].comment
+            v[1],
+            v[3],
+            v[5],
+            v[7],
+            v[9],
+            v[10].comment
           ),
         },
       },

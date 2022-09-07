@@ -6,7 +6,6 @@ import {
   oneToMany,
   combineComments,
   optional,
-  // _,
   __,
 } from "./util";
 import { typeName } from "./typeName";

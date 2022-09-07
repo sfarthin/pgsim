@@ -8,7 +8,6 @@ import {
   combineComments,
   sequence,
   __,
-  _,
   EOS,
   SET,
   EQUALS,
@@ -29,7 +28,6 @@ const setVariety: Rule<{
   value: { AlterDatabaseSetStmt: AlterDatabaseSetStmt };
 }> = transform(
   sequence([
-    _,
     ALTER,
     __,
     DATABASE,
@@ -67,37 +65,36 @@ const setVariety: Rule<{
   ]),
   (v) => {
     return {
-      eos: v[15],
+      eos: v[14],
       value: {
         AlterDatabaseSetStmt: {
           codeComment: combineComments(
-            v[0],
-            v[2],
-            v[4],
-            v[6],
-            v[8],
-            v[10],
-            v[12],
-            "codeComment" in v[13] ? v[13].codeComment : "",
-            v[14],
-            v[15].comment
+            v[1],
+            v[3],
+            v[5],
+            v[7],
+            v[9],
+            v[11],
+            "codeComment" in v[12] ? v[12].codeComment : "",
+            v[13],
+            v[14].comment
           ),
-          dbname: v[5],
+          dbname: v[4],
           setstmt:
-            typeof v[13].value === "string"
-              ? v[13].value === "DEFAULT"
+            typeof v[12].value === "string"
+              ? v[12].value === "DEFAULT"
                 ? {
                     kind: "VAR_SET_DEFAULT",
-                    name: v[9],
+                    name: v[8],
                   }
                 : {
                     kind: "VAR_SET_CURRENT",
-                    name: v[9],
+                    name: v[8],
                   }
               : {
                   kind: "VAR_SET_VALUE",
-                  name: v[9],
-                  args: [v[13].value],
+                  name: v[8],
+                  args: [v[12].value],
                 },
         },
       },
@@ -110,7 +107,6 @@ const resetVariety: Rule<{
   value: { AlterDatabaseSetStmt: AlterDatabaseSetStmt };
 }> = transform(
   sequence([
-    _,
     ALTER,
     __,
     DATABASE,
@@ -125,24 +121,23 @@ const resetVariety: Rule<{
   ]),
   (v) => {
     return {
-      eos: v[11],
+      eos: v[10],
       value: {
         AlterDatabaseSetStmt: {
           codeComment: combineComments(
-            v[0],
-            v[2],
-            v[4],
-            v[6],
-            v[8],
-            v[10],
-            v[11].comment
+            v[1],
+            v[3],
+            v[5],
+            v[7],
+            v[9],
+            v[10].comment
           ),
-          dbname: v[5],
+          dbname: v[4],
           setstmt:
-            typeof v[9] === "string"
+            typeof v[8] === "string"
               ? {
                   kind: "VAR_RESET",
-                  name: v[9],
+                  name: v[8],
                 }
               : {
                   kind: "VAR_RESET_ALL",

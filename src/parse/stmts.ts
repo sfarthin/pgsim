@@ -1,4 +1,4 @@
-import { Stmt } from "~/types";
+import { Stmt, StmtType } from "~/types";
 import {
   transform,
   sequence,
@@ -10,11 +10,18 @@ import {
   SuccessResult,
   Context,
   Expected,
+  _,
+  addStmtType,
+  EOS,
 } from "./util";
 import { getFriendlyErrorMessage } from "./error";
 import { codeComments } from "./codeComments";
 import { stmt } from "./stmt";
 import { Block } from "~/format";
+import { comment } from "./comment";
+import { or } from "./or";
+
+type RuleOf<I> = I extends Rule<infer K> ? K : never;
 
 export class ParseError extends Error {
   statementNum: number;
@@ -39,11 +46,38 @@ function onErrorTryAgainWithExpected<T>(rule: Rule<T>): Rule<T> {
 
 export const stmts: Rule<Stmt[]> = transform(
   sequence([
-    transform(zeroToMany(onErrorTryAgainWithExpected(stmt)), (r, ctx) => {
-      // Lets igngore "Comment" statements, because the regular parser doesn't consider those.
-      ctx.numStatements = r.filter((r) => !("Comment" in r.value)).length;
-      return r;
-    }),
+    transform(
+      zeroToMany(
+        onErrorTryAgainWithExpected(
+          or([
+            transform(sequence([_, stmt]), (v) => {
+              const type = Object.keys(v[1].value)[0] as StmtType;
+
+              return {
+                eos: v[1].eos,
+                value: {
+                  [type]: {
+                    // @ts-expect-error -- We know this key is correct
+                    ...v[1].value[type],
+                    codeComment: combineComments(
+                      v[0],
+                      // @ts-expect-error -- We know this key is correct
+                      v[1].value[type].codeComment
+                    ),
+                  },
+                },
+              } as RuleOf<typeof stmt>;
+            }),
+            addStmtType("Comment", comment),
+          ])
+        )
+      ),
+      (r, ctx) => {
+        // Lets igngore "Comment" statements, because the regular parser doesn't consider those.
+        ctx.numStatements = r.filter((r) => !("Comment" in r.value)).length;
+        return r;
+      }
+    ),
     endOfInput, // <-- This ensures we don't return before hitting the end of our SQL.
   ]),
   (v) => {

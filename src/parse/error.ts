@@ -3,8 +3,8 @@ import c from "ansi-colors";
 import { NEWLINE, PrintOptions, toString } from "../format/print";
 import { Block } from "~/format/util";
 
-const NUM_CONTEXT_LINES_BEFORE = 4;
-const NUM_CONTEXT_LINES_AFTER = 3;
+const NUM_CONTEXT_LINES_BEFORE = 1;
+const NUM_CONTEXT_LINES_AFTER = 2;
 
 /**
  * Starting at the point we can no longer parse, we create an error token then
@@ -83,23 +83,40 @@ export const getFriendlyErrorMessage = (
   expected = expected.filter((v, i) => expected.indexOf(v) === i).sort();
 
   const pos = result.expected[0].pos;
+  const lineOffset = opts.sql.substring(0, pos).match(/\n/g)?.length ?? 0;
 
-  const stmtType = result.expected[0].stmtType;
+  const stmtTypes = result.expected.reduce((types, e) => {
+    if (e.stmtType && !types.includes(e.stmtType)) {
+      return [...types, e.stmtType];
+    }
+    return types;
+  }, [] as string[]);
+  const stmtType = stmtTypes.length === 1 ? stmtTypes[0] : null;
 
-  // Sometimes tokens is missing some text. This is a bug I should fix. In the meantime
-  // Lets throw this unformatted text in here.
-  const missingTextHack = sql.substring(
-    blockLength(result.expected[0].tokens as Block) - 1,
-    pos
-  );
+  // find the start of the line
+  const startOfStmt = pos - blockLength(result.expected[0].tokens as Block);
+  let startOfLine = startOfStmt;
+  let numprefixedLines = 0;
+  while (
+    (startOfLine !== 0 && sql.charAt(startOfLine) !== "\n") ||
+    numprefixedLines < 2
+  ) {
+    if (sql.charAt(startOfLine) === "\n") {
+      numprefixedLines++;
+    }
 
-  // We combined what we can parse so far up to the point we cannot parse anymore.
-  // We also label the token at this point as an error.
+    startOfLine--;
+  }
+
   const block = combineBlocks(
-    combineBlocks(result.expected[0].tokens, [
-      [{ type: "unknown", text: missingTextHack }],
-    ]),
-    toUnknownBlock(sql.substring(pos), { markFirstTokenAsError: true })
+    combineBlocks(
+      // Lets add any text that comes before this statement on this line.
+      toUnknownBlock(sql.substring(startOfLine, startOfStmt), {}),
+      result.expected[0].tokens
+    ),
+    toUnknownBlock(sql.substring(pos, pos + 1000), {
+      markFirstTokenAsError: true,
+    })
   ) as Block;
 
   const { line, column, token } = getErrorDetailsFromBlock(block);
@@ -117,11 +134,11 @@ export const getFriendlyErrorMessage = (
         )}":${NEWLINE} - ${expected.join(`${NEWLINE} - `)}`;
 
   let error = "";
-  error += `Parse error${filename ? ` in ${c.cyan(filename)}` : ""}(${c.cyan(
-    String(line + 1)
-  )},${c.cyan(String(column + 1))}): ${message} in ${c.magenta(
-    stmtType ?? "statement"
-  )} ${NEWLINE}`;
+  error += `${stmtType ? c.cyan(stmtType) : "Parse"} error${
+    filename ? ` in ${c.cyan(filename)}` : ""
+  }(${c.cyan(String(line + 1 + lineOffset))},${c.cyan(
+    String(column + 1)
+  )}): ${message} ${NEWLINE}`;
   error += NEWLINE;
 
   error += toString(block, {
@@ -129,6 +146,7 @@ export const getFriendlyErrorMessage = (
     lineNumbers: true,
     startLine: lineToStartPrinting,
     endLine: line + NUM_CONTEXT_LINES_AFTER,
+    lineOffset,
   });
 
   error += NEWLINE;

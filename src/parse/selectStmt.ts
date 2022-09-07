@@ -6,7 +6,6 @@ import {
   __,
   endOfStatement,
   combineComments,
-  _,
   FROM,
   optional,
   identifier,
@@ -238,12 +237,12 @@ const withClause: Rule<{
 export const selectStmt: Rule<{
   value: { SelectStmt: SelectStmt };
   eos: EOS;
-}> = transform(sequence([_, select, __, endOfStatement]), (v) => ({
-  eos: v[3],
+}> = transform(sequence([select, __, endOfStatement]), (v) => ({
+  eos: v[2],
   value: {
     SelectStmt: {
-      ...v[1].value,
-      codeComment: combineComments(v[0], v[2], v[3].comment),
+      ...v[0].value,
+      codeComment: combineComments(v[1], v[2].comment),
     },
   },
 }));

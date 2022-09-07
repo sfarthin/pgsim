@@ -6,7 +6,6 @@ import {
   COMMIT,
   ROLLBACK,
   __,
-  _,
   endOfStatement,
   or,
   Rule,
@@ -15,40 +14,40 @@ import {
 } from "./util";
 
 const beginStatement = transform(
-  sequence([_, BEGIN, __, endOfStatement]),
+  sequence([BEGIN, __, endOfStatement]),
   (v) => ({
     value: {
       TransactionStmt: {
         kind: "TRANS_STMT_BEGIN" as const,
-        codeComment: combineComments(v[0], v[2], v[3].comment),
+        codeComment: combineComments(v[1], v[2].comment),
       },
     },
-    eos: v[3],
+    eos: v[2],
   })
 );
 const commitStatement = transform(
-  sequence([_, COMMIT, __, endOfStatement]),
+  sequence([COMMIT, __, endOfStatement]),
   (v) => ({
     value: {
       TransactionStmt: {
         kind: "TRANS_STMT_COMMIT" as const,
-        codeComment: combineComments(v[0], v[2], v[3].comment),
+        codeComment: combineComments(v[1], v[2].comment),
       },
     },
-    eos: v[3],
+    eos: v[2],
   })
 );
 
 const rollbackStatement = transform(
-  sequence([_, ROLLBACK, __, endOfStatement]),
+  sequence([ROLLBACK, __, endOfStatement]),
   (v) => ({
     value: {
       TransactionStmt: {
         kind: "TRANS_STMT_ROLLBACK" as const,
-        codeComment: combineComments(v[0], v[2], v[3].comment),
+        codeComment: combineComments(v[1], v[2].comment),
       },
     },
-    eos: v[3],
+    eos: v[2],
   })
 );
 

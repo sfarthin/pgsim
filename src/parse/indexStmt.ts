@@ -11,7 +11,6 @@ import {
   USING,
   identifier,
   optional,
-  _,
   __,
   LPAREN,
   RPAREN,
@@ -33,7 +32,6 @@ import {
 export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
   transform(
     sequence([
-      _,
       CREATE,
       __,
       optional(UNIQUE),
@@ -68,21 +66,21 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
     ]),
     (v) => {
       return {
-        eos: v[25],
+        eos: v[24],
         value: {
           IndexStmt: {
-            ...(v[9] ? { idxname: v[9] } : {}),
+            ...(v[8] ? { idxname: v[8] } : {}),
             relation: {
-              relname: v[13].value,
+              relname: v[12].value,
               inh: true,
               relpersistence: "p",
-              location: v[13].pos,
+              location: v[12].pos,
             },
-            ...(v[15] ? { accessMethod: v[15][2] } : {}),
-            accessMethod: v[15]?.[2].value === "hash" ? "hash" : "btree",
-            indexParams: v[19]
+            ...(v[14] ? { accessMethod: v[14][2] } : {}),
+            accessMethod: v[14]?.[2].value === "hash" ? "hash" : "btree",
+            indexParams: v[18]
               .map((i) => i[0])
-              .concat(v[21])
+              .concat(v[20])
               .map((j) => ({
                 IndexElem: {
                   name: j,
@@ -90,23 +88,22 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
                   nulls_ordering: "SORTBY_NULLS_DEFAULT",
                 },
               })),
-            ...(v[3] ? { unique: true } : {}),
+            ...(v[2] ? { unique: true } : {}),
             codeComment: combineComments(
-              v[0],
-              v[2],
-              v[4],
-              v[6],
-              v[8],
-              v[10],
-              v[12],
-              v[14],
-              v[15]?.[1],
-              v[16],
-              v[18],
-              v[20],
-              v[22],
-              v[24],
-              v[25].comment
+              v[1],
+              v[3],
+              v[5],
+              v[7],
+              v[9],
+              v[11],
+              v[13],
+              v[14]?.[1],
+              v[15],
+              v[17],
+              v[19],
+              v[21],
+              v[23],
+              v[24].comment
             ),
           },
         },

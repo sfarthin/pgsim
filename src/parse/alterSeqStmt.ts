@@ -8,7 +8,6 @@ import {
   combineComments,
   sequence,
   __,
-  _,
   commentsOnSameLine,
   EOS,
 } from "./util";
@@ -20,7 +19,6 @@ export const alterSeqStmt: Rule<{
   value: { AlterSeqStmt: AlterSeqStmt };
 }> = transform(
   sequence([
-    _,
     ALTER,
     __,
     SEQUENCE,
@@ -39,19 +37,12 @@ export const alterSeqStmt: Rule<{
   ]),
   (v) => {
     return {
-      eos: v[9],
+      eos: v[8],
       value: {
         AlterSeqStmt: {
-          sequence: v[5],
-          ...(v[7].length ? { options: v[7] } : {}),
-          codeComment: combineComments(
-            v[0],
-            v[2],
-            v[4],
-            v[6],
-            v[8],
-            v[9].comment
-          ),
+          sequence: v[4],
+          ...(v[6].length ? { options: v[6] } : {}),
+          codeComment: combineComments(v[1], v[3], v[5], v[7], v[8].comment),
         },
       },
     };

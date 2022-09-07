@@ -7,7 +7,6 @@ import {
   sequence,
   endOfStatement,
   combineComments,
-  _,
   __,
   EOS,
   TO,
@@ -78,7 +77,6 @@ const timezoneSetStmt: Rule<{
   eos: EOS;
 }> = transform(
   sequence([
-    _,
     SET,
     __,
     TIME,
@@ -89,19 +87,18 @@ const timezoneSetStmt: Rule<{
     endOfStatement,
   ]),
   (v) => ({
-    eos: v[8],
+    eos: v[7],
     value: {
       VariableSetStmt: {
         kind: "VAR_SET_VALUE",
         name: "timezone",
-        args: [v[7].value],
+        args: [v[6].value],
         codeComment: combineComments(
-          v[0],
-          v[2],
-          v[4],
-          v[6],
-          v[7].codeComment,
-          v[8].comment
+          v[1],
+          v[3],
+          v[5],
+          v[6].codeComment,
+          v[7].comment
         ),
       },
     },
@@ -113,7 +110,6 @@ const basicVariableSetStmt: Rule<{
   eos: EOS;
 }> = transform(
   sequence([
-    _,
     SET,
     __,
     identifier,
@@ -125,20 +121,19 @@ const basicVariableSetStmt: Rule<{
     endOfStatement,
   ]),
   (v) => ({
-    eos: v[9],
+    eos: v[8],
     value: {
       VariableSetStmt: {
         kind: "VAR_SET_VALUE",
-        name: v[3],
-        args: [v[7].value],
+        name: v[2],
+        args: [v[6].value],
         codeComment: combineComments(
-          v[0],
-          v[2],
-          v[4],
-          v[6],
-          v[7].codeComment,
-          v[8],
-          v[9].comment
+          v[1],
+          v[3],
+          v[5],
+          v[6].codeComment,
+          v[7],
+          v[8].comment
         ),
       },
     },
