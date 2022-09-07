@@ -24,11 +24,12 @@ export class ParseError extends Error {
   }
 }
 
-function onErrorTryAgainWithExpectedAndTokens<T>(rule: Rule<T>): Rule<T> {
+function onErrorTryAgainWithExpected<T>(rule: Rule<T>): Rule<T> {
   return (ctx: Context) => {
     const result = rule(ctx);
-    if (result.type === ResultType.Fail && !ctx.includeExpectedAndTokens) {
-      ctx.includeExpectedAndTokens = true;
+    if (result.type === ResultType.Fail && !ctx.includeExpected) {
+      ctx.includeExpected = true;
+      ctx.includeTokens = true;
       const t = rule(ctx);
       return t;
     }
@@ -38,14 +39,11 @@ function onErrorTryAgainWithExpectedAndTokens<T>(rule: Rule<T>): Rule<T> {
 
 export const stmts: Rule<Stmt[]> = transform(
   sequence([
-    transform(
-      zeroToMany(onErrorTryAgainWithExpectedAndTokens(stmt)),
-      (r, ctx) => {
-        // Lets igngore "Comment" statements, because the regular parser doesn't consider those.
-        ctx.numStatements = r.filter((r) => !("Comment" in r.value)).length;
-        return r;
-      }
-    ),
+    transform(zeroToMany(onErrorTryAgainWithExpected(stmt)), (r, ctx) => {
+      // Lets igngore "Comment" statements, because the regular parser doesn't consider those.
+      ctx.numStatements = r.filter((r) => !("Comment" in r.value)).length;
+      return r;
+    }),
     endOfInput, // <-- This ensures we don't return before hitting the end of our SQL.
   ]),
   (v) => {
@@ -172,7 +170,7 @@ export function parse(
     str: sql,
     pos: 0,
     numStatements: 0,
-    includeExpectedAndTokens: opts?.includeTokens ? true : false,
+    includeTokens: opts?.includeTokens ? true : false,
   };
   const result = stmts(context);
 

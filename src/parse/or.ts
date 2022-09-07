@@ -152,7 +152,7 @@ export function or(rules: Rule<any>[]): Rule<any> {
       return r.type === ResultType.Success;
     });
 
-    const expected = ctx.includeExpectedAndTokens
+    const expected = ctx.includeExpected
       ? results
           .reduce((acc, r) => acc.concat(r.expected ?? []), [] as Expected[])
           .reduce(expectedReducer, [])

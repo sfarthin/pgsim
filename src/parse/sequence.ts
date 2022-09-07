@@ -627,7 +627,7 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
       const result = rule(ctx);
       ctx.pos = prevPos;
 
-      if (ctx.includeExpectedAndTokens) {
+      if (ctx.includeExpected) {
         expected = expected
           .concat(
             (result.expected ?? []).map((e) => ({
@@ -645,7 +645,7 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
         };
       }
 
-      if (ctx.includeExpectedAndTokens) {
+      if (ctx.includeTokens) {
         tokens = combineBlocks(tokens ?? [], result?.tokens ?? []);
       }
 
@@ -661,7 +661,8 @@ export function sequence(rules: Rule<any>[]): Rule<any> {
       type: ResultType.Success,
       value: values,
       loc: [ctx.pos, ctx.pos + length],
-      ...(ctx.includeExpectedAndTokens ? { expected, tokens } : {}),
+      ...(ctx.includeExpected ? { expected } : {}),
+      ...(ctx.includeTokens ? { tokens } : {}),
     };
   };
 

@@ -96,10 +96,16 @@ export type Context = {
   numStatements: number;
 
   /**
-   * We don't want to keep trakc of tokens
-   * and expected results until we have to.
+   * We only want to track expected when the parser fails, because
+   * it can be expensive. See onErrorTryAgainWithExpected
    */
-  includeExpectedAndTokens?: boolean;
+  includeExpected?: boolean;
+
+  /**
+   * We don't always want to keep track of tokens, so lets
+   * make that optional
+   */
+  includeTokens?: boolean;
 };
 
 export type Rule<R> = (c: Context) => RuleResult<R>;
@@ -165,7 +171,7 @@ export const endOfInput: Rule<number> = (ctx) => {
 
   return {
     type: ResultType.Fail,
-    ...(ctx.includeExpectedAndTokens
+    ...(ctx.includeExpected
       ? {
           expected: [
             { type: "endOfInput", value: "End of Input", pos: ctx.pos },
@@ -195,7 +201,7 @@ export function constant(
 
     return {
       type: ResultType.Fail,
-      ...(ctx.includeExpectedAndTokens
+      ...(ctx.includeExpected
         ? {
             expected: [
               {
@@ -235,7 +241,7 @@ export function regexChar(r: RegExp): Rule<string> {
     }
     return {
       type: ResultType.Fail,
-      ...(ctx.includeExpectedAndTokens
+      ...(ctx.includeExpected
         ? { expected: [{ type: "regex", value: r.toString(), pos: ctx.pos }] }
         : {}),
       pos: ctx.pos,
@@ -267,7 +273,7 @@ function multiply<T>(
       curr = rule(ctx);
       ctx.pos = prevPos;
 
-      if (ctx.includeExpectedAndTokens) {
+      if (ctx.includeExpected) {
         expected = expected
           .concat(
             (curr.expected ?? []).map((e) => ({
@@ -280,7 +286,7 @@ function multiply<T>(
 
       if (curr.type === ResultType.Success) {
         if ("tokens" in curr) {
-          if (ctx.includeExpectedAndTokens) {
+          if (ctx.includeExpected) {
             tokens = combineBlocks(tokens, curr.tokens);
           }
         } else {
@@ -306,7 +312,7 @@ function multiply<T>(
     if (values.length < min) {
       return {
         type: ResultType.Fail,
-        ...(ctx.includeExpectedAndTokens ? { expected } : {}),
+        ...(ctx.includeExpected ? { expected } : {}),
         pos: lastPos,
       };
     }
@@ -316,7 +322,8 @@ function multiply<T>(
       value: values,
       length: pos - start,
       loc: [ctx.pos, ctx.pos + pos - start],
-      ...(ctx.includeExpectedAndTokens ? { expected, tokens } : {}),
+      ...(ctx.includeExpected ? { expected } : {}),
+      ...(ctx.includeTokens ? { tokens } : {}),
     };
   };
 
@@ -372,7 +379,7 @@ export function notConstant(keyword: string): Rule<string> {
 
     return {
       type: ResultType.Fail,
-      ...(ctx.includeExpectedAndTokens
+      ...(ctx.includeExpected
         ? {
             expected: [
               {
@@ -416,12 +423,15 @@ export function fromBufferToCodeBlock<T>(
     const result = rule(ctx);
 
     if (result.type === ResultType.Success) {
-      const { loc, ...everythingButLoc } = result;
       return {
-        ...everythingButLoc,
-        loc,
-        ...(ctx.includeExpectedAndTokens
-          ? { tokens: func(ctx.str.substring(loc[0], loc[1]), result) }
+        ...result,
+        ...(ctx.includeTokens
+          ? {
+              tokens: func(
+                ctx.str.substring(result.loc[0], result.loc[1]),
+                result
+              ),
+            }
           : {}),
       };
     } else {
@@ -776,7 +786,7 @@ export function keyword(
     } else {
       return {
         ...result,
-        ...(ctx.includeExpectedAndTokens
+        ...(ctx.includeExpected
           ? { expected: [{ type: "keyword", value: `"${str}"`, pos: ctx.pos }] }
           : {}),
       };
@@ -917,7 +927,7 @@ export const identifierIncludingKeyword: Rule<string> = (ctx: Context) => {
   if (result.type === ResultType.Fail) {
     return {
       ...result,
-      ...(ctx.includeExpectedAndTokens
+      ...(ctx.includeExpected
         ? {
             expected: [
               { type: "identifier", value: "identifier", pos: ctx.pos },
@@ -942,7 +952,7 @@ export const identifier: Rule<string> = (ctx: Context) => {
     return {
       type: ResultType.Fail,
       pos: ctx.pos,
-      ...(ctx.includeExpectedAndTokens
+      ...(ctx.includeExpected
         ? {
             expected: [
               { type: "identifier", value: "identifier", pos: ctx.pos },

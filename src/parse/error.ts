@@ -70,7 +70,7 @@ export const getFriendlyErrorMessage = (
 ): string => {
   const { filename, sql } = opts;
 
-  // See onErrorTryAgainWithExpectedAndTokens
+  // See onErrorTryAgainWithExpected
   // We always should have an expected result when we get an error.
   // We may only have it for statement that broke.
   if (!result.expected || !result.expected.length) {
