@@ -6,12 +6,6 @@
   "files": [
     "dist"
   ],
-  "scripts": {
-    "generate": "echo 'todo'",
-    "build": "rm -rf ./dist && swc src -d dist",
-    "lint": "tsc && eslint --ext .ts .",
-    "test": "yarn build && node ./dist/tests/parseAndFormat.js && node ./dist/tests/migrateAndDump.js && node ./dist/tests/errorAndAutocomplete.js"
-  },
   "devDependencies": {
     "@swc/cli": "^0.1.57",
     "@swc/core": "^1.2.222",
@@ -22,7 +16,6 @@
     "@types/yargs": "^17.0.8",
     "@typescript-eslint/eslint-plugin": "^5.11.0",
     "@typescript-eslint/parser": "^5.11.0",
-    "ansi-regex": "^6.0.1",
     "assert-no-diff": "^3.0.6",
     "decoders": "1.x",
     "eslint": "^8.9.0",

@@ -1,173 +1,90 @@
-// import { json as assertNoDiff } from "assert-no-diff";
-// import c from "ansi-colors";
-// import parse from "../parse";
-// import nParse from "./nativeParse";
-// import { join, basename } from "path";
-// import { lstatSync, readdirSync, readFileSync, writeFileSync } from "fs";
-// import { NEWLINE } from "../format/print";
-// import { FailResult } from "../parse/util";
-// import { getFriendlyErrorMessage, findNextToken } from "../parse/error";
+import yargs from "yargs/yargs";
+import parse from "../parse";
+import { join, basename } from "path";
+import { lstatSync, readdirSync, readFileSync, writeFileSync } from "fs";
+import { wordsWithSpace as assertStr } from "assert-no-diff";
 
-// import getRemoveAnsiRegx from "ansi-regex";
+// See ansi-regex npm module
+function getRemoveAnsiRegx({ onlyFirst = false } = {}) {
+  const pattern = [
+    "[\\u001B\\u009B][[\\]()#;?]*(?:(?:(?:(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]+)*|[a-zA-Z\\d]+(?:;[-a-zA-Z\\d\\/#&.:=?%@~_]*)*)?\\u0007)",
+    "(?:(?:\\d{1,4}(?:;\\d{0,4})*)?[\\dA-PR-TZcf-ntqry=><~]))",
+  ].join("|");
 
-// export default function errorAndAutocomplete(
-//   sql: string,
-//   filename: string
-// ): void {
-//   const matches = sql.split(/-- @error-statement (.*)/);
+  return new RegExp(pattern, onlyFirst ? undefined : "g");
+}
 
-//   const brokenStatements = matches
-//     .slice(1)
-//     .reduce(
-//       (acc, str, index) => (index % 2 ? [...acc, str] : acc),
-//       [] as string[]
-//     );
+const args = yargs(process.argv.slice(2))
+  .options({
+    write: { type: "boolean", default: false },
+    file: { type: "string" },
+  })
+  .parseSync();
 
-//   if (brokenStatements.length === 0) {
-//     throw new Error("No Assertions... add @error-statement lines");
-//   }
+export default function errorAndAutocomplete(
+  sql: string,
+  filename: string
+): void {
+  let snapshotTxt = "";
 
-//   const assertions = matches.reduce((acc, str, index) => {
-//     if (index % 2) {
-//       let payload;
-//       try {
-//         payload = JSON.parse(str);
-//       } catch (e) {
-//         throw new Error(`Unable to parse Assertion: ${c.cyan(str)}`);
-//       }
-//       return [...acc, payload];
-//     }
+  try {
+    parse(sql, filename);
+  } catch (e) {
+    if (e instanceof Error) {
+      snapshotTxt = e.message;
+    }
+  }
 
-//     return acc;
-//   }, [] as any[]);
+  if (snapshotTxt === "") {
+    throw new Error(`Expected error with ${filename}`);
+  }
 
-//   let snapshotTxt = "";
+  const filePath = join(
+    __dirname,
+    "../../fixtures/errorAndAutocomplete/__snapshots__",
+    filename.replace(/\.sql/, "-snapshot.sql")
+  );
+  const body = snapshotTxt.replace(getRemoveAnsiRegx(), "");
+  if (args.write) {
+    writeFileSync(filePath, body);
+  } else {
+    assertStr(
+      readFileSync(filePath).toString(),
+      body,
+      `${filename} does not match snapshot`
+    );
+  }
+}
 
-//   for (const index in brokenStatements) {
-//     const brokenStatementSql = brokenStatements[index];
-//     const assertion = assertions[index];
+if (args.file) {
+  const filepath = join(process.cwd(), args.file);
 
-//     /**
-//      * Lets first ensure there is a native error
-//      */
-//     let nativeError: Error | null = null;
-//     try {
-//       nParse(brokenStatementSql, filename);
-//     } catch (e) {
-//       nativeError = e as Error;
-//     }
-//     if (!nativeError) {
-//       throw new Error(
-//         `No native error thrown${NEWLINE}${NEWLINE}${c.cyan(
-//           brokenStatementSql.trim()
-//         )}${NEWLINE}`
-//       );
-//     }
+  let files;
+  if (lstatSync(filepath).isDirectory()) {
+    files = readdirSync(filepath)
+      .filter((f) => f.match(/\.sql$/))
+      .map((f) => join(process.cwd(), args.file ?? "", f));
+  } else {
+    files = [filepath];
+  }
 
-//     /**
-//      * Lets get the parse error.
-//      */
-//     let error: (Error & { result: FailResult }) | null = null;
-//     try {
-//       parse(brokenStatementSql, filename);
-//     } catch (e) {
-//       error = e as Error & { result: FailResult };
-//     }
-//     if (!error) {
-//       throw new Error(
-//         `No error thrown${NEWLINE}${NEWLINE}${c.cyan(
-//           brokenStatementSql.trim()
-//         )}${NEWLINE}`
-//       );
-//     }
+  for (const file of files) {
+    errorAndAutocomplete(readFileSync(file).toString(), basename(file));
+  }
+} else {
+  const files: string[] = readdirSync(
+    join(__dirname, "../../fixtures/errorAndAutocomplete")
+  ).reduce((acc: string[], file: string) => {
+    if (!file.match(/\.sql$/)) {
+      return acc;
+    }
+    return [
+      ...acc,
+      join(__dirname, "../../fixtures/errorAndAutocomplete", file),
+    ];
+  }, []);
 
-//     const tokenPosition = findNextToken(brokenStatementSql, error.result.pos);
-//     const token = brokenStatementSql.substring(
-//       tokenPosition.start,
-//       tokenPosition.end
-//     );
-
-//     /**
-//      * Lets confirm our error is what we expect
-//      */
-//     const expected = error.result.expected
-//       .map((e) => (e.type === "keyword" ? JSON.parse(e.value) : e.value))
-//       .sort();
-
-//     // Lets generate an appropiate friendly error message with the right line numbers.
-//     const offset = sql.indexOf(brokenStatementSql);
-//     const errorMessage = getFriendlyErrorMessage({
-//       filename,
-//       str: sql,
-//       result: {
-//         ...error.result,
-//         expected: [
-//           // Replace the first expected field with one with the correct position.
-//           { ...error.result.expected[0], pos: offset + error.result.pos },
-//           ...error.result.expected.slice(1),
-//         ],
-//         // Replace it here too.
-//         pos: offset + error.result.pos,
-//       },
-//     });
-
-//     assertNoDiff(
-//       assertion,
-//       {
-//         expected,
-//         token,
-//       },
-//       `${c.red(
-//         "Expected different error"
-//       )}${NEWLINE}${NEWLINE}${errorMessage}${NEWLINE}${NEWLINE}Expected: ${c.blue(
-//         JSON.stringify(expected)
-//       )}`
-//     );
-
-//     snapshotTxt += `${errorMessage}${NEWLINE}`;
-//   }
-
-//   writeFileSync(
-//     join(
-//       __dirname,
-//       "../../fixtures/errorAndAutocomplete/__snapshots__",
-//       filename.replace(/\.sql/, "-snapshot.sql")
-//     ),
-//     snapshotTxt
-//       .replace(getRemoveAnsiRegx(), "")
-//       .replace(/-- @error-statement (.*)/g, "")
-//   );
-// }
-
-// if (process.argv[2]) {
-//   const filepath = join(process.cwd(), process.argv[2]);
-
-//   let files;
-//   if (lstatSync(filepath).isDirectory()) {
-//     files = readdirSync(filepath)
-//       .filter((f) => f.match(/\.sql$/))
-//       .map((f) => join(process.cwd(), process.argv[2], f));
-//   } else {
-//     files = [filepath];
-//   }
-
-//   for (const file of files) {
-//     errorAndAutocomplete(readFileSync(file).toString(), basename(file));
-//   }
-// } else {
-//   const files: string[] = readdirSync(
-//     join(__dirname, "../../fixtures/errorAndAutocomplete")
-//   ).reduce((acc: string[], file: string) => {
-//     if (!file.match(/\.sql$/)) {
-//       return acc;
-//     }
-//     return [
-//       ...acc,
-//       join(__dirname, "../../fixtures/errorAndAutocomplete", file),
-//     ];
-//   }, []);
-
-//   for (const file of files) {
-//     errorAndAutocomplete(readFileSync(file).toString(), basename(file));
-//   }
-// }
+  for (const file of files) {
+    errorAndAutocomplete(readFileSync(file).toString(), basename(file));
+  }
+}

@@ -1,0 +1,36 @@
+#!/usr/bin/env bash -e
+
+echo ""
+echo ""
+echo "Lint"
+echo "--------"
+time pgsim-lint
+echo ""
+
+echo ""
+echo ""
+echo "Scaffold"
+echo "--------"
+time pgsim-scaffold
+echo ""
+
+echo ""
+echo ""
+echo "Parse and Format"
+echo "----------------"
+gtimeout 5 time pgsim-parse-and-format || (echo "\nTimed out\n" && exit 1)
+echo ""
+
+echo ""
+echo ""
+echo "Error and Autocomplete"
+echo "----------------------"
+gtimeout 5 time pgsim-error-and-autocomplete || (echo "\nTimed out\n" && exit 1)
+echo ""
+
+echo ""
+echo ""
+echo "Build"
+echo "--------"
+pgsim-build
+echo ""

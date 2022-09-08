@@ -12,7 +12,6 @@ import {
   Expected,
   _,
   addStmtType,
-  EOS,
 } from "./util";
 import { getFriendlyErrorMessage } from "./error";
 import { codeComments } from "./codeComments";
@@ -210,6 +209,7 @@ export function parse(
 
   if (result.type == ResultType.Success) {
     result.value = result.value.reduce(reduceComments, []);
+
     return result as SuccessResult<Stmt[]>;
   }
 

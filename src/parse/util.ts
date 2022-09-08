@@ -286,7 +286,7 @@ function multiply<T>(
 
       if (curr.type === ResultType.Success) {
         if ("tokens" in curr) {
-          if (ctx.includeExpected) {
+          if (ctx.includeTokens) {
             tokens = combineBlocks(tokens, curr.tokens);
           }
         } else {

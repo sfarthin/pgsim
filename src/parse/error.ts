@@ -98,8 +98,9 @@ export const getFriendlyErrorMessage = (
   let startOfLine = startOfStmt;
   let numprefixedLines = 0;
   while (
-    (startOfLine !== 0 && sql.charAt(startOfLine) !== "\n") ||
-    numprefixedLines < 2
+    startOfLine > 0 &&
+    ((startOfLine !== 0 && sql.charAt(startOfLine) !== "\n") ||
+      numprefixedLines < 2)
   ) {
     if (sql.charAt(startOfLine) === "\n") {
       numprefixedLines++;

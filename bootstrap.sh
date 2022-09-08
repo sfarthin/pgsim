@@ -16,7 +16,7 @@ else
     git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.10.0
 fi
 
-brew install direnv curl wget gpg
+brew install direnv curl wget gpg coreutils
 
 asdf plugin-add "yarn"
 asdf plugin-add "nodejs"
