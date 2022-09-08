@@ -1,6 +1,6 @@
 COPY x (a, b, c, d, e) from 'foobar';
 
--- TODO, automatically
+-- TODO, automatically handle this
 COPY x (a, b, c, d, e) from stdin;
 9999	\N	\\N	\NN	\N
 10000	21	31	41	51

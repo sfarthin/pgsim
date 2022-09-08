@@ -2,11 +2,18 @@
 
 PGSIM is a parser, linter, formatter and static analysis tool for Postgres.
 
-TODO
+## Roadmap
 
-- INSERT queries
-- Add Github action to run tests.
-- Fix error messages
+- parse/format INSERT queries,
+- parse/format COPY queries
+- finish tb/migrations.sql file
+- Fix error messages.
+- Finish linter with @pgsim-lint-ignore, @pgsim-expect-parse-error to skip statements or lint errors
+- Add Github action(s) to run tests.
+- Update documentation and make limited alpha "release"
+- Work through parsing/formatting all TB queries from itests
+- Build pgstructure adapter and simulator pg schema tables.
+
 - Add `loc` to tokens.
 - Profile and continue to optomize,
   - Use regex

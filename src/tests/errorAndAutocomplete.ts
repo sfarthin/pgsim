@@ -29,6 +29,8 @@ export default function errorAndAutocomplete(
 
   try {
     parse(sql, filename);
+
+    // In the future, lets try to "run" these queries and output errors like "missing tables", etc.
   } catch (e) {
     if (e instanceof Error) {
       snapshotTxt = e.message;
