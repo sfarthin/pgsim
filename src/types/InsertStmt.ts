@@ -1,45 +1,66 @@
 import * as d from "decoders";
-import { Location, locationDecoder } from "./location";
-import { RangeVar, rangeVarDecoder } from "./rangeVar";
+import { columnRefDecoder } from "./columnRef";
+import { aConstDecoder, A_Const } from "./constant";
+import { listDecoder } from "./list";
+import { locationDecoder } from "./location";
+import dispatch from "./dispatch";
+import { ParamRef, paramRefDecoder } from "./paramRef";
 
-export type ResTargetInsert = {
-  name?: string;
-  location: Location;
-  indirection?: unknown;
-};
+const colsDecoder = d.array(
+  d.exact({
+    ResTarget: d.exact({
+      name: d.optional(d.string),
+      location: locationDecoder,
+    }),
+  })
+);
 
-export const resTargetInsertDecoder: d.Decoder<ResTargetInsert> = d.exact({
-  name: d.optional(d.string),
-  location: locationDecoder,
-  indirection: d.unknown,
+export type InsertCols = d.DecoderType<typeof colsDecoder>;
+
+const relationInsertDecoder = d.exact({
+  relname: d.string,
+  inh: d.constant(true),
+  relpersistence: d.constant("p"),
+  location: d.number,
 });
 
-export type InsertStmt = {
-  relation: {
-    RangeVar: RangeVar;
-  };
-  cols?:
-    | {
-        ResTarget: ResTargetInsert;
-      }[]
-    | void;
+export type RelationInsert = d.DecoderType<typeof relationInsertDecoder>;
 
-  selectStmt?: {
-    SelectStmt?: unknown;
-  };
+const returningInsertDecoder = d.array(
+  d.exact({
+    ResTarget: d.exact({
+      val: d.exact({ ColumnRef: columnRefDecoder }),
+      location: d.number,
+    }),
+  })
+);
 
-  returningList?: unknown;
+export type ReturningInsert = d.DecoderType<typeof returningInsertDecoder>;
 
-  override?: unknown;
+export type InsertListItem = { A_Const: A_Const } | { ParamRef: ParamRef };
 
-  onConflictClause?: unknown;
-};
-
-export const insertStmtDecoder: d.Decoder<InsertStmt> = d.exact({
-  relation: d.exact({ RangeVar: rangeVarDecoder }),
-  cols: d.optional(d.array(d.exact({ ResTarget: resTargetInsertDecoder }))),
-  selectStmt: d.optional(d.exact({ SelectStmt: d.unknown })),
-  returningList: d.unknown,
-  override: d.unknown,
-  onConflictClause: d.unknown,
+const listItem: d.Decoder<InsertListItem> = dispatch({
+  A_Const: aConstDecoder,
+  ParamRef: paramRefDecoder,
 });
+
+export const insertStmtDecoder = d.exact({
+  relation: relationInsertDecoder,
+  cols: colsDecoder,
+  selectStmt: d.exact({
+    SelectStmt: d.exact({
+      valuesLists: d.array(d.exact({ List: listDecoder(listItem) })),
+      limitOption: d.constant("LIMIT_OPTION_DEFAULT"),
+      op: d.constant("SETOP_NONE"),
+    }),
+  }),
+
+  returningList: d.optional(returningInsertDecoder),
+
+  // returningList: d.unknown,
+  override: d.constant("OVERRIDING_NOT_SET"),
+  // onConflictClause: d.unknown,
+  codeComment: d.optional(d.string),
+});
+
+export type InsertStmt = d.DecoderType<typeof insertStmtDecoder>;

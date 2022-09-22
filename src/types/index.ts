@@ -207,6 +207,7 @@ export * from "./location";
 export * from "./lockStmt";
 export * from "./notifyStmt";
 export * from "./nullTest";
+export * from "./paramRef";
 export * from "./prepareStmt";
 export * from "./rangeSubselect";
 export * from "./rangeVar";

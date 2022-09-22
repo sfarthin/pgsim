@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { TypeOrAlias } from "~/constants";
-import { StmtType } from "~/types";
+import { ParamRef, StmtType } from "~/types";
 import { NEWLINE, TAB } from "../format/print";
 import { Block } from "../format/util";
 import { expectedReducer } from "./expectedReducer";
@@ -707,6 +707,8 @@ const keywordList = [
   "HOUR",
   "IF",
   "IN",
+  "INTO",
+  "INSERT",
   "INCREMENT",
   "INTERVAL",
   "INDEX",
@@ -735,6 +737,7 @@ const keywordList = [
   "RENAME",
   "RESTRICT",
   "RESET",
+  "RETURNING",
   "RIGHT",
   "ROLLBACK",
   "SEQUENCE",
@@ -750,6 +753,7 @@ const keywordList = [
   "UPDATE",
   "USING",
   "VALUE",
+  "VALUES",
   "VIEW",
   "WITH",
   "WHERE",
@@ -831,6 +835,8 @@ export const GROUP = keyword("GROUP");
 export const FROM = keyword("FROM");
 export const HOUR = keyword("HOUR");
 export const IN = keyword("IN");
+export const INSERT = keyword("INSERT");
+export const INTO = keyword("INTO");
 export const IF = keyword("IF");
 export const INCREMENT = keyword("INCREMENT");
 export const INDEX = keyword("INDEX");
@@ -860,6 +866,7 @@ export const PUBLIC = keyword("PUBLIC" as any); // <-- One exeption where we can
 export const REFERENCES = keyword("REFERENCES");
 export const RENAME = keyword("RENAME");
 export const RESET = keyword("RESET");
+export const RETURNING = keyword("RETURNING");
 export const RESTRICT = keyword("RESTRICT");
 export const ROLLBACK = keyword("ROLLBACK");
 export const SEQUENCE = keyword("SEQUENCE");
@@ -875,6 +882,7 @@ export const TYPE = keyword("TYPE" as any); // <-- One exeption where we can use
 export const UNIQUE = keyword("UNIQUE");
 export const USING = keyword("USING");
 export const VALUE = keyword("VALUE");
+export const VALUES = keyword("VALUES");
 export const VIEW = keyword("VIEW");
 export const WITH = keyword("WITH");
 export const WHERE = keyword("WHERE");
@@ -1009,6 +1017,31 @@ export const float = fromBufferToCodeBlock(
   ),
   (text) => {
     return [[{ type: "numberLiteral", text }]];
+  }
+);
+
+export const paramRef: Rule<{
+  value: { ParamRef: ParamRef };
+  codeComment: string;
+}> = fromBufferToCodeBlock(
+  transform(
+    sequence([
+      constant("$"),
+      regexChar(/[1-9]/),
+      zeroToMany(regexChar(/[0-9]/)),
+    ]),
+    (s, ctx) => ({
+      codeComment: "",
+      value: {
+        ParamRef: {
+          number: Number(`${s[1]}${s[2].join("")}`),
+          location: ctx.pos,
+        },
+      },
+    })
+  ),
+  (text) => {
+    return [[{ type: "symbol", text }]];
   }
 );
 
