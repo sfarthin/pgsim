@@ -367,6 +367,7 @@ export const includesReferenceCatalog: TypeOrAlias[] = [
   "interval minute to second",
   "time with time zone",
   "timestamp with time zone",
+  "timestamp",
   "smallint",
   "integer",
   "bigint",

@@ -17,7 +17,7 @@ export default function (c: UpdateStmt): Block {
   return [
     ...comment(c.codeComment),
     [keyword("UPDATE")],
-    ...indent([rangeVar(c.relation)]),
+    ...indent([rangeVar(c.relation, false)]),
     [keyword("SET")],
     ...indent(
       c.targetList.map((t, i) => {

@@ -35,3 +35,14 @@ SET
 WHERE
 	slug IS NULL AND foo = 1 OR
 	bar IS NULL AND pumpkin = 'bar' AND yo = 4 AND TRUE = TRUE;
+
+UPDATE accounts a SET institution_id = a.b;
+
+UPDATE accounts a SET institution_id = a.b;
+
+UPDATE
+	accounts a
+SET
+	institution_id = (SELECT id FROM institutions WHERE plaid_type = a.institution_type)
+WHERE
+	institution_id IS NULL;

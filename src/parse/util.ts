@@ -740,6 +740,7 @@ const keywordList = [
   "RETURNING",
   "RIGHT",
   "ROLLBACK",
+  "REPLACE",
   "SEQUENCE",
   "SET",
   "SELECT",
@@ -759,6 +760,7 @@ const keywordList = [
   "WHERE",
   "WHEN",
   "ZONE",
+  "EXTRACT",
 ] as const;
 
 export function keyword(
@@ -830,6 +832,7 @@ export const ENUM = keyword("ENUM");
 export const END = keyword("END");
 export const ELSE = keyword("ELSE");
 export const EXISTS = keyword("EXISTS");
+export const EXTRACT = keyword("EXTRACT");
 export const FOREIGN = keyword("FOREIGN");
 export const GROUP = keyword("GROUP");
 export const FROM = keyword("FROM");
@@ -866,6 +869,7 @@ export const PUBLIC = keyword("PUBLIC" as any); // <-- One exeption where we can
 export const REFERENCES = keyword("REFERENCES");
 export const RENAME = keyword("RENAME");
 export const RESET = keyword("RESET");
+export const REPLACE = keyword("REPLACE");
 export const RETURNING = keyword("RETURNING");
 export const RESTRICT = keyword("RESTRICT");
 export const ROLLBACK = keyword("ROLLBACK");

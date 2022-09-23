@@ -25,3 +25,14 @@ SET
     a = 1;
 
 UPDATE services SET slug=name WHERE slug IS NULL AND foo = 1 OR BAR is NULL AND pumpkin='bar' AND yo = 4 and true = true; 
+
+
+UPDATE accounts a SET institution_id = a.b;
+
+UPDATE accounts as a SET institution_id = a.b;
+
+
+UPDATE accounts a
+        SET institution_id =
+        (SELECT id FROM institutions WHERE plaid_type = a.institution_type)
+        WHERE institution_id IS NULL;

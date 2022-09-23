@@ -8,7 +8,7 @@ export default function viewStmt(c: ViewStmt): Block {
     ...comment(c.codeComment),
     [
       keyword("CREATE"),
-      _,
+      ...(c.replace ? [_, keyword("OR"), _, keyword("REPLACE"), _] : [_]),
       keyword("VIEW"),
       _,
       identifier(c.view.relname),
