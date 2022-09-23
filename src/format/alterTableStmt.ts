@@ -18,6 +18,20 @@ function alterTableCmd(c: AlterTableCmd): Line {
   switch (c.subtype) {
     case AlterTableCmdSubType.AT_DropConstraint:
       return [keyword("DROP"), _, keyword("CONSTRAINT"), _, identifier(c.name)];
+    case AlterTableCmdSubType.AT_SetNotNull:
+      return [
+        keyword("ALTER"),
+        _,
+        keyword("COLUMN"),
+        _,
+        identifier(c.name),
+        _,
+        keyword("SET"),
+        _,
+        keyword("NOT"),
+        _,
+        keyword("NULL"),
+      ];
     case AlterTableCmdSubType.AT_AlterColumnType:
       return [
         keyword("ALTER"),

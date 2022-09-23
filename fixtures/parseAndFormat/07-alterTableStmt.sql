@@ -36,9 +36,11 @@ ALTER TABLE ONLY foo_boo_fooboo
 ALTER TABLE foobar ALTER COLUMN "a" DROP NOT NULL;
 ALTER TABLE foobar2 ALTER COLUMN "b" DROP DEFAULT;
 ALTER TABLE "foozbar" ALTER COLUMN name TYPE VARCHAR(1024);
+alter table "foo" alter column "foo" SET NOT NULL;
 
 alter table foo drop constraint my_bar_constraint;
 
 alter table foobar
     drop constraint my_constraint,
     add constraint my_other_constraint foreign key (field) references myTable(id) on update cascade on delete RESTRICT;
+

@@ -8,6 +8,7 @@ import {
   AlterTableDropNotNull,
   AlterTableColumnType,
   AlterTableDropConstraint,
+  AlterTableSetNotNull,
 } from "~/types";
 import {
   sequence,
@@ -170,6 +171,30 @@ const alterTableDropNotNull: Rule<AlterTableDropNotNull> = transform(
   }
 );
 
+const alterTableSetNotNull: Rule<AlterTableSetNotNull> = transform(
+  sequence([
+    ALTER,
+    __,
+    optional(COLUMN),
+    __,
+    identifier, // 4
+    __,
+    SET,
+    __,
+    NOT,
+    __, // 9
+    NULL,
+  ]),
+  (v) => {
+    return {
+      subtype: AlterTableCmdSubType.AT_SetNotNull,
+      name: v[4],
+      behavior: "DROP_RESTRICT",
+      codeComment: combineComments(v[1], v[3], v[5], v[7], v[9]),
+    };
+  }
+);
+
 const alterTableDropDefault: Rule<AlterTableSetDefault> = transform(
   sequence([
     ALTER,
@@ -245,6 +270,7 @@ export const alterTableCmd: Rule<AlterTableCmd> = or([
   alterTableAddColumn,
   alterTableDropColumn,
   alterTableDropNotNull,
+  alterTableSetNotNull,
   alterTableDropDefault,
   alterTableColumnType,
 ]);
