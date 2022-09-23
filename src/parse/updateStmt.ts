@@ -13,16 +13,21 @@ import {
   COMMA,
   or,
   EOS,
+  WHERE,
+  optional,
 } from "./util";
 import { UpdateStmt, ResTarget } from "~/types";
 import { aConst } from "./aConst";
 import { typeCast } from "./typeCast";
+import { columnRef } from "./columnRef";
+import { rawValue } from "./rawExpr";
+import { codeComments } from "./codeComments";
 
 const resTarget: Rule<{
   value: { ResTarget: ResTarget };
   codeComment: string;
 }> = transform(
-  sequence([identifier, __, EQUALS, __, or([typeCast, aConst])]), // <-- We can add table names here.
+  sequence([identifier, __, EQUALS, __, or([typeCast, aConst, columnRef])]),
   (v, ctx) => {
     return {
       value: {
@@ -37,6 +42,13 @@ const resTarget: Rule<{
   }
 );
 
+const whereClause = transform(sequence([WHERE, __, rawValue]), (v) => {
+  return {
+    value: v[2].value,
+    codeComment: combineComments(v[1], v[2].codeComment),
+  };
+});
+
 export const updateStmt: Rule<{ eos: EOS; value: { UpdateStmt: UpdateStmt } }> =
   transform(
     sequence([
@@ -46,14 +58,16 @@ export const updateStmt: Rule<{ eos: EOS; value: { UpdateStmt: UpdateStmt } }> =
       __,
       SET,
       __,
-      resTarget, // 7
+      resTarget, // 6
       zeroToMany(sequence([__, COMMA, __, resTarget])),
+      __,
+      optional(whereClause), // 9
       __,
       endOfStatement,
     ]),
     (v) => {
       return {
-        eos: v[9],
+        eos: v[11],
         value: {
           UpdateStmt: {
             relation: {
@@ -63,6 +77,7 @@ export const updateStmt: Rule<{ eos: EOS; value: { UpdateStmt: UpdateStmt } }> =
               inh: true,
             },
             targetList: [v[6].value, ...v[7].map((k) => k[3].value)],
+            ...(v[9] ? { whereClause: v[9].value } : {}),
             codeComment: combineComments(
               v[1],
               v[3],
@@ -70,7 +85,9 @@ export const updateStmt: Rule<{ eos: EOS; value: { UpdateStmt: UpdateStmt } }> =
               v[6].codeComment,
               ...v[7].flatMap((k) => [k[0], k[2], k[3].codeComment]),
               v[8],
-              v[9].comment
+              v[9]?.codeComment,
+              v[10],
+              v[11].comment
             ),
           },
         },

@@ -4,9 +4,8 @@ PGSIM is a parser, linter, formatter and static analysis tool for Postgres.
 
 ## Roadmap
 
-- parse/format INSERT queries,
-- parse/format COPY queries
 - finish tb/migrations.sql file
+- parse/format COPY queries
 - Fix error messages.
 - Finish linter with @pgsim-lint-ignore, @pgsim-expect-parse-error to skip statements or lint errors
 - Add Github action(s) to run tests.

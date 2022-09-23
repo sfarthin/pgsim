@@ -1,5 +1,14 @@
 import { UpdateStmt } from "~/types";
-import { symbol, identifier, keyword, indent, _, comment, Block } from "./util";
+import {
+  symbol,
+  identifier,
+  keyword,
+  indent,
+  _,
+  comment,
+  Block,
+  addToLastLine,
+} from "./util";
 
 import rangeVar from "./rangeVar";
 import { rawValue } from "./rawExpr";
@@ -22,9 +31,19 @@ export default function (c: UpdateStmt): Block {
           symbol("="),
           _,
           ...rawValue(t.ResTarget.val).flat(),
-          ...(i < c.targetList.length - 1 ? [symbol(",")] : [symbol(";")]),
+          ...(i < c.targetList.length - 1
+            ? [symbol(",")]
+            : c.whereClause
+            ? []
+            : [symbol(";")]),
         ];
       })
     ),
+    ...(c.whereClause
+      ? [
+          [keyword("WHERE")],
+          ...indent(addToLastLine(rawValue(c.whereClause), [symbol(";")])),
+        ]
+      : []),
   ];
 }
