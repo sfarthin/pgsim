@@ -717,6 +717,7 @@ const keywordList = [
   "KEY",
   "LEFT",
   "LIKE",
+  "MATERIALIZED",
   "MAXVALUE",
   "MINVALUE",
   "MINUTE",
@@ -849,6 +850,7 @@ export const OUTER = keyword("OUTER");
 export const JOIN = keyword("JOIN");
 export const KEY = keyword("KEY");
 export const LEFT = keyword("LEFT");
+export const MATERIALIZED = keyword("MATERIALIZED");
 export const MAXVALUE = keyword("MAXVALUE");
 export const MINVALUE = keyword("MINVALUE");
 export const MINUTE = keyword("MINUTE");
