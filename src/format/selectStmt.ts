@@ -16,6 +16,7 @@ import {
   Block,
   addToFirstLine,
 } from "./util";
+import aConst from "./aConst";
 
 function toTargetList(c: SelectStmt): Block {
   const targetList = c.targetList.flatMap((v, i) => {
@@ -117,7 +118,9 @@ export function innerSelect(c: SelectStmt): Block {
           c.groupClause.flatMap((r, i) => [
             ...comment(c.codeComments?.groupClause?.[i]),
             [
-              ...columnRef(r.ColumnRef),
+              ...("ColumnRef" in r
+                ? columnRef(r.ColumnRef)
+                : aConst(r.A_Const)),
               ...(i === (c.groupClause?.length ?? 0) - 1 ? [] : [symbol(",")]),
             ],
           ])

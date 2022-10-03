@@ -5,6 +5,8 @@ import { SortBy, sortByDecoder } from "./sortBy";
 import { JoinExpr, joinExprDecoder } from "./joinExpr";
 import { ColumnRef, columnRefDecoder } from "./columnRef";
 import { ResTarget, resTargetDecoder } from "./resTarget";
+import { aConstIntegerDecoder, A_Const, A_Const_Integer } from "./constant";
+import dispatch from "./dispatch";
 
 export type CommonTableExpr = {
   ctename: string;
@@ -15,6 +17,14 @@ export type CommonTableExpr = {
   location: number;
 };
 
+type GroupClause = ({ ColumnRef: ColumnRef } | { A_Const: A_Const })[];
+const groupClauseDecoder: d.Decoder<GroupClause> = d.array(
+  dispatch({
+    ColumnRef: columnRefDecoder,
+    A_Const: aConstIntegerDecoder,
+  })
+);
+
 export type SelectStmt = {
   op: "SETOP_NONE";
   limitOption: "LIMIT_OPTION_DEFAULT";
@@ -23,7 +33,7 @@ export type SelectStmt = {
   }[];
   fromClause?: ({ RangeVar: RangeVar } | { JoinExpr: JoinExpr })[];
   whereClause?: RawValue;
-  groupClause?: { ColumnRef: ColumnRef }[];
+  groupClause?: GroupClause;
   withClause?: {
     ctes: {
       CommonTableExpr: CommonTableExpr;
@@ -89,7 +99,7 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
     )
   ),
   whereClause: d.optional((blob) => rawValueDecoder(blob)),
-  groupClause: d.optional(d.array(d.exact({ ColumnRef: columnRefDecoder }))),
+  groupClause: d.optional(groupClauseDecoder),
   // intoClause: d.fail,
   withClause: d.optional(
     d.exact({

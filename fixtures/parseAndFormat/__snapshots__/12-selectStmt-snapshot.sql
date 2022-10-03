@@ -237,4 +237,4 @@ SELECT pg_catalog.date_part('year', '2016-12-31 13:30:15'::TIMESTAMP);
 
 SELECT foo FROM foobar GROUP BY foo, bar, hoo ORDER BY foo, bar, joo;
 
-SELECT foo FROM foobar GROUP BY foo, bar, hoo ORDER BY 1, 3;
+SELECT foo FROM foobar GROUP BY 1, 3 ORDER BY 1, 3;

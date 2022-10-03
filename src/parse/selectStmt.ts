@@ -28,6 +28,7 @@ import { sortBy } from "./sortBy";
 import { rangeVar } from "./rangeVar";
 import { joinExpr } from "./joinExpr";
 import { columnRef } from "./columnRef";
+import { aConst, aConstInteger } from "./aConst";
 
 const groupBy = transform(
   sequence([
@@ -36,16 +37,24 @@ const groupBy = transform(
     __,
     BY,
     __,
-    columnRef, // 5
-    zeroToMany(sequence([__, COMMA, __, columnRef])),
+    or([columnRef, aConstInteger]), // 5
+    zeroToMany(sequence([__, COMMA, __, or([columnRef, aConst])])),
     __,
   ]),
   (v) => ({
     value: [
-      { ColumnRef: v[5].value.ColumnRef },
-      ...v[6].map(([, , , ColumnRef]) => ({
-        ColumnRef: ColumnRef.value.ColumnRef,
-      })),
+      "ColumnRef" in v[5].value
+        ? { ColumnRef: v[5].value.ColumnRef }
+        : { A_Const: v[5].value.A_Const },
+      ...v[6].map(([, , , e]) =>
+        "ColumnRef" in e.value
+          ? {
+              ColumnRef: e.value.ColumnRef,
+            }
+          : {
+              A_Const: e.value.A_Const,
+            }
+      ),
     ].flatMap((c) => (c ? [c] : [])),
     codeComments: {
       groupClause: [

@@ -50,6 +50,11 @@ export type A_Const_Integer = {
   location: Location;
 };
 
+export const aConstIntegerDecoder = d.exact({
+  val: d.exact({ Integer: integerValueDecoder }),
+  location: locationDecoder,
+});
+
 export type A_Const_Null = {
   val: { Null: Null };
   location: Location;
@@ -67,10 +72,7 @@ export const aConstDecoder: d.Decoder<A_Const> = d.either4(
     location: locationDecoder,
   }),
   aConstStringDecoder,
-  d.exact({
-    val: d.exact({ Integer: integerValueDecoder }),
-    location: locationDecoder,
-  }),
+  aConstIntegerDecoder,
   d.exact({ val: d.exact({ Null: d.exact({}) }), location: locationDecoder })
 );
 
