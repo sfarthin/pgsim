@@ -94,3 +94,10 @@ ALTER TABLE foo DROP CONSTRAINT my_bar_constraint;
 ALTER TABLE foobar
 	DROP CONSTRAINT my_constraint,
 	ADD CONSTRAINT my_other_constraint FOREIGN KEY (field) REFERENCES mytable (id) ON UPDATE CASCADE ON DELETE RESTRICT;
+
+ALTER TABLE foo."fooTable" ADD foocolumn VARCHAR(255);
+
+ALTER TABLE foo."fooTable"
+	ADD foocolumnlist VARCHAR(255)[],
+	ADD barcolumnlist INTEGER[],
+	ADD barfoocolumnlist TIMESTAMPTZ[];

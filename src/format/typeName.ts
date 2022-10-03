@@ -3,7 +3,7 @@ import { defaultTypeMods } from "~/constants";
 
 import { keyword, _, Line, integerLiteral, symbol } from "./util";
 
-export default function typeName(typeName: TypeName): Line {
+function typeNameHelper(typeName: TypeName): Line {
   const names = (typeName.names as any)
     .map((s: any) => s.String.str)
     .filter((s: any) => s !== "pg_catalog");
@@ -174,4 +174,11 @@ export default function typeName(typeName: TypeName): Line {
     default:
       return [keyword(name)];
   }
+}
+
+export default function typeName(typeName: TypeName): Line {
+  return [
+    ...typeNameHelper(typeName),
+    ...("arrayBounds" in typeName ? [keyword("[]")] : []),
+  ];
 }

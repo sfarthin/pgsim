@@ -10,9 +10,12 @@ import {
   __,
   combineComments,
   identifier,
+  optional,
+  constant,
+  fromBufferToCodeBlock,
 } from "./util";
 import { aConstInteger } from "./aConst";
-import { A_Const, TypeName } from "~/types";
+import { A_Const, TypeName, TypeNameArrayBounds } from "~/types";
 import {
   includesReferenceCatalog,
   typeOrAlias,
@@ -56,6 +59,21 @@ const getNames = (col: string): TypeName["names"] => {
   });
 };
 
+const typeNameArray: Rule<{ arrayBounds: TypeNameArrayBounds }> = transform(
+  fromBufferToCodeBlock(constant("[]"), (text) => [
+    [{ type: "keyword", text }],
+  ]),
+  () => ({
+    arrayBounds: [
+      {
+        Integer: {
+          ival: -1,
+        },
+      },
+    ],
+  })
+);
+
 const typeNameWithTwoParams: Rule<{
   value: TypeName;
   codeComment: string;
@@ -72,6 +90,7 @@ const typeNameWithTwoParams: Rule<{
     aConstInteger,
     __,
     RPAREN,
+    optional(typeNameArray),
   ]),
   (value, ctx) => {
     return {
@@ -80,6 +99,7 @@ const typeNameWithTwoParams: Rule<{
         typemod: -1,
         typmods: [value[4].value, value[8].value],
         location: ctx.pos,
+        ...value[11],
       },
       codeComment: combineComments(
         value[1],
@@ -98,7 +118,16 @@ const typeNameWithParam: Rule<{
   value: TypeName;
   codeComment: string;
 }> = transform(
-  sequence([colTypeWithParam, __, LPAREN, __, aConstInteger, __, RPAREN]),
+  sequence([
+    colTypeWithParam,
+    __,
+    LPAREN,
+    __,
+    aConstInteger,
+    __,
+    RPAREN,
+    optional(typeNameArray),
+  ]),
   (value, ctx) => {
     return {
       value: {
@@ -106,6 +135,7 @@ const typeNameWithParam: Rule<{
         typemod: -1,
         typmods: [value[4].value],
         location: ctx.pos,
+        ...value[7],
       },
       codeComment: combineComments(value[1], value[3], value[5]),
     };
@@ -115,36 +145,40 @@ const typeNameWithParam: Rule<{
 const typeNameWithNoParam: Rule<{
   value: TypeName;
   codeComment: string;
-}> = transform(or([colTypeNoParam, identifier]), (value, ctx) => {
-  const col = value;
-  const typmods = defaultTypeMods[
-    col.toLowerCase() as keyof typeof defaultTypeMods
-  ]
-    ? ([
-        {
-          A_Const: {
-            val: {
-              Integer: {
-                ival: defaultTypeMods[
-                  col.toLowerCase() as keyof typeof defaultTypeMods
-                ],
+}> = transform(
+  sequence([or([colTypeNoParam, identifier]), optional(typeNameArray)]),
+  (value, ctx) => {
+    const col = value[0];
+    const typmods = defaultTypeMods[
+      col.toLowerCase() as keyof typeof defaultTypeMods
+    ]
+      ? ([
+          {
+            A_Const: {
+              val: {
+                Integer: {
+                  ival: defaultTypeMods[
+                    col.toLowerCase() as keyof typeof defaultTypeMods
+                  ],
+                },
               },
+              location: col.toLowerCase().match("interval") ? ctx.pos + 9 : -1,
             },
-            location: col.toLowerCase().match("interval") ? ctx.pos + 9 : -1,
           },
-        },
-      ] as [{ A_Const: A_Const }])
-    : null;
-  return {
-    value: {
-      names: getNames(value),
-      typemod: -1,
-      ...(typmods ? { typmods } : {}),
-      location: ctx.pos,
-    },
-    codeComment: "",
-  };
-});
+        ] as [{ A_Const: A_Const }])
+      : null;
+    return {
+      value: {
+        names: getNames(value[0]),
+        typemod: -1,
+        ...(typmods ? { typmods } : {}),
+        location: ctx.pos,
+        ...value[1],
+      },
+      codeComment: "",
+    };
+  }
+);
 
 export const typeName: Rule<{ value: TypeName; codeComment: string }> = or([
   typeNameWithTwoParams,

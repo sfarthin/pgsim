@@ -44,3 +44,9 @@ alter table foobar
     drop constraint my_constraint,
     add constraint my_other_constraint foreign key (field) references myTable(id) on update cascade on delete RESTRICT;
 
+ALTER TABLE "foo"."fooTable" ADD COLUMN fooColumn VARCHAR(255); 
+
+ALTER TABLE "foo"."fooTable" 
+    ADD COLUMN fooColumnList VARCHAR(255)[],
+    ADD COLUMN barColumnList int[],
+    ADD COLUMN barfooColumnList timestamptz[];

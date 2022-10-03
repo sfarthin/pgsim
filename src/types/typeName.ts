@@ -3,6 +3,14 @@ import { TypeCatalog } from "~/constants";
 import { stringDecoder, A_Const, aConstDecoder } from "./constant";
 import { Location, locationDecoder } from "./location";
 
+export type TypeNameArrayBounds = [
+  {
+    Integer: {
+      ival: -1;
+    };
+  }
+];
+
 export type TypeName = {
   names:
     | [
@@ -15,7 +23,9 @@ export type TypeName = {
     | [{ A_Const: A_Const }]
     | [{ A_Const: A_Const }, { A_Const: A_Const }];
   location: Location;
-  arrayBounds?: unknown; // create table gin_test_tbl(i int4[]) with (autovacuum_enabled = off);
+
+  // Adding "[]" to indicate a list.
+  arrayBounds?: TypeNameArrayBounds;
 };
 
 export const typeNameDecoder: d.Decoder<TypeName> = d.exact({
@@ -34,5 +44,7 @@ export const typeNameDecoder: d.Decoder<TypeName> = d.exact({
     )
   ),
   location: locationDecoder,
-  arrayBounds: d.unknown,
+  arrayBounds: d.optional(
+    d.tuple1(d.exact({ Integer: d.exact({ ival: d.constant(-1) }) }))
+  ),
 });
