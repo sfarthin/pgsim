@@ -248,3 +248,10 @@ SELECT count(DISTINCT foo);
 SELECT 1 FROM (SELECT 1) AS a;
 
 SELECT 1 FROM (SELECT 1) AS a;
+
+SELECT
+	pg_catalog.btrim(regexp_replace(txn.original_description, 'd+/d+(/d+)?', ''));
+
+SELECT pg_catalog.ltrim(foo);
+
+SELECT pg_catalog.rtrim(foo);

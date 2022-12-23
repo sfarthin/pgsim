@@ -20,7 +20,6 @@ import {
 } from "./util";
 import { FuncCall } from "~/types";
 import { rawValue } from "./rawExpr";
-import { rangeVar } from "./rangeVar";
 
 const timePeriods = [
   "CENTURY", // The century	The number of centuries
@@ -172,4 +171,62 @@ const normalfuncCall: Rule<{
   }
 );
 
-export const funcCall = or([extractFromfuncCall, normalfuncCall]);
+const trimFuncCall: Rule<{
+  value: { FuncCall: FuncCall };
+  codeComment: string;
+}> = transform(
+  sequence([
+    keyword("trim" as any),
+    __,
+    LPAREN,
+    __,
+    or([
+      keyword("both" as any),
+      keyword("leading" as any),
+      keyword("trailing" as any),
+    ]),
+    __,
+    keyword("FROM"),
+    __,
+    (ctx) => rawValue(ctx),
+    __,
+    RPAREN,
+  ]),
+  (v, ctx) => {
+    return {
+      value: {
+        FuncCall: {
+          funcname: [
+            {
+              String: {
+                str: "pg_catalog",
+              },
+            },
+            {
+              String: {
+                str:
+                  v[4].value === "both"
+                    ? "btrim"
+                    : v[4].value === "leading"
+                    ? "ltrim"
+                    : "rtrim",
+              },
+            },
+          ],
+          args: [v[8].value],
+          location: v[0].start,
+        },
+      },
+      codeComment: combineComments(
+        v[1],
+        v[3],
+        v[5],
+        v[7],
+        v[8].codeComment,
+        v[9]
+      ),
+    };
+  }
+);
+
+export const funcCall = or([extractFromfuncCall, normalfuncCall, trimFuncCall]);

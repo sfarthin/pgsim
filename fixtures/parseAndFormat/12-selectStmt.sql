@@ -157,3 +157,6 @@ SELECT COUNT(DISTINCT foo);
 
 SELECT 1 FROM (SELECT 1) a;
 SELECT 1 FROM (SELECT 1) as a;
+SELECT trim(both from regexp_replace(txn.original_description,'d+/d+(/d+)?',''));
+SELECT trim(leading from foo);
+SELECT trim(trailing from foo);
