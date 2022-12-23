@@ -1,6 +1,6 @@
 import { FuncCall } from "~/types";
 import { rawValue } from "./rawExpr";
-import { Line, join, identifier, symbol, _ } from "./util";
+import { Line, join, identifier, symbol, _, keyword } from "./util";
 
 export default function funcCall(c: FuncCall): Line {
   return [
@@ -13,6 +13,7 @@ export default function funcCall(c: FuncCall): Line {
       : [identifier(c.funcname[0].String.str)]),
     symbol("("),
 
+    ...("agg_distinct" in c ? [keyword("DISTINCT"), _] : []),
     ...("agg_star" in c ? [symbol("*")] : []),
 
     // foo, goo, etc

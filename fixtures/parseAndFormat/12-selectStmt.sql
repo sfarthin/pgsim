@@ -153,3 +153,4 @@ SELECT foo from foobar GROUP BY 1,3 ORDER BY 1,3;
 
 SELECT distinct foo;
 SELECT distinct foo, goo;
+SELECT COUNT(DISTINCT foo);

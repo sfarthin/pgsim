@@ -16,6 +16,7 @@ import {
   EXTRACT,
   FROM,
   PERIOD,
+  DISTINCT,
 } from "./util";
 import { FuncCall } from "~/types";
 import { rawValue } from "./rawExpr";
@@ -128,6 +129,7 @@ const normalfuncCall: Rule<{
     funcName,
     __,
     LPAREN,
+    optional(sequence([__, DISTINCT])),
     __,
     optional(
       or([
@@ -143,9 +145,9 @@ const normalfuncCall: Rule<{
     RPAREN,
   ]),
   (v, ctx) => {
-    const agg_star = v[4] && "isStar" in v[4];
-    const args = (v[4] && !("isStar" in v[4]) ? [v[4].value] : []).concat(
-      v[5].length > 0 ? v[5].map((o) => o[3].value) : []
+    const agg_star = v[5] && "isStar" in v[5];
+    const args = (v[5] && !("isStar" in v[5]) ? [v[5].value] : []).concat(
+      v[6].length > 0 ? v[6].map((o) => o[3].value) : []
     );
     return {
       value: {
@@ -153,17 +155,18 @@ const normalfuncCall: Rule<{
           funcname: v[0],
           ...(agg_star ? { agg_star: true } : args.length > 0 ? { args } : {}),
           // func_variadic?: boolean; // select concat(variadic array [1,2,3])
-          // agg_distinct?: boolean;
+          ...(v[3] !== null ? { agg_distinct: true } : {}),
           // over?: unknown;
           location: ctx.pos,
         },
       },
       codeComment: combineComments(
         v[1],
-        v[3],
-        v[4]?.codeComment,
-        ...v[5].map((l) => combineComments(l[0], l[2], l[3].codeComment)),
-        v[6]
+        v[4]?.[0],
+        v[4],
+        v[5]?.codeComment,
+        ...v[6].map((l) => combineComments(l[0], l[2], l[3].codeComment)),
+        v[7]
       ),
     };
   }
