@@ -7,6 +7,7 @@ import { ColumnRef, columnRefDecoder } from "./columnRef";
 import { ResTarget, resTargetDecoder } from "./resTarget";
 import { aConstIntegerDecoder, A_Const, A_Const_Integer } from "./constant";
 import dispatch from "./dispatch";
+import { RangeSubselect, rangeSubselectDecoder } from "./RangeSubselect";
 
 export type CommonTableExpr = {
   ctename: string;
@@ -31,7 +32,11 @@ export type SelectStmt = {
   targetList: {
     ResTarget?: ResTarget;
   }[];
-  fromClause?: ({ RangeVar: RangeVar } | { JoinExpr: JoinExpr })[];
+  fromClause?: (
+    | { RangeVar: RangeVar }
+    | { JoinExpr: JoinExpr }
+    | { RangeSubselect: RangeSubselect }
+  )[];
   whereClause?: RawValue;
   groupClause?: GroupClause;
   withClause?: {
@@ -86,13 +91,17 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
   ),
   fromClause: d.optional(
     d.array(
-      d.either(
+      d.either3(
         d.exact({
           RangeVar: rangeVarDecoder,
           codeComment: d.optional(d.string),
         }),
         d.exact({
           JoinExpr: joinExprDecoder,
+          codeComment: d.optional(d.string),
+        }),
+        d.exact({
+          RangeSubselect: rangeSubselectDecoder,
           codeComment: d.optional(d.string),
         })
       )

@@ -17,6 +17,7 @@ import {
   addToFirstLine,
 } from "./util";
 import aConst from "./aConst";
+import rangeSubselect from "./rangeSubselect";
 
 function toTargetList(c: SelectStmt): Block {
   const targetList = c.targetList.flatMap((v, i) => {
@@ -92,6 +93,12 @@ export function innerSelect(c: SelectStmt): Block {
                 return [
                   ...comment(c.codeComments?.fromClause?.[i]),
                   ...joinExpr(v.JoinExpr).concat(commaSepatation),
+                ];
+              }
+              if ("RangeSubselect" in v) {
+                return [
+                  ...comment(c.codeComments?.fromClause?.[i]),
+                  ...rangeSubselect(v.RangeSubselect).concat(commaSepatation),
                 ];
               }
               return [];

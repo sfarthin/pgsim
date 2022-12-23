@@ -30,6 +30,7 @@ import { rangeVar } from "./rangeVar";
 import { joinExpr } from "./joinExpr";
 import { columnRef } from "./columnRef";
 import { aConst, aConstInteger } from "./aConst";
+import { rangeSubselect } from "./rangeSubselect";
 
 const groupBy = transform(
   sequence([
@@ -92,8 +93,8 @@ const where = transform(
 
 const fromClause = transform(
   sequence([
-    or([joinExpr, rangeVar]),
-    zeroToMany(sequence([COMMA, __, or([joinExpr, rangeVar])])),
+    or([joinExpr, rangeVar, rangeSubselect]),
+    zeroToMany(sequence([COMMA, __, or([joinExpr, rangeVar, rangeSubselect])])),
   ]),
   (v) => {
     return {
