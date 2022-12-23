@@ -43,7 +43,7 @@ export type SelectStmt = {
   // intoClause?: unknown; // SELECT * INTO TABLE onek2 FROM onek;
   // limitOffset?: unknown;
   // limitCount?: unknown;
-  // distinctClause?: unknown;
+  distinctClause?: [{}];
   // havingClause?: unknown;
   // lockingClause?: unknown; // SELECT ctid,cmin,* FROM combocidtest FOR UPDATE;
   sortClause?: {
@@ -121,7 +121,7 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
   // limitOffset: d.unknown,
   // limitCount: d.unknown,
   // havingClause: d.unknown,
-  // distinctClause: d.unknown,
+  distinctClause: d.optional(d.tuple1(d.exact({}))),
   // lockingClause: d.unknown,
   sortClause: d.optional(d.array(d.exact({ SortBy: sortByDecoder }))),
   op: d.constant("SETOP_NONE"),

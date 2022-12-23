@@ -43,7 +43,7 @@ function toTargetList(c: SelectStmt): Block {
 
   return [
     ...comment(c.codeComment),
-    [keyword("SELECT")],
+    [keyword("SELECT"), ...(c.distinctClause ? [_, keyword("DISTINCT")] : [])],
     ...indent(toSingleLineIfPossible(targetList)),
   ];
 }

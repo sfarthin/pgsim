@@ -20,6 +20,7 @@ import {
   WITH,
   LPAREN,
   RPAREN,
+  DISTINCT,
   identifierIncludingKeyword,
 } from "./util";
 import { rawValue } from "./rawExpr";
@@ -149,12 +150,25 @@ const target = transform(
   })
 );
 
+const selectDistinct = transform(
+  sequence([SELECT, optional(sequence([__, DISTINCT]))]),
+  (v, ctx) => {
+    const hasDistinct = v[1];
+
+    return {
+      value: hasDistinct ? "foo" : null,
+      codeComment: v[1]?.[0],
+      start: v[0].start,
+    };
+  }
+);
+
 // We need to make endOfStatement optional, for use with viewStmt.
 export const select: Rule<{ value: SelectStmt; start: number }> = transform(
   sequence([
     optional((ctx) => withClause(ctx)),
     __,
-    SELECT,
+    selectDistinct,
     __,
     target,
     zeroToMany(sequence([__, COMMA, __, target])), // 3
@@ -165,6 +179,7 @@ export const select: Rule<{ value: SelectStmt; start: number }> = transform(
   ]),
   (v) => {
     const withClause = v[0];
+    const withDistinct = v[2].value;
     const from = v[7];
     const sortBy = v[9];
     const groupBy = v[8];
@@ -179,6 +194,7 @@ export const select: Rule<{ value: SelectStmt; start: number }> = transform(
           })),
         ],
         ...from,
+        ...(withDistinct ? { distinctClause: [{}] } : {}),
         ...(groupBy ? { groupClause: groupBy.value } : {}),
         ...(sortBy ? { sortClause: sortBy } : {}),
         ...(withClause ? { withClause: withClause.value } : {}),
@@ -188,7 +204,13 @@ export const select: Rule<{ value: SelectStmt; start: number }> = transform(
           withClause: withClause?.codeComment,
           fromClause: from?.codeComments?.fromClause,
           targetList: [
-            combineComments(v[1], v[3], v[4].codeComment, v[6]),
+            combineComments(
+              v[1],
+              v[2].codeComment,
+              v[3],
+              v[4].codeComment,
+              v[6]
+            ),
             ...v[5].map((r) => combineComments(r[0], r[2], r[3].codeComment)),
           ],
           whereClause: from?.codeComments?.whereClause,

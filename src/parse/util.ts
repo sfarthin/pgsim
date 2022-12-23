@@ -695,6 +695,7 @@ const keywordList = [
   "DATABASE",
   "DELETE",
   "DESC",
+  "DISTINCT",
   "DROP",
   "ORDER",
   "ENUM",
@@ -828,6 +829,7 @@ export const CYCLE = keyword("CYCLE");
 export const DATABASE = keyword("DATABASE");
 export const DEFAULT = keyword("DEFAULT" as any); // <-- exeption for Truebill
 export const DESC = keyword("DESC");
+export const DISTINCT = keyword("DISTINCT");
 export const DROP = keyword("DROP");
 export const ENUM = keyword("ENUM");
 export const END = keyword("END");

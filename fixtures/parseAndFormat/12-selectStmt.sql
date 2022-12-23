@@ -149,3 +149,7 @@ SELECT EXTRACT(YEAR FROM TIMESTAMP '2016-12-31 13:30:15');
 SELECT foo from foobar GROUP BY foo,bar,hoo ORDER BY foo,bar,joo;
 
 SELECT foo from foobar GROUP BY 1,3 ORDER BY 1,3;
+
+
+SELECT distinct foo;
+SELECT distinct foo, goo;
