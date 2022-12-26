@@ -36,3 +36,7 @@ UPDATE accounts a
         SET institution_id =
         (SELECT id FROM institutions WHERE plaid_type = a.institution_type)
         WHERE institution_id IS NULL;
+
+UPDATE foo SET bar = someField || 1;
+
+UPDATE foo SET bar = ARRAY[770,630,207,403,310,423,246,318,680,299,1025];

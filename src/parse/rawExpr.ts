@@ -29,6 +29,7 @@ import { subLinkConnection, subLink } from "./subLink";
 import { typeCastConnection, typeCastLiteral } from "./typeCast";
 import { caseExpr } from "./caseExpr";
 import { aIndirectionConnection } from "./aIndirection";
+import { aArrayExpr } from "./aArrayExpr";
 
 export const rawValue: Rule<{
   value: RawValue;
@@ -38,6 +39,7 @@ export const rawValue: Rule<{
   // Base case
   sequence([
     or([
+      (ctx) => aArrayExpr(ctx),
       (ctx) => typeCast(ctx),
       aExprSingleParm,
       typeCastLiteral,

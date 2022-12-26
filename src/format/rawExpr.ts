@@ -10,7 +10,15 @@ import sublink from "./sublink";
 import caseExpr from "./caseExpr";
 import nullTest from "./nullTest";
 import aIndirection from "./aIndirection";
-import { Block, symbol, toSingleLineIfPossible } from "./util";
+import {
+  Block,
+  symbol,
+  toSingleLineIfPossible,
+  _,
+  addToLastLine,
+  addToFirstLine,
+  keyword,
+} from "./util";
 
 function _rawValue(c: RawValue, includeParens?: boolean): Block {
   if ("TypeCast" in c) {
@@ -37,6 +45,19 @@ function _rawValue(c: RawValue, includeParens?: boolean): Block {
     return aIndirection(c.A_Indirection);
   } else if ("ParamRef" in c) {
     return [[symbol(`$${c.ParamRef.number}`)]];
+  } else if ("A_ArrayExpr" in c) {
+    return addToLastLine(
+      addToFirstLine(
+        [keyword("array"), symbol("[")],
+        c.A_ArrayExpr.elements.flatMap((r, i) =>
+          addToLastLine(
+            rawValue(r),
+            i !== c.A_ArrayExpr.elements.length - 1 ? [symbol(",")] : []
+          )
+        )
+      ),
+      [symbol("]")]
+    );
   }
 
   throw new Error(`RawValue not handled: ${Object.keys(c)[0]}`);

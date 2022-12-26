@@ -131,6 +131,7 @@ import { VariableSetStmt, variableSetStmtDecoder } from "./variableSetStmt";
 import { VariableShowStmt, variableShowStmtDecoder } from "./variableShowStmt";
 import { ViewStmt, viewStmtDecoder } from "./viewStmt";
 import { Comment, commentDecoder } from "./comment";
+export * from "./aArrayExpr";
 export * from "./aExpr";
 export * from "./aIndirection";
 export * from "./alias";

@@ -268,3 +268,5 @@ HAVING
 	count(foo.bar) >= 5;
 
 SELECT ARRAY(SELECT id FROM services WHERE slug = 'time-warner-cable');
+
+SELECT ARRAY['foo', 1, foo];

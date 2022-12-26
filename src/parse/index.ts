@@ -3,6 +3,7 @@
  **/
 import { parse } from "./stmts";
 export default parse;
+export * from "./aArrayExpr";
 export * from "./aConst";
 export * from "./aExpr";
 export * from "./aIndirection";

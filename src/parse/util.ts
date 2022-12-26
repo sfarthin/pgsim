@@ -803,6 +803,32 @@ export function keyword(
   return _keyword;
 }
 
+export function keywordWithNoSpaceAfterward(
+  str: typeof keywordList[number] | TypeOrAlias
+): Rule<{ start: number; value: string }> {
+  const _keyword: Rule<{ start: number; value: string }> = (ctx) => {
+    const result = transform(
+      fromBufferToCodeBlock(constant(str), (text) => [
+        [{ type: "keyword", text }],
+      ]),
+      (v) => ({ start: v.start, value: str })
+    )(ctx);
+
+    if (result.type === ResultType.Success) {
+      return result;
+    } else {
+      return {
+        ...result,
+        ...(ctx.includeExpected
+          ? { expected: [{ type: "keyword", value: `"${str}"`, pos: ctx.pos }] }
+          : {}),
+      };
+    }
+  };
+
+  return _keyword;
+}
+
 export const ALL = keyword("ALL");
 export const DELETE = keyword("DELETE");
 export const UPDATE = keyword("UPDATE");

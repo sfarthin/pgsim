@@ -15,6 +15,7 @@ import { SubLink, subLinkDecoder } from "./subLink";
 import { CaseExpr, caseExprDecoder } from "./caseExpr";
 import { AIndirection, aIndirectionDecoder } from "./aIndirection";
 import { paramRefDecoder, ParamRef } from "./paramRef";
+import { AArrayExpr, aArrayExprDecoder } from "./aArrayExpr";
 
 export type RawValue =
   | { ColumnRef: ColumnRef } // myTable.myColumn
@@ -22,6 +23,7 @@ export type RawValue =
   | { A_Expr: AExpr }
   | { SubLink: SubLink }
   | { BoolExpr: BoolExpr }
+  | { A_ArrayExpr: AArrayExpr }
   | { NullTest: NullTest } // is NULL
   | { FuncCall: FuncCall } // foo()
   | { A_Const: A_Const } // 'foo' ... 1 ... 0.9
@@ -44,6 +46,7 @@ export const rawValueDecoder: d.Decoder<RawValue> = dispatch({
   A_Expr: (blob) => aExprDecoder(blob),
   NullTest: (blob) => nullTestDecoder(blob),
   BoolExpr: (blob) => boolExprDecoder(blob),
+  A_ArrayExpr: (blob) => aArrayExprDecoder(blob),
   SubLink: (blob) => subLinkDecoder(blob),
   CaseExpr: (blob) => caseExprDecoder(blob),
   A_Indirection: (blob) => aIndirectionDecoder(blob),
