@@ -19,22 +19,19 @@ import {
   VIEW,
   EOS,
   keyword,
+  INDEX,
+  CONCURRENTLY,
 } from "./util";
-import {
-  RemoveType,
-  DropStmt,
-  TypeName,
-  DropStmtSequence,
-  DropStmtTable,
-  DropStmtType,
-} from "~/types";
+import { RemoveType, DropStmt, TypeName } from "~/types";
 
-export const dropStmt: Rule<{ eos: EOS; value: { DropStmt: DropStmt } }> =
+export const dropIndexStmt: Rule<{ eos: EOS; value: { DropStmt: DropStmt } }> =
   transform(
     sequence([
       DROP,
       __,
-      or([TABLE, SEQUENCE, TYPE, VIEW, keyword("MATERIALIZED VIEW" as any)]),
+      INDEX,
+      __,
+      optional(CONCURRENTLY), // 4
       __,
       optional(
         transform(sequence([IF, __, EXISTS, __]), (v) =>
@@ -47,47 +44,120 @@ export const dropStmt: Rule<{ eos: EOS; value: { DropStmt: DropStmt } }> =
       __,
       endOfStatement,
     ]),
-    (value) => {
+    (v) => {
       const codeComment = combineComments(
-        value[1],
-        value[3],
-        value[4],
-        value[6],
-        value[8],
-        value[9].comment
+        v[1],
+        v[3],
+        v[5],
+        v[6],
+        v[8],
+        v[10],
+        v[11].comment
       );
-      const restrictOrCascade = value[7]?.value;
+      const restrictOrCascade = v[9]?.value;
       const behavior =
         restrictOrCascade === "CASCADE" ? "DROP_CASCADE" : "DROP_RESTRICT";
-      const type = value[2].value;
-      const item = value[5].value;
-      const missing_ok = value[4] !== null;
+      const item = v[7].value;
+      const missing_ok = v[6] !== null;
+      const concurrent = v[4] !== null;
 
-      let result;
-      if (type === "TYPE") {
-        result = {
-          objects: [
-            {
-              TypeName: {
-                names: [
-                  {
-                    String: {
-                      str: item,
+      return {
+        eos: v[11],
+        value: {
+          DropStmt: {
+            objects: [
+              {
+                List: {
+                  items: [
+                    {
+                      String: {
+                        str: item,
+                      },
                     },
-                  },
-                ],
-                typemod: -1,
-                location: value[5].pos,
+                  ],
+                },
               },
-            },
-          ] as [{ TypeName: TypeName }],
-          removeType: RemoveType.OBJECT_TYPE,
-          behavior,
-          codeComment,
-          ...(missing_ok ? { missing_ok } : {}),
-        } as DropStmtType;
-      } else {
-        result = {
+            ],
+            removeType: RemoveType.OBJECT_INDEX,
+            concurrent,
+            behavior,
+            codeComment,
+            ...(missing_ok ? { missing_ok } : {}),
+          },
+        },
+      };
+    }
+  );
+
+export const dropStmtGeneral: Rule<{
+  eos: EOS;
+  value: { DropStmt: DropStmt };
+}> = transform(
+  sequence([
+    DROP,
+    __,
+    or([TABLE, SEQUENCE, TYPE, VIEW, keyword("MATERIALIZED VIEW" as any)]),
+    __,
+    optional(
+      transform(sequence([IF, __, EXISTS, __]), (v) =>
+        combineComments(v[1], v[3])
+      )
+    ),
+    transform(identifier, (v, ctx) => ({ value: v, pos: ctx.pos })),
+    __,
+    optional(or([RESTRICT, CASCADE])),
+    __,
+    endOfStatement,
+  ]),
+  (value) => {
+    const codeComment = combineComments(
+      value[1],
+      value[3],
+      value[4],
+      value[6],
+      value[8],
+      value[9].comment
+    );
+    const restrictOrCascade = value[7]?.value;
+    const behavior =
+      restrictOrCascade === "CASCADE" ? "DROP_CASCADE" : "DROP_RESTRICT";
+    const type = value[2].value;
+    const item = value[5].value;
+    const missing_ok = value[4] !== null;
+
+    if (type === "TYPE") {
+      return {
+        eos: value[9],
+        value: {
+          DropStmt: {
+            objects: [
+              {
+                TypeName: {
+                  names: [
+                    {
+                      String: {
+                        str: item,
+                      },
+                    },
+                  ],
+                  typemod: -1,
+                  location: value[5].pos,
+                },
+              },
+            ] as [{ TypeName: TypeName }],
+            removeType: RemoveType.OBJECT_TYPE,
+            behavior,
+            codeComment,
+            ...(missing_ok ? { missing_ok } : {}),
+          },
+        },
+      };
+    }
+
+    return {
+      eos: value[9],
+      value: {
+        DropStmt: {
           objects: [
             {
               List: {
@@ -112,12 +182,10 @@ export const dropStmt: Rule<{ eos: EOS; value: { DropStmt: DropStmt } }> =
           behavior,
           codeComment,
           ...(missing_ok ? { missing_ok } : {}),
-        } as DropStmtSequence | DropStmtTable;
-      }
+        },
+      },
+    };
+  }
+);
 
-      return {
-        eos: value[9],
-        value: { DropStmt: result },
-      };
-    }
-  );
+export const dropStmt = or([dropIndexStmt, dropStmtGeneral]);

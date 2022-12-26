@@ -22,7 +22,8 @@ export default function (c: DropStmt): Block {
     c.removeType === RemoveType.OBJECT_TABLE ||
     c.removeType === RemoveType.OBJECT_SEQUENCE ||
     c.removeType === RemoveType.OBJECT_VIEW ||
-    c.removeType === RemoveType.OBJECT_MATVIEW
+    c.removeType === RemoveType.OBJECT_MATVIEW ||
+    c.removeType === RemoveType.OBJECT_INDEX
   ) {
     return [
       ...comment(c.codeComment),
@@ -35,8 +36,13 @@ export default function (c: DropStmt): Block {
           ? [keyword("SEQUENCE")]
           : c.removeType === RemoveType.OBJECT_VIEW
           ? [keyword("VIEW")]
+          : c.removeType === RemoveType.OBJECT_INDEX
+          ? [keyword("INDEX")]
           : [keyword("MATERIALIZED"), _, keyword("VIEW")]),
         _,
+        ...("concurrent" in c && c.concurrent
+          ? [keyword("CONCURRENTLY"), _]
+          : []),
         ...(c.missing_ok ? [keyword("IF"), _, keyword("EXISTS"), _] : []),
         identifier(
           Array.isArray(c.objects[0].List.items)

@@ -17,3 +17,5 @@ drop table yo /* yo */RESTRICT/* yo */;
 DROP VIEW subscription_amount_rollups;
 
 DROP MATERIALIZED VIEW IF EXISTS account_data;
+
+DROP INDEX CONCURRENTLY IF EXISTS some_index;

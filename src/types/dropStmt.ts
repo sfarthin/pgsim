@@ -1,7 +1,7 @@
 import * as d from "decoders";
 import { String, stringDecoder } from "./constant";
-import { TypeName, typeNameDecoder } from "./typeName";
-import { DropBehavior, dropBehaviorDecoder } from "./dropBehavior";
+import { typeNameDecoder } from "./typeName";
+import { dropBehaviorDecoder } from "./dropBehavior";
 import { List, listDecoder } from "./list";
 
 export enum RemoveType {
@@ -10,6 +10,7 @@ export enum RemoveType {
   OBJECT_TYPE = "OBJECT_TYPE",
   OBJECT_VIEW = "OBJECT_VIEW",
   OBJECT_MATVIEW = "OBJECT_MATVIEW",
+  OBJECT_INDEX = "OBJECT_INDEX",
 }
 
 type Objects = { List: List<{ String: String }> }[];
@@ -17,87 +18,46 @@ const objectsDecoder: d.Decoder<Objects> = d.array(
   d.exact({ List: listDecoder(stringDecoder) })
 );
 
-export type DropStmtSequence = {
-  objects: Objects;
-  removeType: RemoveType.OBJECT_SEQUENCE;
-  behavior: DropBehavior;
-  codeComment?: string;
-  missing_ok?: boolean;
-};
-const dropStmtSequenceDecoder: d.Decoder<DropStmtSequence> = d.exact({
-  objects: objectsDecoder,
-  removeType: d.constant(RemoveType.OBJECT_SEQUENCE),
-  behavior: dropBehaviorDecoder,
-  missing_ok: d.optional(d.boolean),
-});
-
-export type DropStmtView = {
-  objects: Objects;
-  removeType: RemoveType.OBJECT_VIEW;
-  behavior: DropBehavior;
-  codeComment?: string;
-  missing_ok?: boolean;
-};
-const dropStmtViewDecoder: d.Decoder<DropStmtView> = d.exact({
-  objects: objectsDecoder,
-  removeType: d.constant(RemoveType.OBJECT_VIEW),
-  behavior: dropBehaviorDecoder,
-  missing_ok: d.optional(d.boolean),
-});
-
-export type DropStmtTable = {
-  objects: Objects;
-  removeType: RemoveType.OBJECT_TABLE;
-  behavior: DropBehavior;
-  codeComment?: string;
-  missing_ok?: boolean;
-};
-const dropStmtTableDecoder: d.Decoder<DropStmtTable> = d.exact({
-  objects: objectsDecoder,
-  removeType: d.constant(RemoveType.OBJECT_TABLE),
-  behavior: dropBehaviorDecoder,
-  missing_ok: d.optional(d.boolean),
-});
-
-export type DropStmtType = {
-  objects: [{ TypeName: TypeName }];
-  removeType: RemoveType.OBJECT_TYPE;
-  behavior: DropBehavior;
-  codeComment?: string;
-  missing_ok?: boolean;
-};
-const dropStmtTypeDecoder: d.Decoder<DropStmtType> = d.exact({
+const dropStmtTypeDecoder = d.exact({
   objects: d.tuple1(d.exact({ TypeName: typeNameDecoder })),
   removeType: d.constant(RemoveType.OBJECT_TYPE),
   behavior: dropBehaviorDecoder,
   missing_ok: d.optional(d.boolean),
+  codeComment: d.optional(d.string),
 });
+type DropStmtType = d.DecoderType<typeof dropStmtTypeDecoder>;
 
-export type DropMatView = {
-  objects: Objects;
-  removeType: RemoveType.OBJECT_MATVIEW;
-  behavior: DropBehavior;
-  codeComment?: string;
-  missing_ok?: boolean;
-};
-const dropMatViewDecoder: d.Decoder<DropMatView> = d.exact({
+const dropIndexDecoder = d.exact({
   objects: objectsDecoder,
-  removeType: d.constant(RemoveType.OBJECT_MATVIEW),
+  removeType: d.constant(RemoveType.OBJECT_INDEX),
+  behavior: dropBehaviorDecoder,
+  concurrent: d.boolean,
+  missing_ok: d.optional(d.boolean),
+  codeComment: d.optional(d.string),
+});
+type DropIndexStmt = d.DecoderType<typeof dropIndexDecoder>;
+
+const generalDropStmtDecoder = d.exact({
+  objects: objectsDecoder,
+  removeType: d.either4(
+    d.constant(RemoveType.OBJECT_SEQUENCE),
+    d.constant(RemoveType.OBJECT_VIEW),
+    d.constant(RemoveType.OBJECT_TABLE),
+    d.constant(RemoveType.OBJECT_MATVIEW)
+  ),
   behavior: dropBehaviorDecoder,
   missing_ok: d.optional(d.boolean),
+  codeComment: d.optional(d.string),
 });
+type GeneralDropStmt = d.DecoderType<typeof generalDropStmtDecoder>;
 
-export type DropStmt =
-  | DropStmtSequence
-  | DropStmtType
-  | DropStmtTable
-  | DropStmtView
-  | DropMatView;
+export type DropStmt = GeneralDropStmt | DropIndexStmt | DropStmtType;
 
 export const dropStmtDecoder: d.Decoder<DropStmt> = d.dispatch("removeType", {
-  [RemoveType.OBJECT_SEQUENCE]: dropStmtSequenceDecoder,
-  [RemoveType.OBJECT_VIEW]: dropStmtViewDecoder,
-  [RemoveType.OBJECT_TABLE]: dropStmtTableDecoder,
+  [RemoveType.OBJECT_SEQUENCE]: generalDropStmtDecoder,
+  [RemoveType.OBJECT_VIEW]: generalDropStmtDecoder,
+  [RemoveType.OBJECT_TABLE]: generalDropStmtDecoder,
   [RemoveType.OBJECT_TYPE]: dropStmtTypeDecoder,
-  [RemoveType.OBJECT_MATVIEW]: dropMatViewDecoder,
+  [RemoveType.OBJECT_MATVIEW]: generalDropStmtDecoder,
+  [RemoveType.OBJECT_INDEX]: dropIndexDecoder,
 });
