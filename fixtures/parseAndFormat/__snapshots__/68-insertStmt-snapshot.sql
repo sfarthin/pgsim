@@ -76,3 +76,15 @@ INSERT INTO foo (
 	'foo',
 	(SELECT id FROM foobar WHERE foo = 'bar')
 );
+
+INSERT INTO foo (some_id, some_boolean) (SELECT id, FALSE FROM bar);
+
+INSERT INTO foo (
+	some_id,
+	some_boolean
+) (
+	SELECT
+		id, FALSE, e, r, t, y, u, sdf, dsf, sdf, sdf, sdf, sdf, sdfsd, sdfsdf
+	FROM
+		bar
+);

@@ -6,6 +6,7 @@ import {
 } from "~/types";
 import { columnRef } from "./columnRef";
 import { rawValue } from "./rawExpr";
+import { select } from "./selectStmt";
 import {
   Rule,
   EOS,
@@ -24,6 +25,7 @@ import {
   endOfStatement,
   optional,
   RETURNING,
+  or,
 } from "./util";
 
 const resTarget = transform(identifier, (v, ctx) => {
@@ -98,7 +100,7 @@ const relation: Rule<RelationInsert> = transform(identifier, (v, ctx) => {
   };
 });
 
-export const insertStmt: Rule<{
+export const insertStmtWithValues: Rule<{
   value: { InsertStmt: InsertStmt };
   eos: EOS;
 }> = transform(
@@ -165,3 +167,68 @@ export const insertStmt: Rule<{
     };
   }
 );
+
+export const insertStmtWithStmt: Rule<{
+  value: { InsertStmt: InsertStmt };
+  eos: EOS;
+}> = transform(
+  sequence([
+    INSERT,
+    __,
+    INTO,
+    __,
+    relation,
+    __,
+    LPAREN,
+    __,
+    cols,
+    __,
+    RPAREN, // 10
+    __,
+    LPAREN,
+    __,
+    select,
+    __,
+    RPAREN, // 16
+    __,
+    optional(returningList),
+    __,
+    endOfStatement,
+  ]),
+  (v) => {
+    return {
+      eos: v[20],
+      value: {
+        InsertStmt: {
+          relation: v[4],
+          cols: v[8].value,
+          selectStmt: {
+            SelectStmt: v[14].value,
+          },
+          override: "OVERRIDING_NOT_SET",
+          ...(v[18] ? { returningList: v[18].value } : {}),
+          codeComment: combineComments(
+            v[1],
+            v[3],
+            v[5],
+            v[7],
+            v[8].codeComment,
+            v[9],
+            v[11],
+            v[13],
+            v[14].value.codeComment,
+            v[15],
+            v[17],
+            v[19],
+            v[20].comment
+          ),
+        },
+      },
+    };
+  }
+);
+
+export const insertStmt: Rule<{
+  value: { InsertStmt: InsertStmt };
+  eos: EOS;
+}> = or([insertStmtWithValues, insertStmtWithStmt]);

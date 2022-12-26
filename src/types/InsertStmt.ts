@@ -2,9 +2,8 @@ import * as d from "decoders";
 import { columnRefDecoder } from "./columnRef";
 import { listDecoder } from "./list";
 import { locationDecoder } from "./location";
-import dispatch from "./dispatch";
-import { paramRefDecoder } from "./paramRef";
 import { rawValueDecoder } from "./rawExpr";
+import { selectStmtDecoder } from "./selectStmt";
 
 const colsDecoder = d.array(
   d.exact({
@@ -41,11 +40,15 @@ export const insertStmtDecoder = d.exact({
   relation: relationInsertDecoder,
   cols: colsDecoder,
   selectStmt: d.exact({
-    SelectStmt: d.exact({
-      valuesLists: d.array(d.exact({ List: listDecoder(rawValueDecoder) })),
-      limitOption: d.constant("LIMIT_OPTION_DEFAULT"),
-      op: d.constant("SETOP_NONE"),
-    }),
+    SelectStmt: d.either(
+      d.exact({
+        // https://www.postgresql.org/docs/current/queries-values.html
+        valuesLists: d.array(d.exact({ List: listDecoder(rawValueDecoder) })),
+        limitOption: d.constant("LIMIT_OPTION_DEFAULT"),
+        op: d.constant("SETOP_NONE"),
+      }),
+      selectStmtDecoder
+    ),
   }),
 
   returningList: d.optional(returningInsertDecoder),

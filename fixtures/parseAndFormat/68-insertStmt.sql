@@ -14,3 +14,11 @@ INSERT INTO foo (foo, bar)
             'foo',
             (select id from foobar where foo = 'bar')
           );
+
+INSERT INTO foo (some_id, some_boolean) ( 
+  select id, false from bar
+);
+
+INSERT INTO foo (some_id, some_boolean) ( 
+  select id, false,e,r,t,y,u,sdf,dsf,sdf,sdf,sdf,sdf,sdfsd,sdfsdf from bar
+);
