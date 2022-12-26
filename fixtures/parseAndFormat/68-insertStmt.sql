@@ -22,3 +22,5 @@ INSERT INTO foo (some_id, some_boolean) (
 INSERT INTO foo (some_id, some_boolean) ( 
   select id, false,e,r,t,y,u,sdf,dsf,sdf,sdf,sdf,sdf,sdfsd,sdfsdf from bar
 );
+
+INSERT INTO foo (foo,bar) values (1,2), (1,2), (1,2), (1,2);

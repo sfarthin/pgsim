@@ -100,6 +100,16 @@ const relation: Rule<RelationInsert> = transform(identifier, (v, ctx) => {
   };
 });
 
+const insertRecord = transform(
+  sequence([LPAREN, __, valueList, __, RPAREN]),
+  (v) => {
+    return {
+      value: { List: { items: v[2].value } },
+      codeComment: combineComments(v[1], v[2].codeComment, v[3]),
+    };
+  }
+);
+
 export const insertStmtWithValues: Rule<{
   value: { InsertStmt: InsertStmt };
   eos: EOS;
@@ -119,11 +129,8 @@ export const insertStmtWithValues: Rule<{
     __,
     VALUES,
     __,
-    LPAREN,
-    __,
-    valueList,
-    __,
-    RPAREN,
+    insertRecord, // 14
+    zeroToMany(sequence([__, COMMA, __, insertRecord])),
     __,
     optional(returningList),
     __,
@@ -131,20 +138,20 @@ export const insertStmtWithValues: Rule<{
   ]),
   (v) => {
     return {
-      eos: v[22],
+      eos: v[19],
       value: {
         InsertStmt: {
           relation: v[4],
           cols: v[8].value,
           selectStmt: {
             SelectStmt: {
-              valuesLists: [{ List: { items: v[16].value } }],
+              valuesLists: [v[14].value, ...v[15].map((i) => i[3].value)],
               limitOption: "LIMIT_OPTION_DEFAULT",
               op: "SETOP_NONE",
             },
           },
           override: "OVERRIDING_NOT_SET",
-          ...(v[20] ? { returningList: v[20].value } : {}),
+          ...(v[17] ? { returningList: v[17].value } : {}),
           codeComment: combineComments(
             v[1],
             v[3],
@@ -154,13 +161,12 @@ export const insertStmtWithValues: Rule<{
             v[9],
             v[11],
             v[13],
-            v[15],
-            v[16].codeComment,
-            v[17],
-            v[19],
-            v[20]?.codeComment,
-            v[21],
-            v[22].comment
+            v[14].codeComment,
+            ...v[15].map((i) => combineComments(i[0], i[2], i[3].codeComment)),
+            v[16],
+            v[17]?.codeComment,
+            v[18],
+            v[19].comment
           ),
         },
       },

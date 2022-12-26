@@ -1,5 +1,16 @@
 import { InsertStmt } from "~/types";
-import { Block, keyword, identifier, _, symbol, indent, comment } from "./util";
+import {
+  Block,
+  keyword,
+  identifier,
+  _,
+  symbol,
+  indent,
+  comment,
+  addToFirstLine,
+  addToLastLine,
+  toSingleLineIfPossible,
+} from "./util";
 import { list } from "./list";
 import columnRef from "./columnRef";
 import { rawValue } from "./rawExpr";
@@ -9,8 +20,6 @@ export default function (c: InsertStmt): Block {
   const returning = c.returningList
     ? [
         [
-          symbol(")"),
-          _,
           keyword("RETURNING"),
           _,
           ...c.returningList.flatMap((r, i) => [
@@ -22,15 +31,11 @@ export default function (c: InsertStmt): Block {
           symbol(";"),
         ],
       ]
-    : [[symbol(")"), symbol(";")]];
+    : [[symbol(";")]];
 
   if ("valuesLists" in c.selectStmt?.SelectStmt) {
-    const valueList = list(
-      c.selectStmt?.SelectStmt.valuesLists[0].List,
-      (s) => {
-        return rawValue(s);
-      }
-    ).flatMap((r) => [...r]);
+    const valueLists = c.selectStmt?.SelectStmt.valuesLists;
+
     return [
       ...comment(c.codeComment),
       [
@@ -52,10 +57,29 @@ export default function (c: InsertStmt): Block {
             : []
         )
       ),
-      [symbol(")"), _, keyword("VALUES"), _, symbol("(")],
+      [symbol(")"), _, keyword("VALUES")],
       ...indent(
-        valueList.map((l, i) =>
-          i !== valueList.length - 1 ? [...l, symbol(",")] : l
+        toSingleLineIfPossible(
+          c.selectStmt?.SelectStmt.valuesLists.flatMap((valueList, j) => {
+            return [
+              [symbol("(")],
+              ...toSingleLineIfPossible(
+                list(valueList.List, (s, i) => {
+                  return addToLastLine(
+                    rawValue(s),
+                    !("length" in valueList.List.items) ||
+                      valueList.List.items.length - 1 === i
+                      ? []
+                      : [symbol(",")]
+                  );
+                }).flat()
+              ),
+              [
+                symbol(")"),
+                ...(j === valueLists.length - 1 ? [] : [symbol(",")]),
+              ],
+            ];
+          })
         )
       ),
 
@@ -88,6 +112,6 @@ export default function (c: InsertStmt): Block {
 
     ...indent(innerSelect(c.selectStmt?.SelectStmt)),
 
-    ...returning,
+    ...addToFirstLine([symbol(")"), _], returning),
   ];
 }

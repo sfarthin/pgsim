@@ -37,7 +37,8 @@ INSERT INTO foo (
 	x,
 	y,
 	z
-) VALUES (
+) VALUES
+	(
 	'a',
 	'b',
 	'c',
@@ -63,7 +64,8 @@ INSERT INTO foo (
 	'x',
 	'y',
 	'z'
-);
+	)
+;
 
 INSERT INTO foo (foobar, pumpkin) VALUES (1, '1') RETURNING id, foo.id;
 
@@ -72,10 +74,9 @@ INSERT INTO "SequelizeMeta" (name) VALUES ($1) RETURNING name;
 INSERT INTO foo (
 	foo,
 	bar
-) VALUES (
-	'foo',
-	(SELECT id FROM foobar WHERE foo = 'bar')
-);
+) VALUES
+	('foo', (SELECT id FROM foobar WHERE foo = 'bar'))
+;
 
 INSERT INTO foo (some_id, some_boolean) (SELECT id, FALSE FROM bar);
 
@@ -87,4 +88,6 @@ INSERT INTO foo (
 		id, FALSE, e, r, t, y, u, sdf, dsf, sdf, sdf, sdf, sdf, sdfsd, sdfsdf
 	FROM
 		bar
-);
+) ;
+
+INSERT INTO foo (foo, bar) VALUES (1, 2), (1, 2), (1, 2), (1, 2);
