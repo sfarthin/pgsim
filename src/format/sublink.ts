@@ -23,6 +23,12 @@ export default function (c: SubLink): Block {
         ...indent(innerSelect(c.subselect.SelectStmt)),
         [symbol(")")],
       ];
+    case SubLinkType.ARRAY_SUBLINK:
+      return [
+        [keyword("array"), symbol("(")],
+        ...indent(innerSelect(c.subselect.SelectStmt)),
+        [symbol(")")],
+      ];
     default:
       throw new Error(`Cannot handle Sublink`);
   }

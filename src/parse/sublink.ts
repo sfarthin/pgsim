@@ -10,10 +10,12 @@ import {
   Context,
   IN,
   or,
+  keyword,
+  maybeInParens,
 } from "./util";
 import { select } from "./selectStmt";
 import { SubLink, SubLinkType } from "~/types";
-import { rawValuePostfix } from "./rawExpr";
+import { rawValue, rawValuePostfix } from "./rawExpr";
 
 export const subLinkExists: Rule<{
   value: { SubLink: SubLink };
@@ -51,7 +53,42 @@ export const subLinkExpr: Rule<{
   };
 });
 
-export const subLink = or([subLinkExists, subLinkExpr]);
+export const subLinkArray: Rule<{
+  value: { SubLink: SubLink };
+  codeComment: string;
+}> = transform(
+  sequence([
+    keyword("array" as any),
+    __,
+    LPAREN,
+    __,
+    maybeInParens(select),
+    __,
+    RPAREN,
+  ]),
+  (v) => {
+    return {
+      value: {
+        SubLink: {
+          subLinkType: SubLinkType.ARRAY_SUBLINK,
+          subselect: {
+            SelectStmt: v[4].value.value,
+          },
+          location: v[0].start,
+        },
+      },
+      codeComment: combineComments(
+        v[1],
+        v[3],
+        v[4].topCodeComment,
+        v[4].bottomCodeComment,
+        v[5]
+      ),
+    };
+  }
+);
+
+export const subLink = or([subLinkArray, subLinkExists, subLinkExpr]);
 
 export const subLinkConnection = (ctx: Context) =>
   rawValuePostfix(

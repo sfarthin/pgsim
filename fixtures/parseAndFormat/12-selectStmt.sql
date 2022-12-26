@@ -162,3 +162,5 @@ SELECT trim(leading from foo);
 SELECT trim(trailing from foo);
 SELECT foo.id, COUNT(foo.bar) FROM bar GROUP BY foo.id HAVING COUNT(foo.bar) >= 5;
 SELECT foo.id, COUNT(foo.bar) FROM bar GROUP BY foo.id HAVING /* foo */ COUNT(foo.bar) >= 5;
+
+select array((select id from services where slug = 'time-warner-cable'));

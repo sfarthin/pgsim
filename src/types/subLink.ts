@@ -36,23 +36,26 @@ export type SubLink =
         SelectStmt: SelectStmt;
       };
       location: Location;
+    }
+  | {
+      subLinkType: SubLinkType.ARRAY_SUBLINK;
+      subselect: {
+        SelectStmt: SelectStmt;
+      };
+      location: Location;
     };
 
 export const subLinkDecoder: d.Decoder<SubLink> = (blob) =>
   d.dispatch("subLinkType", {
     [SubLinkType.EXISTS_SUBLINK]: d.exact({
-      subLinkType: d.constant(
-        SubLinkType.EXISTS_SUBLINK
-      ) as d.Decoder<SubLinkType.EXISTS_SUBLINK>,
+      subLinkType: d.constant(SubLinkType.EXISTS_SUBLINK),
       subselect: d.exact({
         SelectStmt: (blob) => selectStmtDecoder(blob),
       }),
       location: locationDecoder,
     }),
     [SubLinkType.ANY_SUBLINK]: d.exact({
-      subLinkType: d.constant(
-        SubLinkType.ANY_SUBLINK
-      ) as d.Decoder<SubLinkType.ANY_SUBLINK>,
+      subLinkType: d.constant(SubLinkType.ANY_SUBLINK),
       testexpr: rawValueDecoder,
       subselect: d.exact({
         SelectStmt: (blob) => selectStmtDecoder(blob),
@@ -60,9 +63,14 @@ export const subLinkDecoder: d.Decoder<SubLink> = (blob) =>
       location: locationDecoder,
     }),
     [SubLinkType.EXPR_SUBLINK]: d.exact({
-      subLinkType: d.constant(
-        SubLinkType.EXPR_SUBLINK
-      ) as d.Decoder<SubLinkType.EXPR_SUBLINK>,
+      subLinkType: d.constant(SubLinkType.EXPR_SUBLINK),
+      subselect: d.exact({
+        SelectStmt: (blob) => selectStmtDecoder(blob),
+      }),
+      location: locationDecoder,
+    }),
+    [SubLinkType.ARRAY_SUBLINK]: d.exact({
+      subLinkType: d.constant(SubLinkType.ARRAY_SUBLINK),
       subselect: d.exact({
         SelectStmt: (blob) => selectStmtDecoder(blob),
       }),

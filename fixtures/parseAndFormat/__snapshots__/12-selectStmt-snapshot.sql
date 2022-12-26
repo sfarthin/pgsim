@@ -266,3 +266,5 @@ GROUP BY foo.id
 HAVING
 	-- foo
 	count(foo.bar) >= 5;
+
+SELECT ARRAY(SELECT id FROM services WHERE slug = 'time-warner-cable');

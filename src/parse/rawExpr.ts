@@ -42,11 +42,11 @@ export const rawValue: Rule<{
       aExprSingleParm,
       typeCastLiteral,
       (ctx) => aConst(ctx),
+      (ctx) => subLink(ctx), // exists in (SELECT ...)
       (ctx) => funcCall(ctx),
       columnRef,
       notBoolExpr, // NOT XXX
       caseExpr,
-      (ctx) => subLink(ctx), // exists in (SELECT ...)
       transform(
         sequence([LPAREN, __, (ctx) => rawValue(ctx), __, RPAREN]),
         (v) => ({ ...v[2], hasParens: true })
