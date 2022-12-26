@@ -10,7 +10,7 @@ import sublink from "./sublink";
 import caseExpr from "./caseExpr";
 import nullTest from "./nullTest";
 import aIndirection from "./aIndirection";
-import { Block, toSingleLineIfPossible } from "./util";
+import { Block, symbol, toSingleLineIfPossible } from "./util";
 
 function _rawValue(c: RawValue, includeParens?: boolean): Block {
   if ("TypeCast" in c) {
@@ -35,6 +35,8 @@ function _rawValue(c: RawValue, includeParens?: boolean): Block {
     return caseExpr(c.CaseExpr);
   } else if ("A_Indirection" in c) {
     return aIndirection(c.A_Indirection);
+  } else if ("ParamRef" in c) {
+    return [[symbol(`$${c.ParamRef.number}`)]];
   }
 
   throw new Error(`RawValue not handled: ${Object.keys(c)[0]}`);

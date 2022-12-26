@@ -1,10 +1,10 @@
 import * as d from "decoders";
 import { columnRefDecoder } from "./columnRef";
-import { aConstDecoder, A_Const } from "./constant";
 import { listDecoder } from "./list";
 import { locationDecoder } from "./location";
 import dispatch from "./dispatch";
-import { ParamRef, paramRefDecoder } from "./paramRef";
+import { paramRefDecoder } from "./paramRef";
+import { rawValueDecoder } from "./rawExpr";
 
 const colsDecoder = d.array(
   d.exact({
@@ -37,19 +37,12 @@ const returningInsertDecoder = d.array(
 
 export type ReturningInsert = d.DecoderType<typeof returningInsertDecoder>;
 
-export type InsertListItem = { A_Const: A_Const } | { ParamRef: ParamRef };
-
-const listItem: d.Decoder<InsertListItem> = dispatch({
-  A_Const: aConstDecoder,
-  ParamRef: paramRefDecoder,
-});
-
 export const insertStmtDecoder = d.exact({
   relation: relationInsertDecoder,
   cols: colsDecoder,
   selectStmt: d.exact({
     SelectStmt: d.exact({
-      valuesLists: d.array(d.exact({ List: listDecoder(listItem) })),
+      valuesLists: d.array(d.exact({ List: listDecoder(rawValueDecoder) })),
       limitOption: d.constant("LIMIT_OPTION_DEFAULT"),
       op: d.constant("SETOP_NONE"),
     }),

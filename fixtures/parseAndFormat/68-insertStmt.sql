@@ -8,3 +8,9 @@ INSERT INTO foo (a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u,v,x,y,z) VALUES ('a',
 INSERT INTO "foo" ("foobar", "pumpkin") VALUES (1, '1') returning id, foo.id;
 
 INSERT INTO "SequelizeMeta" ("name") VALUES ($1) RETURNING "name";
+
+INSERT INTO foo (foo, bar)
+          VALUES (
+            'foo',
+            (select id from foobar where foo = 'bar')
+          );

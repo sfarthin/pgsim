@@ -1,17 +1,13 @@
 import { InsertStmt } from "~/types";
-import aConst from "./aConst";
 import { Block, keyword, identifier, _, symbol, indent, comment } from "./util";
 import { list } from "./list";
 import columnRef from "./columnRef";
+import { rawValue } from "./rawExpr";
 
 export default function (c: InsertStmt): Block {
   const valueList = list(c.selectStmt?.SelectStmt.valuesLists[0].List, (s) => {
-    if ("A_Const" in s) {
-      return aConst(s.A_Const);
-    } else {
-      return [symbol(`$${s.ParamRef.number}`)];
-    }
-  });
+    return rawValue(s);
+  }).flatMap((r) => [...r]);
   return [
     ...comment(c.codeComment),
     [

@@ -68,3 +68,11 @@ INSERT INTO foo (
 INSERT INTO foo (foobar, pumpkin) VALUES (1, '1') RETURNING id, foo.id;
 
 INSERT INTO "SequelizeMeta" (name) VALUES ($1) RETURNING name;
+
+INSERT INTO foo (
+	foo,
+	bar
+) VALUES (
+	'foo',
+	(SELECT id FROM foobar WHERE foo = 'bar')
+);

@@ -8,6 +8,7 @@ import {
   RPAREN,
   Context,
   zeroToMany,
+  paramRef,
 } from "./util";
 import { aConst } from "./aConst";
 import { typeCast } from "./typeCast";
@@ -52,6 +53,7 @@ export const rawValue: Rule<{
       ),
       // ^^ Intentially before rowExpr because "SELECT (4)" uses parens and not a list of one.
       rowExpr,
+      paramRef,
     ]),
     zeroToMany(
       or([

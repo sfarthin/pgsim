@@ -14,6 +14,7 @@ import { RowExpr, rowExprDecoder } from "./rowExpr";
 import { SubLink, subLinkDecoder } from "./subLink";
 import { CaseExpr, caseExprDecoder } from "./caseExpr";
 import { AIndirection, aIndirectionDecoder } from "./aIndirection";
+import { paramRefDecoder, ParamRef } from "./paramRef";
 
 export type RawValue =
   | { ColumnRef: ColumnRef } // myTable.myColumn
@@ -30,7 +31,8 @@ export type RawValue =
   | { A_Expr: AExpr } // foo in (1,2,3) ... or 1 = 1
   | { SubLink: SubLink }
   | { CaseExpr: CaseExpr }
-  | { A_Indirection: AIndirection }; // foo[0]
+  | { A_Indirection: AIndirection } // foo[0]
+  | { ParamRef: ParamRef };
 
 export const rawValueDecoder: d.Decoder<RawValue> = dispatch({
   ColumnRef: (blob) => columnRefDecoder(blob),
@@ -45,6 +47,7 @@ export const rawValueDecoder: d.Decoder<RawValue> = dispatch({
   SubLink: (blob) => subLinkDecoder(blob),
   CaseExpr: (blob) => caseExprDecoder(blob),
   A_Indirection: (blob) => aIndirectionDecoder(blob),
+  ParamRef: (blob) => paramRefDecoder(blob),
 });
 
 // | { BooleanTest: BooleanTest }

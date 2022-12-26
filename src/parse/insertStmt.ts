@@ -3,10 +3,9 @@ import {
   InsertCols,
   RelationInsert,
   ReturningInsert,
-  InsertListItem,
 } from "~/types";
-import { aConst } from "./aConst";
 import { columnRef } from "./columnRef";
+import { rawValue } from "./rawExpr";
 import {
   Rule,
   EOS,
@@ -25,8 +24,6 @@ import {
   endOfStatement,
   optional,
   RETURNING,
-  or,
-  paramRef,
 } from "./util";
 
 const resTarget = transform(identifier, (v, ctx) => {
@@ -76,13 +73,11 @@ const returningList: Rule<{ codeComment: string; value: ReturningInsert }> =
     }
   );
 
-const listItem: Rule<{ value: InsertListItem; codeComment: string }> = or([
-  aConst,
-  paramRef,
-]);
-
 const valueList = transform(
-  sequence([listItem, zeroToMany(sequence([__, COMMA, __, listItem]))]),
+  sequence([
+    (ctx) => rawValue(ctx),
+    zeroToMany(sequence([__, COMMA, __, (ctx) => rawValue(ctx)])),
+  ]),
   (v) => {
     return {
       value: [v[0].value, ...v[1].map((s) => s[3].value)],
