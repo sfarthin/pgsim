@@ -49,7 +49,7 @@ export type SelectStmt = {
   // limitOffset?: unknown;
   // limitCount?: unknown;
   distinctClause?: [{}];
-  // havingClause?: unknown;
+  havingClause?: RawValue;
   // lockingClause?: unknown; // SELECT ctid,cmin,* FROM combocidtest FOR UPDATE;
   sortClause?: {
     SortBy: SortBy;
@@ -60,6 +60,7 @@ export type SelectStmt = {
     fromClause?: string[];
     whereClause?: string[];
     groupClause?: string[];
+    havingClause?: string;
   };
 };
 // | {
@@ -129,7 +130,7 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
   ),
   // limitOffset: d.unknown,
   // limitCount: d.unknown,
-  // havingClause: d.unknown,
+  havingClause: d.optional(d.lazy(() => rawValueDecoder)),
   distinctClause: d.optional(d.tuple1(d.exact({}))),
   // lockingClause: d.unknown,
   sortClause: d.optional(d.array(d.exact({ SortBy: sortByDecoder }))),

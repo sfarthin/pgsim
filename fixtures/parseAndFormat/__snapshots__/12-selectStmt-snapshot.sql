@@ -255,3 +255,14 @@ SELECT
 SELECT pg_catalog.ltrim(foo);
 
 SELECT pg_catalog.rtrim(foo);
+
+SELECT foo.id, count(foo.bar) FROM bar GROUP BY foo.id HAVING count(foo.bar) >= 5;
+
+SELECT
+	foo.id, count(foo.bar)
+FROM
+	bar
+GROUP BY foo.id
+HAVING
+	-- foo
+	count(foo.bar) >= 5;

@@ -160,3 +160,5 @@ SELECT 1 FROM (SELECT 1) as a;
 SELECT trim(both from regexp_replace(txn.original_description,'d+/d+(/d+)?',''));
 SELECT trim(leading from foo);
 SELECT trim(trailing from foo);
+SELECT foo.id, COUNT(foo.bar) FROM bar GROUP BY foo.id HAVING COUNT(foo.bar) >= 5;
+SELECT foo.id, COUNT(foo.bar) FROM bar GROUP BY foo.id HAVING /* foo */ COUNT(foo.bar) >= 5;

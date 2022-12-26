@@ -705,6 +705,7 @@ const keywordList = [
   "FOREIGN",
   "FROM",
   "GROUP",
+  "HAVING",
   "HOUR",
   "IF",
   "IN",
@@ -839,6 +840,7 @@ export const EXTRACT = keyword("EXTRACT");
 export const FOREIGN = keyword("FOREIGN");
 export const GROUP = keyword("GROUP");
 export const FROM = keyword("FROM");
+export const HAVING = keyword("HAVING");
 export const HOUR = keyword("HOUR");
 export const IN = keyword("IN");
 export const INSERT = keyword("INSERT");

@@ -21,6 +21,7 @@ import {
   LPAREN,
   RPAREN,
   DISTINCT,
+  HAVING,
   identifierIncludingKeyword,
 } from "./util";
 import { rawValue } from "./rawExpr";
@@ -164,6 +165,16 @@ const selectDistinct = transform(
   }
 );
 
+const having = transform(
+  sequence([HAVING, __, (ctx) => rawValue(ctx)]),
+  (v) => {
+    return {
+      value: v[2].value,
+      codeComment: combineComments(v[1], v[2].codeComment),
+    };
+  }
+);
+
 // We need to make endOfStatement optional, for use with viewStmt.
 export const select: Rule<{ value: SelectStmt; start: number }> = transform(
   sequence([
@@ -174,16 +185,18 @@ export const select: Rule<{ value: SelectStmt; start: number }> = transform(
     target,
     zeroToMany(sequence([__, COMMA, __, target])), // 3
     __,
-    optional(from), // 5
+    optional(from), // 7
     optional(groupBy),
-    optional(sortBy), // 7
+    optional(having),
+    optional(sortBy), // 10
   ]),
   (v) => {
     const withClause = v[0];
     const withDistinct = v[2].value;
     const from = v[7];
-    const sortBy = v[9];
     const groupBy = v[8];
+    const having = v[9];
+    const sortBy = v[10];
 
     return {
       start: v[2].start,
@@ -197,6 +210,7 @@ export const select: Rule<{ value: SelectStmt; start: number }> = transform(
         ...from,
         ...(withDistinct ? { distinctClause: [{}] } : {}),
         ...(groupBy ? { groupClause: groupBy.value } : {}),
+        ...(having ? { havingClause: having.value } : {}),
         ...(sortBy ? { sortClause: sortBy } : {}),
         ...(withClause ? { withClause: withClause.value } : {}),
         limitOption: "LIMIT_OPTION_DEFAULT",
@@ -216,6 +230,7 @@ export const select: Rule<{ value: SelectStmt; start: number }> = transform(
           ],
           whereClause: from?.codeComments?.whereClause,
           groupClause: groupBy?.codeComments.groupClause,
+          havingClause: having?.codeComment,
         },
       },
     };

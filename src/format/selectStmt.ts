@@ -135,6 +135,16 @@ export function innerSelect(c: SelectStmt): Block {
       ]
     : [];
 
+  const havingClause = c.havingClause
+    ? [
+        [keyword("HAVING")],
+        ...indent([
+          ...comment(c.codeComments?.havingClause),
+          ...rawValue(c.havingClause),
+        ]),
+      ]
+    : [];
+
   // Lets add the appropiate amount of tabs.
   return [
     ...withClause,
@@ -142,6 +152,7 @@ export function innerSelect(c: SelectStmt): Block {
     ...from,
     ...toSingleLineIfPossible(where),
     ...toSingleLineIfPossible(groupBy),
+    ...toSingleLineIfPossible(havingClause),
     ...toSingleLineIfPossible(c.sortClause ? sortBy(c.sortClause) : []),
   ];
 }
