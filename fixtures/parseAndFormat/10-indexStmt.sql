@@ -14,3 +14,5 @@ CREATE INDEX ON foo_bar (foo);
 CREATE UNIQUE INDEX foo ON foo_bar USING hash (plaid_id);
 
 CREATE UNIQUE INDEX foo ON foo_bar USING hash (plaid_id, foobar);
+
+CREATE INDEX foo ON foo_bar USING GIN (foo_id);

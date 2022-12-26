@@ -50,7 +50,11 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
         sequence([
           USING,
           __,
-          or([keyword("hash" as any), keyword("btree" as any)]),
+          or([
+            keyword("hash" as any),
+            keyword("btree" as any),
+            keyword("gin" as any),
+          ]),
         ])
       ), // 15
       __,
@@ -77,7 +81,12 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
               location: v[12].pos,
             },
             ...(v[14] ? { accessMethod: v[14][2] } : {}),
-            accessMethod: v[14]?.[2].value === "hash" ? "hash" : "btree",
+            accessMethod:
+              v[14]?.[2].value === "hash"
+                ? "hash"
+                : v[14]?.[2].value === "gin"
+                ? "gin"
+                : "btree",
             indexParams: v[18]
               .map((i) => i[0])
               .concat(v[20])
