@@ -1087,7 +1087,11 @@ export const paramRef: Rule<{
 
 export const quotedString = fromBufferToCodeBlock(
   transform(
-    sequence([constant("'"), zeroToMany(notConstant("'")), constant("'")]),
+    sequence([
+      constant("'"),
+      zeroToMany(or([transform(constant("''"), () => "'"), notConstant("'")])),
+      constant("'"),
+    ]),
     (v, ctx) => ({ value: v[1].join(""), pos: ctx.pos })
   ),
   (text) => [[{ type: "stringLiteral", text }]]

@@ -226,7 +226,7 @@ export function comment(s: string | undefined): Block {
 // }
 
 export function stringLiteral(s: string): Token {
-  return { type: "stringLiteral", text: `'${s}'` };
+  return { type: "stringLiteral", text: `'${s.replace("'", "''")}'` };
 }
 
 export function integerLiteral(s: number): Token {

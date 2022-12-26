@@ -166,3 +166,6 @@ SELECT foo.id, COUNT(foo.bar) FROM bar GROUP BY foo.id HAVING /* foo */ COUNT(fo
 select array((select id from services where slug = 'time-warner-cable'));
 
 SELECT ARRAY[ 'foo', 1, foo ];
+
+SELECT 'it''s great';
+SELECT '{ "message": "it''s great" }';
