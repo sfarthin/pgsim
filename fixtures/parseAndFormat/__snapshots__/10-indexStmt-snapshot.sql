@@ -27,3 +27,5 @@ CREATE UNIQUE INDEX foo ON foo_bar USING hash (plaid_id);
 CREATE UNIQUE INDEX foo ON foo_bar USING hash (plaid_id, foobar);
 
 CREATE INDEX foo ON foo_bar USING gin (foo_id);
+
+CREATE UNIQUE INDEX dismissed_offers_user_service_offer_placement_sub_idx ON dismissed_offers (user_id, service_offer_id, placement, subscription_id);

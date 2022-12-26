@@ -36,12 +36,12 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
       __,
       optional(UNIQUE),
       __,
-      INDEX, // 5
+      INDEX, // 4
       __,
       optional(CONCURRENTLY),
       __,
       optional(identifier),
-      __, // 10
+      __, // 9
       ON,
       __,
       transform(identifier, (value, ctx) => ({ value, pos: ctx.pos })),
@@ -56,14 +56,14 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
             keyword("gin" as any),
           ]),
         ])
-      ), // 15
+      ), // 14
       __,
       LPAREN,
       __,
-      zeroToMany(sequence([identifier, __, COMMA])),
-      __, // 20
-      identifier,
-      __, // 22
+      identifier, // 18
+      __,
+      zeroToMany(sequence([COMMA, __, identifier])), // 20
+      __, // 21
       RPAREN,
       __,
       endOfStatement,
@@ -87,16 +87,13 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
                 : v[14]?.[2].value === "gin"
                 ? "gin"
                 : "btree",
-            indexParams: v[18]
-              .map((i) => i[0])
-              .concat(v[20])
-              .map((j) => ({
-                IndexElem: {
-                  name: j,
-                  ordering: "SORTBY_DEFAULT",
-                  nulls_ordering: "SORTBY_NULLS_DEFAULT",
-                },
-              })),
+            indexParams: [v[18], ...v[20].map((i) => i[2])].map((j) => ({
+              IndexElem: {
+                name: j,
+                ordering: "SORTBY_DEFAULT",
+                nulls_ordering: "SORTBY_NULLS_DEFAULT",
+              },
+            })),
             ...(v[2] ? { unique: true } : {}),
             codeComment: combineComments(
               v[1],
@@ -110,6 +107,7 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
               v[15],
               v[17],
               v[19],
+              ...v[20].map((i) => i[1]),
               v[21],
               v[23],
               v[24].comment
