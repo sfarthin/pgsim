@@ -15,3 +15,5 @@ drop table yo CASCADE;
 drop table yo /* yo */RESTRICT/* yo */;
 
 DROP VIEW subscription_amount_rollups;
+
+DROP MATERIALIZED VIEW IF EXISTS account_data;

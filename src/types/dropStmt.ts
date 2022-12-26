@@ -9,6 +9,7 @@ export enum RemoveType {
   OBJECT_TABLE = "OBJECT_TABLE",
   OBJECT_TYPE = "OBJECT_TYPE",
   OBJECT_VIEW = "OBJECT_VIEW",
+  OBJECT_MATVIEW = "OBJECT_MATVIEW",
 }
 
 type Objects = { List: List<{ String: String }> }[];
@@ -72,15 +73,31 @@ const dropStmtTypeDecoder: d.Decoder<DropStmtType> = d.exact({
   missing_ok: d.optional(d.boolean),
 });
 
+export type DropMatView = {
+  objects: Objects;
+  removeType: RemoveType.OBJECT_MATVIEW;
+  behavior: DropBehavior;
+  codeComment?: string;
+  missing_ok?: boolean;
+};
+const dropMatViewDecoder: d.Decoder<DropMatView> = d.exact({
+  objects: objectsDecoder,
+  removeType: d.constant(RemoveType.OBJECT_MATVIEW),
+  behavior: dropBehaviorDecoder,
+  missing_ok: d.optional(d.boolean),
+});
+
 export type DropStmt =
   | DropStmtSequence
   | DropStmtType
   | DropStmtTable
-  | DropStmtView;
+  | DropStmtView
+  | DropMatView;
 
 export const dropStmtDecoder: d.Decoder<DropStmt> = d.dispatch("removeType", {
   [RemoveType.OBJECT_SEQUENCE]: dropStmtSequenceDecoder,
   [RemoveType.OBJECT_VIEW]: dropStmtViewDecoder,
   [RemoveType.OBJECT_TABLE]: dropStmtTableDecoder,
   [RemoveType.OBJECT_TYPE]: dropStmtTypeDecoder,
+  [RemoveType.OBJECT_MATVIEW]: dropMatViewDecoder,
 });

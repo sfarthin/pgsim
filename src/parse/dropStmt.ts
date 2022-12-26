@@ -18,6 +18,7 @@ import {
   CASCADE,
   VIEW,
   EOS,
+  keyword,
 } from "./util";
 import {
   RemoveType,
@@ -33,7 +34,7 @@ export const dropStmt: Rule<{ eos: EOS; value: { DropStmt: DropStmt } }> =
     sequence([
       DROP,
       __,
-      or([TABLE, SEQUENCE, TYPE, VIEW]),
+      or([TABLE, SEQUENCE, TYPE, VIEW, keyword("MATERIALIZED VIEW" as any)]),
       __,
       optional(
         transform(sequence([IF, __, EXISTS, __]), (v) =>
@@ -105,7 +106,9 @@ export const dropStmt: Rule<{ eos: EOS; value: { DropStmt: DropStmt } }> =
               ? RemoveType.OBJECT_SEQUENCE
               : type === "TABLE"
               ? RemoveType.OBJECT_TABLE
-              : RemoveType.OBJECT_VIEW,
+              : type === "VIEW"
+              ? RemoveType.OBJECT_VIEW
+              : RemoveType.OBJECT_MATVIEW,
           behavior,
           codeComment,
           ...(missing_ok ? { missing_ok } : {}),

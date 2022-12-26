@@ -21,18 +21,21 @@ export default function (c: DropStmt): Block {
   if (
     c.removeType === RemoveType.OBJECT_TABLE ||
     c.removeType === RemoveType.OBJECT_SEQUENCE ||
-    c.removeType === RemoveType.OBJECT_VIEW
+    c.removeType === RemoveType.OBJECT_VIEW ||
+    c.removeType === RemoveType.OBJECT_MATVIEW
   ) {
     return [
       ...comment(c.codeComment),
       [
         keyword("DROP"),
         _,
-        c.removeType === RemoveType.OBJECT_TABLE
-          ? keyword("TABLE")
+        ...(c.removeType === RemoveType.OBJECT_TABLE
+          ? [keyword("TABLE")]
           : c.removeType === RemoveType.OBJECT_SEQUENCE
-          ? keyword("SEQUENCE")
-          : keyword("VIEW"),
+          ? [keyword("SEQUENCE")]
+          : c.removeType === RemoveType.OBJECT_VIEW
+          ? [keyword("VIEW")]
+          : [keyword("MATERIALIZED"), _, keyword("VIEW")]),
         _,
         ...(c.missing_ok ? [keyword("IF"), _, keyword("EXISTS"), _] : []),
         identifier(

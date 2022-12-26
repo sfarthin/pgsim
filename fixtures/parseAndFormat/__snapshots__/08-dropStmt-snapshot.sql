@@ -29,3 +29,5 @@ DROP TABLE yo CASCADE;
 DROP TABLE yo;
 
 DROP VIEW subscription_amount_rollups;
+
+DROP MATERIALIZED VIEW IF EXISTS account_data;
