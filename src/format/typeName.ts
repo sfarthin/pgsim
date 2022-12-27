@@ -1,15 +1,15 @@
 import { TypeName } from "~/types";
 import { defaultTypeMods } from "~/constants";
 
-import { keyword, _, Line, integerLiteral, symbol } from "./util";
+import { keyword, _, Line, integerLiteral, symbol, identifier } from "./util";
 
 function typeNameHelper(typeName: TypeName): Line {
-  const names = (typeName.names as any)
-    .map((s: any) => s.String.str)
-    .filter((s: any) => s !== "pg_catalog");
+  const names: string[] = typeName.names
+    .map((s) => s.String.str)
+    .filter((s) => s !== "pg_catalog");
 
-  if (names.length !== 1) {
-    throw new Error("Unexpected type count");
+  if (names.length > 1) {
+    return [identifier(names[0]), symbol("."), identifier(names[1])];
   }
 
   const referencesCatalog = typeName.names[0].String.str === "pg_catalog";
@@ -172,7 +172,7 @@ function typeNameHelper(typeName: TypeName): Line {
     case "xml":
       return [keyword(name)];
     default:
-      return [keyword(name)];
+      return [identifier(name)];
   }
 }
 

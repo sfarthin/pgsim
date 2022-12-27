@@ -99,6 +99,14 @@ create table foo (
     a some_custom_type
 );
 
+create table foo (
+    a "some_custom_type"
+);
+
+create table foo (
+    a "public"."some_custom_type"
+);
+
 -- we can parse the schema
 create table buckets.foo (
     a int

@@ -13,6 +13,7 @@ import {
   optional,
   constant,
   fromBufferToCodeBlock,
+  PERIOD,
 } from "./util";
 import { aConstInteger } from "./aConst";
 import { A_Const, TypeName, TypeNameArrayBounds } from "~/types";
@@ -41,7 +42,26 @@ const colTypeWithDoubleParam = keywordSet(
 
 const colTypeNoParam = keywordSet(typeOrAlias);
 
-const getNames = (col: string): TypeName["names"] => {
+const getNames = (
+  col: string,
+  namespace?: string | null
+): TypeName["names"] => {
+  if (namespace) {
+    // THis is likely an enum.
+    return [
+      {
+        String: {
+          str: namespace,
+        },
+      },
+      {
+        String: {
+          str: col,
+        },
+      },
+    ] as any;
+  }
+
   const base = includesReferenceCatalog.includes(col.toLowerCase() as any)
     ? [{ String: { str: "pg_catalog" } }]
     : [];
@@ -146,9 +166,17 @@ const typeNameWithNoParam: Rule<{
   value: TypeName;
   codeComment: string;
 }> = transform(
-  sequence([or([colTypeNoParam, identifier]), optional(typeNameArray)]),
-  (value, ctx) => {
-    const col = value[0];
+  sequence([
+    or([
+      colTypeNoParam,
+      sequence([optional(sequence([identifier, PERIOD])), identifier]),
+    ]),
+    optional(typeNameArray),
+  ]),
+  (v, ctx) => {
+    const col = typeof v[0] === "string" ? v[0] : v[0][1];
+    const namespace =
+      typeof v[0] === "string" || v[0][0] == null ? undefined : v[0][0][0];
     const typmods = defaultTypeMods[
       col.toLowerCase() as keyof typeof defaultTypeMods
     ]
@@ -169,11 +197,11 @@ const typeNameWithNoParam: Rule<{
       : null;
     return {
       value: {
-        names: getNames(value[0]),
+        names: getNames(col, namespace),
         typemod: -1,
         ...(typmods ? { typmods } : {}),
         location: ctx.pos,
-        ...value[1],
+        ...v[1],
       },
       codeComment: "",
     };

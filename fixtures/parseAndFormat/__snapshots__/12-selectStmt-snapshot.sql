@@ -30,7 +30,7 @@ SELECT foo FROM foo JOIN bar ON (foo.id = bar.id);
 -- one-off
 SELECT pg_catalog.set_config('search_path', '', FALSE);
 
-SELECT nextval('accounts_id_seq'::REGCLASS);
+SELECT nextval('accounts_id_seq'::regclass);
 
 -- Can wrap in typecast or parens
 SELECT 4::TEXT;
@@ -233,7 +233,7 @@ SELECT
 
 SELECT * FROM foo WHERE foo.t LIKE '%foo%';
 
-SELECT pg_catalog.date_part('year', '2016-12-31 13:30:15'::TIMESTAMP);
+SELECT pg_catalog.date_part('year', '2016-12-31 13:30:15'::timestamp);
 
 SELECT foo FROM foobar GROUP BY foo, bar, hoo ORDER BY foo, bar, joo;
 

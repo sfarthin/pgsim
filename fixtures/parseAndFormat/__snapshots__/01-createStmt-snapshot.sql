@@ -110,7 +110,11 @@ CREATE TABLE reference_group_examples (
 	FOREIGN KEY (b, c) REFERENCES other_table (c1, c2)
 );
 
-CREATE TABLE foo (a SOME_CUSTOM_TYPE);
+CREATE TABLE foo (a some_custom_type);
+
+CREATE TABLE foo (a some_custom_type);
+
+CREATE TABLE foo (a public.some_custom_type);
 
 -- we can parse the schema
 CREATE TABLE buckets.foo (a INTEGER);
