@@ -28,4 +28,10 @@ CREATE UNIQUE INDEX foo ON foo_bar USING hash (plaid_id, foobar);
 
 CREATE INDEX foo ON foo_bar USING gin (foo_id);
 
-CREATE UNIQUE INDEX dismissed_offers_user_service_offer_placement_sub_idx ON dismissed_offers (user_id, service_offer_id, placement, subscription_id);
+CREATE UNIQUE INDEX dismissed_offers_user_service_offer_placement_sub_idx
+	ON dismissed_offers (user_id, service_offer_id, placement, subscription_id);
+	
+
+CREATE UNIQUE INDEX dismissed_offers_user_id_service_offer_id_placement
+	ON dismissed_offers (user_id, service_offer_id, placement)
+	WHERE subscription_id IS NULL;

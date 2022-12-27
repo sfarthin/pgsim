@@ -1,4 +1,5 @@
 import { IndexStmt } from "~/types";
+import { rawValue } from "./rawExpr";
 import {
   sequence,
   transform,
@@ -21,6 +22,7 @@ import {
   zeroToMany,
   COMMA,
   EOS,
+  WHERE,
 } from "./util";
 
 // -- CREATE [ UNIQUE ] INDEX [ CONCURRENTLY ] [ name ] ON table [ USING method ]
@@ -66,11 +68,13 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
       __, // 21
       RPAREN,
       __,
+      optional(sequence([WHERE, __, rawValue])),
+      __,
       endOfStatement,
     ]),
     (v) => {
       return {
-        eos: v[24],
+        eos: v[26],
         value: {
           IndexStmt: {
             ...(v[8] ? { idxname: v[8] } : {}),
@@ -95,6 +99,7 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
               },
             })),
             ...(v[2] ? { unique: true } : {}),
+            ...(v[24] ? { whereClause: v[24][2].value } : {}),
             codeComment: combineComments(
               v[1],
               v[3],
@@ -110,7 +115,10 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
               ...v[20].map((i) => i[1]),
               v[21],
               v[23],
-              v[24].comment
+              v[24]?.[1],
+              v[24]?.[2]?.codeComment,
+              v[25],
+              v[26].comment
             ),
           },
         },

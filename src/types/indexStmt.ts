@@ -1,5 +1,6 @@
 import * as d from "decoders";
 import { rangeVarDecoder } from "./rangeVar";
+import { rawValueDecoder } from "./rawExpr";
 
 export type IndexElem = {
   name: string;
@@ -23,6 +24,7 @@ export const indexStmtDecoder = d.exact({
   ),
   indexParams: d.array(d.exact({ IndexElem: indexElemDecoder })),
   unique: d.optional(d.boolean),
+  whereClause: d.optional(rawValueDecoder),
   codeComment: d.optional(d.string),
 });
 

@@ -1,8 +1,21 @@
 import { IndexStmt } from "~/types";
-import { Block, join, comment, keyword, identifier, _, symbol } from "./util";
+import { rawValue } from "./rawExpr";
+import {
+  Block,
+  join,
+  comment,
+  keyword,
+  identifier,
+  _,
+  symbol,
+  addToFirstLine,
+  addToLastLine,
+  toSingleLineIfPossible,
+  indent,
+} from "./util";
 
 export default function (c: IndexStmt): Block {
-  return [
+  return toSingleLineIfPossible([
     ...comment(c.codeComment),
     // Lets fit this on one line.
     [
@@ -11,7 +24,8 @@ export default function (c: IndexStmt): Block {
       _,
       keyword("INDEX"),
       ...(c.idxname ? [_, identifier(c.idxname)] : []),
-      _,
+    ],
+    indent([
       keyword("ON"),
       _,
       identifier(c.relation.relname),
@@ -25,7 +39,15 @@ export default function (c: IndexStmt): Block {
         [symbol(","), _]
       ),
       symbol(")"),
-      symbol(";"),
-    ],
-  ];
+      ...(c.whereClause ? [] : [symbol(";")]),
+    ]),
+    ...indent(
+      c.whereClause
+        ? addToLastLine(
+            addToFirstLine([keyword("WHERE"), _], rawValue(c.whereClause)),
+            [symbol(";")]
+          )
+        : [[]]
+    ),
+  ]);
 }
