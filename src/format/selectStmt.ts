@@ -98,9 +98,10 @@ export function innerSelect(c: SelectStmt): Block {
               if ("RangeSubselect" in v) {
                 return [
                   ...comment(c.codeComments?.fromClause?.[i]),
-                  ...rangeSubselect(v.RangeSubselect).concat(commaSepatation),
+                  ...rangeSubselect(v.RangeSubselect).concat([commaSepatation]),
                 ];
               }
+
               return [];
             })
           )

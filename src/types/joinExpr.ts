@@ -17,7 +17,10 @@ export enum JoinType {
 
 export type JoinExpr = {
   jointype: JoinType;
-  larg: { RangeVar: RangeVar } | { RangeSubselect: RangeSubselect };
+  larg:
+    | { RangeVar: RangeVar }
+    | { RangeSubselect: RangeSubselect }
+    | { JoinExpr: JoinExpr };
   rarg: { RangeVar: RangeVar } | { RangeSubselect: RangeSubselect };
   quals: RawValue;
   // isNatural?: unknown;
@@ -27,9 +30,10 @@ export type JoinExpr = {
 
 export const joinExprDecoder: d.Decoder<JoinExpr> = d.exact({
   jointype: d.oneOf(Object.values(JoinType)) as d.Decoder<JoinType>,
-  larg: d.either(
+  larg: d.either3(
     d.exact({ RangeVar: rangeVarDecoder }),
-    d.exact({ RangeSubselect: rangeSubselectDecoder })
+    d.exact({ RangeSubselect: rangeSubselectDecoder }),
+    d.exact({ JoinExpr: d.lazy(() => joinExprDecoder) })
   ),
   rarg: d.either(
     d.exact({ RangeVar: rangeVarDecoder }),
