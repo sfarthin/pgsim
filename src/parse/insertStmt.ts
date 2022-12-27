@@ -26,6 +26,7 @@ import {
   optional,
   RETURNING,
   or,
+  maybeInParens,
 } from "./util";
 
 const resTarget = transform(identifier, (v, ctx) => {
@@ -191,11 +192,7 @@ export const insertStmtWithStmt: Rule<{
     __,
     RPAREN, // 10
     __,
-    LPAREN,
-    __,
-    select,
-    __,
-    RPAREN, // 16
+    maybeInParens(select), // 12
     __,
     optional(returningList),
     __,
@@ -203,16 +200,16 @@ export const insertStmtWithStmt: Rule<{
   ]),
   (v) => {
     return {
-      eos: v[20],
+      eos: v[16],
       value: {
         InsertStmt: {
           relation: v[4],
           cols: v[8].value,
           selectStmt: {
-            SelectStmt: v[14].value,
+            SelectStmt: v[12].value.value,
           },
           override: "OVERRIDING_NOT_SET",
-          ...(v[18] ? { returningList: v[18].value } : {}),
+          ...(v[14] ? { returningList: v[14].value } : {}),
           codeComment: combineComments(
             v[1],
             v[3],
@@ -221,12 +218,12 @@ export const insertStmtWithStmt: Rule<{
             v[8].codeComment,
             v[9],
             v[11],
+            v[12].topCodeComment,
+            v[12].value.value.codeComment,
+            v[12].bottomCodeComment,
             v[13],
-            v[14].value.codeComment,
             v[15],
-            v[17],
-            v[19],
-            v[20].comment
+            v[16].comment
           ),
         },
       },

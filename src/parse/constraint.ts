@@ -43,12 +43,13 @@ import {
   ForeignKeyConstraint,
   ConType,
 } from "~/types";
+import { rawValue } from "./rawExpr";
 
 export const defaultConstraint: Rule<{
   codeComment: string;
   value: DefaultConstraint;
 }> = transform(
-  sequence([DEFAULT, __, or([typeCast, funcCall, aConst])]),
+  sequence([DEFAULT, __, (ctx) => rawValue(ctx)]),
   (value, ctx) => {
     return {
       codeComment: combineComments(value[1], value[2].codeComment),

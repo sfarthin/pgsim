@@ -50,3 +50,5 @@ ALTER TABLE "foo"."fooTable"
     ADD COLUMN fooColumnList VARCHAR(255)[],
     ADD COLUMN barColumnList int[],
     ADD COLUMN barfooColumnList timestamptz[];
+
+ALTER TABLE foo ADD COLUMN "bar" VARCHAR(255)[] NOT NULL DEFAULT array['push','email']::VARCHAR(255)[];;

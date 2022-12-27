@@ -80,6 +80,8 @@ INSERT INTO foo (
 
 INSERT INTO foo (some_id, some_boolean) (SELECT id, FALSE FROM bar);
 
+INSERT INTO foo (some_id, some_boolean) (SELECT id, FALSE FROM bar);
+
 INSERT INTO foo (
 	some_id,
 	some_boolean

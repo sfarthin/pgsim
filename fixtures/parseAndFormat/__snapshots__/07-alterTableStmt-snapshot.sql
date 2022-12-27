@@ -101,3 +101,6 @@ ALTER TABLE foo."fooTable"
 	ADD foocolumnlist VARCHAR(255)[],
 	ADD barcolumnlist INTEGER[],
 	ADD barfoocolumnlist TIMESTAMPTZ[];
+
+ALTER TABLE foo
+	ADD bar VARCHAR(255)[] NOT NULL DEFAULT ARRAY['push', 'email']::VARCHAR(255)[];
