@@ -28,6 +28,7 @@ import {
   ON,
   DELETE,
   UPDATE,
+  keyword,
 } from "./util";
 // import { rawValue } from "./rawExpr";
 import { aConst } from "./aConst";
@@ -187,6 +188,8 @@ const foreignKeyConstraintExtended: Rule<{
     ),
     __,
     optional(referentialActions),
+    __,
+    optional(sequence([keyword("NOT" as any), __, keyword("VALID" as any)])),
   ]),
   (v, ctx) => {
     return {
@@ -204,13 +207,17 @@ const foreignKeyConstraintExtended: Rule<{
         v[12]?.[1],
         ...(v[12]?.[3]?.map((k) => combineComments(k[0], k[2])) ?? []),
         v[12]?.[4],
-        v[13]
+        v[13],
+        v[15],
+        v[16]?.[1]
       ),
       value: {
         contype: ConType.FOREIGN_KEY,
         location: ctx.pos,
         ...(v[0] ? { conname: v[0][2] } : {}),
-        initially_valid: true,
+        ...(v[16] == null
+          ? { initially_valid: true }
+          : { skip_validation: true }),
         fk_del_action: "a",
         fk_matchtype: "s",
         fk_upd_action: "a",

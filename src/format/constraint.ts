@@ -81,6 +81,10 @@ export function toConstraint(
         ];
       }
 
+      if (constraint.skip_validation) {
+        actions = [...actions, _, keyword("NOT"), _, keyword("VALID")];
+      }
+
       if (fromAlterStmt) {
         return [
           ...con,

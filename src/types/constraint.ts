@@ -44,14 +44,13 @@ export type PrimaryKeyConstraint = {
   codeComment?: string;
 };
 
-export const primaryKeyConstraintDecoder: d.Decoder<PrimaryKeyConstraint> = d.exact(
-  {
+export const primaryKeyConstraintDecoder: d.Decoder<PrimaryKeyConstraint> =
+  d.exact({
     contype: d.constant(ConType.PRIMARY_KEY),
     location: locationDecoder,
     conname: d.optional(d.string),
     keys: d.optional(d.array(stringDecoder)),
-  }
-);
+  });
 
 /**
  * Not Null
@@ -109,12 +108,13 @@ export type ForeignKeyConstraint = {
   fk_upd_action?: "r" | "c" | "n" | "a" | "d";
   fk_del_action?: "r" | "c" | "n" | "a" | "d";
   fk_matchtype?: string;
-  initially_valid: boolean;
   pktable: RangeVar;
   pk_attrs?: { String: String }[];
   conname?: string;
   fk_attrs?: { String: String }[];
   codeComment?: string;
+  skip_validation?: true; // <-- NOT VALID
+  initially_valid?: boolean; // <-- if NOT VALID is not specified, this is usually defined as true.
 };
 
 const actionDecoders = d.either5(
@@ -131,11 +131,12 @@ export const foreignKeyConstraint: d.Decoder<ForeignKeyConstraint> = d.exact({
   fk_upd_action: d.optional(actionDecoders),
   fk_del_action: d.optional(actionDecoders),
   fk_matchtype: d.string,
-  initially_valid: d.boolean,
+  initially_valid: d.optional(d.boolean),
   pktable: rangeVarDecoder,
   pk_attrs: d.optional(d.array(stringDecoder)),
   conname: d.optional(d.string),
   fk_attrs: d.optional(d.array(stringDecoder)),
+  skip_validation: d.optional(d.constant(true)),
 });
 
 /**

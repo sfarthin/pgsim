@@ -104,3 +104,6 @@ ALTER TABLE foo."fooTable"
 
 ALTER TABLE foo
 	ADD bar VARCHAR(255)[] NOT NULL DEFAULT ARRAY['push', 'email']::VARCHAR(255)[];
+
+ALTER TABLE ONLY transactions
+	ADD CONSTRAINT transaction_transaction_type_id FOREIGN KEY (transaction_type_id) REFERENCES transaction_types (id) ON UPDATE CASCADE ON DELETE SET NULL NOT VALID;
