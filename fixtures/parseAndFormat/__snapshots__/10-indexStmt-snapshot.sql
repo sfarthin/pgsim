@@ -35,3 +35,11 @@ CREATE UNIQUE INDEX dismissed_offers_user_service_offer_placement_sub_idx
 CREATE UNIQUE INDEX dismissed_offers_user_id_service_offer_id_placement
 	ON dismissed_offers (user_id, service_offer_id, placement)
 	WHERE subscription_id IS NULL;
+
+CREATE INDEX foo ON foobar (foo DESC);
+
+CREATE INDEX foo ON foobar (foo ASC);
+
+CREATE INDEX foo ON foobar (foo ASC NULLS FIRST);
+
+CREATE INDEX foo ON foobar (foo ASC NULLS LAST);

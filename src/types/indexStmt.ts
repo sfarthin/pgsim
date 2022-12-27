@@ -4,14 +4,21 @@ import { rawValueDecoder } from "./rawExpr";
 
 export type IndexElem = {
   name: string;
-  ordering: "SORTBY_DEFAULT";
-  nulls_ordering: "SORTBY_NULLS_DEFAULT";
+  ordering: "SORTBY_DEFAULT" | "SORTBY_DESC" | "SORTBY_ASC";
+  nulls_ordering:
+    | "SORTBY_NULLS_DEFAULT"
+    | "SORTBY_NULLS_FIRST"
+    | "SORTBY_NULLS_LAST";
 };
 
 const indexElemDecoder: d.Decoder<IndexElem> = d.exact({
   name: d.string,
-  ordering: d.constant("SORTBY_DEFAULT"),
-  nulls_ordering: d.constant("SORTBY_NULLS_DEFAULT"),
+  ordering: d.oneOf(["SORTBY_DEFAULT", "SORTBY_DESC", "SORTBY_ASC"] as const),
+  nulls_ordering: d.oneOf([
+    "SORTBY_NULLS_DEFAULT",
+    "SORTBY_NULLS_FIRST",
+    "SORTBY_NULLS_LAST",
+  ] as const),
 });
 
 export const indexStmtDecoder = d.exact({

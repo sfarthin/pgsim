@@ -1,5 +1,6 @@
 import { IndexStmt } from "~/types";
 import { rawValue } from "./rawExpr";
+import { indexElem } from "./indexElem";
 import {
   Block,
   join,
@@ -35,7 +36,7 @@ export default function (c: IndexStmt): Block {
       _,
       symbol("("),
       ...join(
-        c.indexParams.map((v) => [identifier(v.IndexElem.name)]),
+        c.indexParams.map((v) => indexElem(v.IndexElem)),
         [symbol(","), _]
       ),
       symbol(")"),

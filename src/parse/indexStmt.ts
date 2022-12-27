@@ -24,6 +24,7 @@ import {
   EOS,
   WHERE,
 } from "./util";
+import { indexElem } from "./indexElem";
 
 // -- CREATE [ UNIQUE ] INDEX [ CONCURRENTLY ] [ name ] ON table [ USING method ]
 // --     ( { column | ( expression ) } [ COLLATE collation ] [ opclass ] [ ASC | DESC ] [ NULLS { FIRST | LAST } ] [, ...] )
@@ -62,9 +63,9 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
       __,
       LPAREN,
       __,
-      identifier, // 18
+      indexElem, // 18
       __,
-      zeroToMany(sequence([COMMA, __, identifier])), // 20
+      zeroToMany(sequence([COMMA, __, indexElem])), // 20
       __, // 21
       RPAREN,
       __,
@@ -91,13 +92,7 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
                 : v[14]?.[2].value === "gin"
                 ? "gin"
                 : "btree",
-            indexParams: [v[18], ...v[20].map((i) => i[2])].map((j) => ({
-              IndexElem: {
-                name: j,
-                ordering: "SORTBY_DEFAULT",
-                nulls_ordering: "SORTBY_NULLS_DEFAULT",
-              },
-            })),
+            indexParams: [v[18].value, ...v[20].map((i) => i[2].value)],
             ...(v[2] ? { unique: true } : {}),
             ...(v[24] ? { whereClause: v[24][2].value } : {}),
             codeComment: combineComments(
@@ -111,8 +106,9 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
               v[14]?.[1],
               v[15],
               v[17],
+              v[18].codeComment,
               v[19],
-              ...v[20].map((i) => i[1]),
+              ...v[20].flatMap((i) => [i[1], i[2].codeComment]),
               v[21],
               v[23],
               v[24]?.[1],
