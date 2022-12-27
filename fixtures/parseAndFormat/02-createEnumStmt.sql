@@ -37,3 +37,6 @@ ENUM -- 8
 
     
 -- Bottom 2
+
+
+CREATE TYPE "public"."enum_feed_events_type" AS ENUM('subscription_charge', 'overdraft_fee', 'late_payment_fee', 'insufficient_funds_fee', 'interest_charged');

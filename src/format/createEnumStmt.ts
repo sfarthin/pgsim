@@ -18,7 +18,13 @@ export default function variableSetStmt(createEnumStmt: CreateEnumStmt): Block {
       _,
       keyword("TYPE"),
       _,
-      identifier(createEnumStmt.typeName[0].String.str),
+      ...(createEnumStmt.typeName[1]
+        ? [
+            identifier(createEnumStmt.typeName[0].String.str),
+            symbol("."),
+            identifier(createEnumStmt.typeName[1].String.str),
+          ]
+        : [identifier(createEnumStmt.typeName[0].String.str)]),
       _,
       keyword("AS"),
       _,

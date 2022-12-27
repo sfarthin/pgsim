@@ -16,6 +16,9 @@ import {
   combineComments,
   __,
   EOS,
+  tableIdentifier,
+  optional,
+  PERIOD,
 } from "./util";
 import { CreateEnumStmt } from "~/types";
 
@@ -55,7 +58,7 @@ export const createEnumStmt: Rule<{
     __,
     TYPE,
     __,
-    identifier,
+    sequence([optional(sequence([identifier, PERIOD])), identifier]),
     __, // 6
     AS,
     __,
@@ -69,7 +72,9 @@ export const createEnumStmt: Rule<{
     eos: v[12],
     value: {
       CreateEnumStmt: {
-        typeName: [{ String: { str: v[4] } }],
+        typeName: v[4][0]
+          ? [{ String: { str: v[4][0][0] } }, { String: { str: v[4][1] } }]
+          : [{ String: { str: v[4][1] } }],
         vals: v[10],
         codeComment: combineComments(
           v[1],
