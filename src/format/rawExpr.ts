@@ -26,7 +26,7 @@ function _rawValue(c: RawValue, includeParens?: boolean): Block {
   } else if ("A_Const" in c) {
     return [aConst(c.A_Const)];
   } else if ("FuncCall" in c) {
-    return [funcCall(c.FuncCall)];
+    return funcCall(c.FuncCall);
   } else if ("ColumnRef" in c) {
     return [columnRef(c.ColumnRef)];
   } else if ("RowExpr" in c) {

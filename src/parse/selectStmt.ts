@@ -35,21 +35,19 @@ import { rangeSubselect } from "./rangeSubselect";
 
 const groupBy = transform(
   sequence([
-    __,
     GROUP,
     __,
     BY,
     __,
     or([columnRef, aConstInteger]), // 5
     zeroToMany(sequence([__, COMMA, __, or([columnRef, aConst])])),
-    __,
   ]),
   (v) => ({
     value: [
-      "ColumnRef" in v[5].value
-        ? { ColumnRef: v[5].value.ColumnRef }
-        : { A_Const: v[5].value.A_Const },
-      ...v[6].map(([, , , e]) =>
+      "ColumnRef" in v[4].value
+        ? { ColumnRef: v[4].value.ColumnRef }
+        : { A_Const: v[4].value.A_Const },
+      ...v[5].map(([, , , e]) =>
         "ColumnRef" in e.value
           ? {
               ColumnRef: e.value.ColumnRef,
@@ -61,9 +59,8 @@ const groupBy = transform(
     ].flatMap((c) => (c ? [c] : [])),
     codeComments: {
       groupClause: [
-        combineComments(v[0], v[2], v[4]),
-        ...v[6].map((r) => combineComments(r[0], r[2])),
-        v[7],
+        combineComments(v[1], v[3]),
+        ...v[5].map((r) => combineComments(r[0], r[2])),
       ],
     },
   })
@@ -152,7 +149,7 @@ const target = transform(
   })
 );
 
-const selectDistinct = transform(
+const selectOrSelectDistinct = transform(
   sequence([SELECT, optional(sequence([__, DISTINCT]))]),
   (v, ctx) => {
     const hasDistinct = v[1];
@@ -180,23 +177,26 @@ export const select: Rule<{ value: SelectStmt; start: number }> = transform(
   sequence([
     optional((ctx) => withClause(ctx)),
     __,
-    selectDistinct,
+    selectOrSelectDistinct,
     __,
     target,
     zeroToMany(sequence([__, COMMA, __, target])), // 3
     __,
     optional(from), // 7
-    optional(groupBy),
-    optional(having),
-    optional(sortBy), // 10
+    __,
+    optional(groupBy), // 9
+    __,
+    optional(having), // 11
+    __,
+    optional(sortBy), // 13
   ]),
   (v) => {
     const withClause = v[0];
     const withDistinct = v[2].value;
     const from = v[7];
-    const groupBy = v[8];
-    const having = v[9];
-    const sortBy = v[10];
+    const groupBy = v[9];
+    const having = v[11];
+    const sortBy = v[13]; // where to put codecomment ?
 
     return {
       start: v[2].start,
@@ -224,11 +224,14 @@ export const select: Rule<{ value: SelectStmt; start: number }> = transform(
               v[2].codeComment,
               v[3],
               v[4].codeComment,
-              v[6]
+              v[6],
+              v[8],
+              v[10],
+              v[12]
             ),
             ...v[5].map((r) => combineComments(r[0], r[2], r[3].codeComment)),
           ],
-          whereClause: from?.codeComments?.whereClause,
+          whereClause: from?.codeComments.whereClause,
           groupClause: groupBy?.codeComments.groupClause,
           havingClause: having?.codeComment,
         },

@@ -17,9 +17,11 @@ import {
   FROM,
   PERIOD,
   DISTINCT,
+  ORDER,
 } from "./util";
 import { FuncCall } from "~/types";
 import { rawValue } from "./rawExpr";
+import { sortBy } from "./sortBy";
 
 const timePeriods = [
   "CENTURY", // The century	The number of centuries
@@ -138,16 +140,23 @@ const normalfuncCall: Rule<{
         })),
         (ctx) => rawValue(ctx),
       ])
-    ), // 4
-    zeroToMany(sequence([__, COMMA, __, (ctx) => rawValue(ctx)])), //5
+    ), // 5
+    zeroToMany(sequence([__, COMMA, __, (ctx) => rawValue(ctx)])), // 6
+    __,
+    optional(sortBy),
     __,
     RPAREN,
   ]),
   (v, ctx) => {
     const agg_star = v[5] && "isStar" in v[5];
-    const args = (v[5] && !("isStar" in v[5]) ? [v[5].value] : []).concat(
-      v[6].length > 0 ? v[6].map((o) => o[3].value) : []
-    );
+    const args =
+      v[5] && !("isStar" in v[5])
+        ? [v[5].value].concat(
+            v[6].length > 0 ? v[6].map((o) => o[3].value) : []
+          )
+        : [];
+    const sortBy = v[8];
+
     return {
       value: {
         FuncCall: {
@@ -155,6 +164,7 @@ const normalfuncCall: Rule<{
           ...(agg_star ? { agg_star: true } : args.length > 0 ? { args } : {}),
           // func_variadic?: boolean; // select concat(variadic array [1,2,3])
           ...(v[3] !== null ? { agg_distinct: true } : {}),
+          ...(sortBy != null ? { agg_order: sortBy } : {}),
           // over?: unknown;
           location: ctx.pos,
         },
@@ -165,7 +175,13 @@ const normalfuncCall: Rule<{
         v[4],
         v[5]?.codeComment,
         ...v[6].map((l) => combineComments(l[0], l[2], l[3].codeComment)),
-        v[7]
+        v[7],
+        ...(v[8]
+          ? v[8]?.flatMap((i) =>
+              i.SortBy.codeComment ? [i.SortBy.codeComment] : []
+            )
+          : []),
+        v[9]
       ),
     };
   }

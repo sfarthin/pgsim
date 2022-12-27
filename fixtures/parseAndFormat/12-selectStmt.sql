@@ -171,3 +171,5 @@ SELECT 'it''s great';
 SELECT '{ "message": "it''s great" }';
 
 SELECT 'asdasd' ILIKE '%d';
+
+SELECT array_agg(foo,bar ORDER BY enumsortorder, bar);

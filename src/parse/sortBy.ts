@@ -18,7 +18,6 @@ import { SortBy, SortByDir } from "../types/sortBy";
 
 export const sortBy: Rule<{ SortBy: SortBy }[]> = transform(
   sequence([
-    __,
     ORDER,
     __,
     BY,
@@ -36,22 +35,21 @@ export const sortBy: Rule<{ SortBy: SortBy }[]> = transform(
         optional(or([ASC, DESC])), // 5
       ])
     ),
-    __,
   ]),
   (v) => {
     const firstSort: SortBy = {
-      codeComment: combineComments(v[0], v[2], v[4], v[5].codeComment, v[6]),
+      codeComment: combineComments(v[1], v[3], v[4].codeComment, v[5]),
       location: -1,
-      sortby_dir: v[7]
-        ? v[7].value === "ASC"
+      sortby_dir: v[6]
+        ? v[6].value === "ASC"
           ? SortByDir.SORTBY_ASC
           : SortByDir.SORTBY_DESC
         : SortByDir.SORTBY_DEFAULT,
       sortby_nulls: "SORTBY_NULLS_DEFAULT",
-      node: v[5].value,
+      node: v[4].value,
     };
 
-    const restOfSorts: { SortBy: SortBy }[] = v[8].map((s) => ({
+    const restOfSorts: { SortBy: SortBy }[] = v[7].map((s) => ({
       SortBy: {
         codeComment: combineComments(s[0], s[2], s[3].codeComment, s[4]),
         location: -1,
@@ -64,13 +62,6 @@ export const sortBy: Rule<{ SortBy: SortBy }[]> = transform(
         node: s[3].value,
       },
     }));
-
-    if (restOfSorts.length) {
-      restOfSorts[restOfSorts.length - 1].SortBy.codeComment = combineComments(
-        restOfSorts[restOfSorts.length - 1].SortBy.codeComment,
-        v[9]
-      );
-    }
 
     return [{ SortBy: firstSort }, ...restOfSorts];
   }
