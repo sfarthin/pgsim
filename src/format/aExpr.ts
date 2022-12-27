@@ -100,6 +100,15 @@ export default function aExpr(c: AExpr, includeParens?: boolean): Block {
     } else {
       return [...condition, [keyword("LIKE"), _, ...rexpr]];
     }
+  } else if (c.kind === AExprKind.AEXPR_ILIKE) {
+    const condition = rawValue(c.lexpr);
+    const rexpr = aConst(c.rexpr.A_Const);
+
+    if (condition.length === 1) {
+      return [[...condition[0], _, keyword("ILIKE"), _, ...rexpr]];
+    } else {
+      return [...condition, [keyword("ILIKE"), _, ...rexpr]];
+    }
   }
 
   throw new Error(`Unexpected case`);

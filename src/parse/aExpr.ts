@@ -229,7 +229,7 @@ export const aExprIn = (ctx: Context) =>
 
 export const aExprLike = (ctx: Context) =>
   connectRawValue(
-    sequence([__, keyword("LIKE"), __, quotedString]),
+    sequence([__, or([keyword("LIKE"), keyword("ILIKE")]), __, quotedString]),
     (c1, v) => {
       const aConstString: A_Const_String = {
         val: { String: { str: v[3].value } },
@@ -240,11 +240,14 @@ export const aExprLike = (ctx: Context) =>
         codeComment: combineComments(c1.codeComment, v[0], v[2]),
         value: {
           A_Expr: {
-            kind: AExprKind.AEXPR_LIKE,
+            kind:
+              v[1].value === "LIKE"
+                ? AExprKind.AEXPR_LIKE
+                : AExprKind.AEXPR_ILIKE,
             name: [
               {
                 String: {
-                  str: "~~",
+                  str: v[1].value === "LIKE" ? "~~" : "~~*",
                 },
               },
             ],

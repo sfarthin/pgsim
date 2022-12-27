@@ -707,6 +707,7 @@ const keywordList = [
   "GROUP",
   "HAVING",
   "HOUR",
+  "ILIKE",
   "IF",
   "IN",
   "INTO",

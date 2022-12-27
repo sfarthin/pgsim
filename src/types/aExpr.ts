@@ -28,6 +28,7 @@ export enum AExprKind {
   AEXPR_OP = "AEXPR_OP", // normal operator
   AEXPR_IN = "AEXPR_IN", // IN - name must be "=" or "<>"
   AEXPR_LIKE = "AEXPR_LIKE",
+  AEXPR_ILIKE = "AEXPR_ILIKE",
 }
 
 export type AExpr =
@@ -51,6 +52,13 @@ export type AExpr =
       lexpr: RawValue;
       rexpr: { A_Const: A_Const_String };
       location: Location;
+    }
+  | {
+      kind: AExprKind.AEXPR_ILIKE;
+      name: [{ String: String }];
+      lexpr: RawValue;
+      rexpr: { A_Const: A_Const_String };
+      location: Location;
     };
 
 export const aExprDecoder: d.Decoder<AExpr> = d.dispatch("kind", {
@@ -70,6 +78,13 @@ export const aExprDecoder: d.Decoder<AExpr> = d.dispatch("kind", {
   }),
   [AExprKind.AEXPR_LIKE]: d.exact({
     kind: d.constant(AExprKind.AEXPR_LIKE),
+    name: d.tuple1(stringDecoder),
+    lexpr: (blob) => rawValueDecoder(blob),
+    rexpr: d.exact({ A_Const: aConstStringDecoder }),
+    location: locationDecoder,
+  }),
+  [AExprKind.AEXPR_ILIKE]: d.exact({
+    kind: d.constant(AExprKind.AEXPR_ILIKE),
     name: d.tuple1(stringDecoder),
     lexpr: (blob) => rawValueDecoder(blob),
     rexpr: d.exact({ A_Const: aConstStringDecoder }),

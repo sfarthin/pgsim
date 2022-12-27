@@ -274,3 +274,5 @@ SELECT ARRAY['foo', 1, foo];
 SELECT 'it''s great';
 
 SELECT '{ "message": "it''s great" }';
+
+SELECT 'asdasd' ILIKE '%d';
