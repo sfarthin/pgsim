@@ -107,3 +107,8 @@ ALTER TABLE foo
 
 ALTER TABLE ONLY transactions
 	ADD CONSTRAINT transaction_transaction_type_id FOREIGN KEY (transaction_type_id) REFERENCES transaction_types (id) ON UPDATE CASCADE ON DELETE SET NULL NOT VALID;
+
+ALTER TABLE internal_transactions
+	ADD CONSTRAINT internal_transactions_referral_earnings_type CHECK (
+		type <> 'foobar' OR foo IS NOT NULL
+	);

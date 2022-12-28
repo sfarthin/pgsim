@@ -6,7 +6,7 @@ import {
   AS,
   ENUM,
   LPAREN,
-  oneToMany,
+  zeroToMany,
   RPAREN,
   Rule,
   sequence,
@@ -16,7 +16,6 @@ import {
   combineComments,
   __,
   EOS,
-  tableIdentifier,
   optional,
   PERIOD,
 } from "./util";
@@ -27,7 +26,7 @@ const enumList = transform(
     LPAREN,
     __,
     quotedString, // 2
-    oneToMany(sequence([__, COMMA, __, quotedString])),
+    zeroToMany(sequence([__, COMMA, __, quotedString])),
     __,
     RPAREN,
   ]),

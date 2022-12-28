@@ -28,12 +28,10 @@ import {
   ON,
   DELETE,
   UPDATE,
+  CHECK,
   keyword,
+  maybeInParens,
 } from "./util";
-// import { rawValue } from "./rawExpr";
-import { aConst } from "./aConst";
-import { funcCall } from "./funcCall";
-import { typeCast } from "./typeCast";
 import {
   DefaultConstraint,
   // ReferenceConstraint,
@@ -43,6 +41,7 @@ import {
   NotNullConstraint,
   ForeignKeyConstraint,
   ConType,
+  CheckConstraint,
 } from "~/types";
 import { rawValue } from "./rawExpr";
 
@@ -398,7 +397,13 @@ const uniqueConstrant: Rule<{
     ),
   ]),
   (v, ctx) => ({
-    codeComment: "",
+    codeComment: combineComments(
+      v[1],
+      v[3],
+      ...(v[4]
+        ? [v[4][1], ...v[4][3].flatMap((i) => [i[0], i[2]]), v[4][4]]
+        : [])
+    ),
     value: {
       contype: ConType.UNIQUE,
       location: ctx.pos,
@@ -419,6 +424,34 @@ const uniqueConstrant: Rule<{
   })
 );
 
+const checkConstrant: Rule<{
+  codeComment: string;
+  value: CheckConstraint;
+}> = transform(
+  sequence([
+    sequence([CONSTRAINT, __, identifier]),
+    __,
+    CHECK,
+    __,
+    maybeInParens((blob) => rawValue(blob)),
+  ]),
+  (v, ctx) => ({
+    codeComment: combineComments(
+      v[1],
+      v[3],
+      v[4].topCodeComment,
+      v[4].bottomCodeComment
+    ),
+    value: {
+      contype: ConType.CHECK,
+      location: ctx.pos,
+      conname: v[0][2],
+      raw_expr: v[4].value.value,
+      initially_valid: true,
+    },
+  })
+);
+
 export const constraint = or([
   notNullConstraint,
   nullConstraint,
@@ -427,6 +460,7 @@ export const constraint = or([
   defaultConstraint,
   foreignKeyConstraintExtended,
   foreignKeyConstraint,
+  checkConstrant,
 ]);
 
 // ForeignKeyConstraint

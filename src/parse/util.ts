@@ -688,6 +688,7 @@ const keywordList = [
   // "CONSTRAINT",
   "COLUMN",
   "COMMIT",
+  "CHECK",
   "CREATE",
   "CYCLE",
   "CURRENT",
@@ -851,6 +852,7 @@ export const CONCURRENTLY = keyword("CONCURRENTLY");
 export const CONSTRAINT = keyword("CONSTRAINT" as any); // <-- exeption for Truebill
 export const COLUMN = keyword("COLUMN");
 export const COMMIT = keyword("COMMIT");
+export const CHECK = keyword("CHECK");
 export const CREATE = keyword("CREATE");
 export const CURRENT = keyword("CURRENT");
 export const CYCLE = keyword("CYCLE");

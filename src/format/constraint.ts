@@ -1,6 +1,16 @@
 import { Constraint, ConType } from "~/types";
 import { rawValue } from "./rawExpr";
-import { join, keyword, _, identifier, symbol, Line } from "./util";
+import {
+  join,
+  keyword,
+  _,
+  identifier,
+  symbol,
+  Line,
+  Block,
+  toSingleLineIfPossible,
+  indent,
+} from "./util";
 
 function referentialActionOption(v: "r" | "c" | "n" | "a" | "d") {
   switch (v) {
@@ -20,7 +30,7 @@ function referentialActionOption(v: "r" | "c" | "n" | "a" | "d") {
 export function toConstraint(
   constraint: Constraint,
   fromAlterStmt?: boolean
-): Line {
+): Block {
   const con =
     "conname" in constraint && constraint.conname
       ? [keyword("CONSTRAINT"), _, identifier(constraint.conname), _]
@@ -87,45 +97,59 @@ export function toConstraint(
 
       if (fromAlterStmt) {
         return [
-          ...con,
-          keyword("FOREIGN"),
-          _,
-          keyword("KEY"),
-          _,
-          ...(fkColumns.length ? [symbol("("), ...fkColumns, symbol(")")] : []),
-          _,
-          keyword("REFERENCES"),
-          _,
-          table,
-          ...(columns.length ? [_, symbol("("), ...columns, symbol(")")] : []),
-          ...actions,
+          [
+            ...con,
+            keyword("FOREIGN"),
+            _,
+            keyword("KEY"),
+            _,
+            ...(fkColumns.length
+              ? [symbol("("), ...fkColumns, symbol(")")]
+              : []),
+            _,
+            keyword("REFERENCES"),
+            _,
+            table,
+            ...(columns.length
+              ? [_, symbol("("), ...columns, symbol(")")]
+              : []),
+            ...actions,
+          ],
         ];
       } else {
         return [
-          ...con,
-          keyword("REFERENCES"),
-          _,
-          table,
-          ...(columns.length ? [_, symbol("("), ...columns, symbol(")")] : []),
-          ...actions,
+          [
+            ...con,
+            keyword("REFERENCES"),
+            _,
+            table,
+            ...(columns.length
+              ? [_, symbol("("), ...columns, symbol(")")]
+              : []),
+            ...actions,
+          ],
         ];
       }
 
     case ConType.PRIMARY_KEY:
-      return [...con, keyword("PRIMARY"), _, keyword("KEY"), ...keys];
+      return [[...con, keyword("PRIMARY"), _, keyword("KEY"), ...keys]];
     case ConType.DEFAULT:
       return [
-        ...con,
-        keyword("DEFAULT"),
-        _,
-        ...rawValue(constraint.raw_expr).flat(),
+        [...con, keyword("DEFAULT"), _],
+        ...rawValue(constraint.raw_expr),
       ];
     case ConType.NOT_NULL:
-      return [...con, keyword("NOT"), _, keyword("NULL")];
+      return [[...con, keyword("NOT"), _, keyword("NULL")]];
     case ConType.NULL:
-      return [...con, keyword("NULL")];
+      return [[...con, keyword("NULL")]];
     case ConType.UNIQUE:
-      return [...con, keyword("UNIQUE"), ...keys];
+      return [[...con, keyword("UNIQUE"), ...keys]];
+    case ConType.CHECK:
+      return [
+        [...con, keyword("CHECK"), _, symbol("(")],
+        ...indent(rawValue(constraint.raw_expr)),
+        [symbol(")")],
+      ];
     default:
       throw new Error(`Unhandled constraint type: ${constraint.contype}`);
   }
@@ -134,11 +158,12 @@ export function toConstraint(
 export default function (
   constraints: Constraint[],
   fromAlterStmt?: boolean
-): Line {
+): Block {
   if (constraints.length) {
     return constraints.reduce(
-      (acc, c) => [...acc, _, ...toConstraint(c, fromAlterStmt)],
-      [] as Line
+      (acc, c) =>
+        toSingleLineIfPossible([...acc, ...toConstraint(c, fromAlterStmt)]),
+      [] as Block
     );
   }
   return [];

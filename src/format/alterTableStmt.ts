@@ -7,102 +7,123 @@ import {
   _,
   comment,
   identifier,
-  Line,
   indent,
   symbol,
   Block,
+  addToLastLine,
+  addToFirstLine,
 } from "./util";
 import rangeVar from "./rangeVar";
 
-function alterTableCmd(c: AlterTableCmd): Line {
+function alterTableCmd(c: AlterTableCmd): Block {
   switch (c.subtype) {
     case AlterTableCmdSubType.AT_DropConstraint:
-      return [keyword("DROP"), _, keyword("CONSTRAINT"), _, identifier(c.name)];
+      return [
+        [keyword("DROP"), _, keyword("CONSTRAINT"), _, identifier(c.name)],
+      ];
     case AlterTableCmdSubType.AT_SetNotNull:
       return [
-        keyword("ALTER"),
-        _,
-        keyword("COLUMN"),
-        _,
-        identifier(c.name),
-        _,
-        keyword("SET"),
-        _,
-        keyword("NOT"),
-        _,
-        keyword("NULL"),
-      ];
-    case AlterTableCmdSubType.AT_AlterColumnType:
-      return [
-        keyword("ALTER"),
-        _,
-        keyword("COLUMN"),
-        _,
-        identifier(c.name),
-        _,
-        keyword("TYPE"),
-        _,
-        ...typeName(c.def.ColumnDef.typeName),
-      ];
-    case AlterTableCmdSubType.AT_DropColumn:
-      return [keyword("DROP"), _, identifier(c.name ?? "")];
-    case AlterTableCmdSubType.AT_DropNotNull:
-      return [
-        keyword("ALTER"),
-        _,
-        keyword("COLUMN"),
-        _,
-        identifier(c.name),
-        _,
-        keyword("DROP"),
-        _,
-        keyword("NOT"),
-        _,
-        keyword("NULL"),
-      ];
-    case AlterTableCmdSubType.AT_ColumnDefault:
-      if (c.def) {
-        return [
+        [
           keyword("ALTER"),
+          _,
+          keyword("COLUMN"),
           _,
           identifier(c.name),
           _,
           keyword("SET"),
           _,
-          keyword("DEFAULT"),
+          keyword("NOT"),
           _,
-          ...rawValue(c.def).flat(),
-        ];
-      } else {
-        return [
+          keyword("NULL"),
+        ],
+      ];
+    case AlterTableCmdSubType.AT_AlterColumnType:
+      return [
+        [
           keyword("ALTER"),
+          _,
+          keyword("COLUMN"),
+          _,
+          identifier(c.name),
+          _,
+          keyword("TYPE"),
+          _,
+          ...typeName(c.def.ColumnDef.typeName),
+        ],
+      ];
+    case AlterTableCmdSubType.AT_DropColumn:
+      return [[keyword("DROP"), _, identifier(c.name ?? "")]];
+    case AlterTableCmdSubType.AT_DropNotNull:
+      return [
+        [
+          keyword("ALTER"),
+          _,
+          keyword("COLUMN"),
           _,
           identifier(c.name),
           _,
           keyword("DROP"),
           _,
-          keyword("DEFAULT"),
+          keyword("NOT"),
+          _,
+          keyword("NULL"),
+        ],
+      ];
+    case AlterTableCmdSubType.AT_ColumnDefault:
+      if (c.def) {
+        return [
+          [
+            keyword("ALTER"),
+            _,
+            identifier(c.name),
+            _,
+            keyword("SET"),
+            _,
+            keyword("DEFAULT"),
+            _,
+            ...rawValue(c.def).flat(),
+          ],
+        ];
+      } else {
+        return [
+          [
+            keyword("ALTER"),
+            _,
+            identifier(c.name),
+            _,
+            keyword("DROP"),
+            _,
+            keyword("DEFAULT"),
+          ],
         ];
       }
 
     case AlterTableCmdSubType.AT_AddConstraint:
-      return [keyword("ADD"), ...toConstraints([c.def.Constraint], true)];
+      return addToFirstLine(
+        [keyword("ADD"), _],
+        toConstraints([c.def.Constraint], true)
+      );
     case AlterTableCmdSubType.AT_AddColumn: {
       if (!c.def.ColumnDef.colname) {
         throw new Error("Expected column name");
       }
 
-      const constraints =
-        c.def.ColumnDef.constraints?.map((c) => c.Constraint) ?? [];
+      const constraints = toConstraints(
+        c.def.ColumnDef.constraints?.map((c) => c.Constraint) ?? [],
+        true
+      );
 
-      return [
+      const cmd = [
         keyword("ADD"),
         _,
         identifier(c.def.ColumnDef.colname),
         _,
         ...typeName(c.def.ColumnDef.typeName),
-        ...toConstraints(constraints, true),
       ];
+
+      return constraints.length
+        ? addToFirstLine([...cmd, _], constraints)
+        : [cmd];
     }
   }
   throw new Error(`Cannot handle ${c.subtype}`);
@@ -126,10 +147,9 @@ export default function alterSeqStmt(c: AlterTableStmt): Block {
             (acc, e, i) => [
               ...acc,
               ...comment(e.AlterTableCmd.codeComment),
-              // addToLastLine(alterTableCmd(e.AlterTableCmd, f), symbol(";")),
-              c.cmds.length - 1 === i
-                ? alterTableCmd(e.AlterTableCmd).concat(symbol(";"))
-                : alterTableCmd(e.AlterTableCmd).concat(symbol(",")),
+              ...(c.cmds.length - 1 === i
+                ? addToLastLine(alterTableCmd(e.AlterTableCmd), [symbol(";")])
+                : addToLastLine(alterTableCmd(e.AlterTableCmd), [symbol(",")])),
             ],
             [] as Block
           )
