@@ -280,3 +280,5 @@ SELECT '{ "message": "it''s great" }';
 SELECT 'asdasd' ILIKE '%d';
 
 SELECT array_agg(foo, bar ORDER BY enumsortorder, bar);
+
+SELECT foo FROM bar WHERE 10 NOT IN (1, 2, 4);

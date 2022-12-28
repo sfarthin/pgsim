@@ -11,6 +11,8 @@ import {
   Rule,
   lookForWhiteSpaceOrComment,
   quotedString,
+  optional,
+  NOT,
 } from "./util";
 import { RawValue, AExprKind, AExpr, A_Const_String } from "~/types";
 import { rowExpr } from "./rowExpr";
@@ -199,14 +201,15 @@ export const aExprFactorial = (ctx: Context) =>
 
 export const aExprIn = (ctx: Context) =>
   connectRawValue(
-    sequence([__, keyword("in" as any), __, rowExpr]),
+    sequence([__, optional(NOT), __, keyword("in" as any), __, rowExpr]),
     (c1, v) => {
       return {
         codeComment: combineComments(
           c1.codeComment,
           v[0],
           v[2],
-          v[3].codeComment
+          v[4],
+          v[5].codeComment
         ),
         value: {
           A_Expr: {
@@ -214,13 +217,13 @@ export const aExprIn = (ctx: Context) =>
             name: [
               {
                 String: {
-                  str: "=",
+                  str: v[1]?.value ? "<>" : "=",
                 },
               },
             ],
             lexpr: c1.value as RawValue, // TODO ... this currently allows "(1 AND 1) = 'foo'". Fix in the future.
-            rexpr: { List: { items: v[3].value.RowExpr.args } },
-            location: v[1].start,
+            rexpr: { List: { items: v[5].value.RowExpr.args } },
+            location: v[1]?.start ?? v[3].start,
           },
         },
       };

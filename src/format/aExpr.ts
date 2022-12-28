@@ -79,14 +79,26 @@ export default function aExpr(c: AExpr, includeParens?: boolean): Block {
 
     if (condition.length === 1) {
       return [
-        [...condition[0], _, keyword("IN"), _, symbol("(")],
+        [
+          ...condition[0],
+          _,
+          ...(c.name[0].String.str === "<>" ? [keyword("NOT"), _] : []),
+          keyword("IN"),
+          _,
+          symbol("("),
+        ],
         ...indent(rexprWithCommas),
         [symbol(")")],
       ];
     } else {
       return [
         ...condition,
-        [keyword("IN"), _, symbol("(")],
+        [
+          ...(c.name[0].String.str === "<>" ? [keyword("NOT"), _] : []),
+          keyword("IN"),
+          _,
+          symbol("("),
+        ],
         ...indent(rexprWithCommas),
         [symbol(")")],
       ];
