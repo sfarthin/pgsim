@@ -50,6 +50,13 @@ function alterTableCmd(c: AlterTableCmd): Block {
           _,
           ...typeName(c.def.ColumnDef.typeName),
         ],
+
+        ...(c.def.ColumnDef.raw_default
+          ? addToFirstLine(
+              [keyword("USING"), _],
+              rawValue(c.def.ColumnDef.raw_default)
+            )
+          : []),
       ];
     case AlterTableCmdSubType.AT_DropColumn:
       return [[keyword("DROP"), _, identifier(c.name ?? "")]];

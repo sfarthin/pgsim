@@ -35,10 +35,12 @@ import {
   NULL,
   TYPE,
   CONSTRAINT,
+  USING,
 } from "./util";
 import { typeName } from "./typeName";
 import { constraint } from "./constraint";
 import { defaultConstraint } from "./constraint";
+import { rawValue } from "./rawExpr";
 
 const alterTableAddConstraint: Rule<AlterTableAddConstraint> = transform(
   sequence([ADD, __, constraint]),
@@ -246,6 +248,8 @@ const alterTableColumnType: Rule<AlterTableColumnType> = transform(
     TYPE,
     __,
     transform(typeName, (v, ctx) => ({ ...v, pos: ctx.pos })),
+    __,
+    optional(sequence([USING, __, (ctx) => rawValue(ctx)])),
   ]),
   (v) => {
     return {
@@ -254,11 +258,20 @@ const alterTableColumnType: Rule<AlterTableColumnType> = transform(
       def: {
         ColumnDef: {
           typeName: v[8].value,
+          ...(v[10] ? { raw_default: v[10][2].value } : {}),
           location: v[4].pos,
         },
       },
       behavior: "DROP_RESTRICT",
-      codeComment: combineComments(v[1], v[3], v[5], v[7]),
+      codeComment: combineComments(
+        v[1],
+        v[3],
+        v[5],
+        v[7],
+        v[9],
+        v[10]?.[1],
+        v[10]?.[2].codeComment
+      ),
     };
   }
 );

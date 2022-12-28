@@ -1,5 +1,5 @@
 import * as d from "decoders";
-import { ColumnDef, columnDefDecoder } from "./createStmt";
+import { ColumnDef, columnDefDecoder } from "./columnDef";
 import { Constraint, constraintDecoder } from "./constraint";
 import { rawValueDecoder } from "./rawExpr";
 import { RangeVar, rangeVarDecoder } from "./rangeVar";

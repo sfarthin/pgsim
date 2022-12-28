@@ -5,7 +5,7 @@ import { A_Const, aConstDecoder } from "./constant";
 import { TypeCast, typeCastDecoder } from "./typeCast";
 import { FuncCall, funcCallDecoder } from "./funcCall";
 import { ColumnRef, columnRefDecoder } from "./columnRef";
-import { ColumnDef, columnDefDecoder } from ".";
+import { ColumnDef, columnDefDecoder } from "./columnDef";
 import { BoolExpr, boolExprDecoder } from "./boolExpr";
 import { AExpr, aExprDecoder } from "./aExpr";
 // import { BooleanTest, booleanTestDecoder } from "./booleanTest";

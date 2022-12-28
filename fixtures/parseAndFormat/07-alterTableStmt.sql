@@ -66,3 +66,5 @@ ALTER TABLE internal_transactions
           type != 'foobar' OR
           foo IS NOT NULL
         );
+
+ALTER TABLE foo ALTER COLUMN bar TYPE some_enum USING source::some_enum AND 1 = 1 OR 4=4 AND 3=3;
