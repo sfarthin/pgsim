@@ -271,6 +271,8 @@ SELECT ARRAY(SELECT id FROM services WHERE slug = 'time-warner-cable');
 
 SELECT ARRAY['foo', 1, foo];
 
+SELECT ARRAY[];
+
 SELECT 'it''s great';
 
 SELECT '{ "message": "it''s great" }';

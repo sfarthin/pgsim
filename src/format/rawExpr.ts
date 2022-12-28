@@ -49,12 +49,12 @@ function _rawValue(c: RawValue, includeParens?: boolean): Block {
     return addToLastLine(
       addToFirstLine(
         [keyword("array"), symbol("[")],
-        c.A_ArrayExpr.elements.flatMap((r, i) =>
+        c.A_ArrayExpr.elements?.flatMap((r, i) =>
           addToLastLine(
             rawValue(r),
-            i !== c.A_ArrayExpr.elements.length - 1 ? [symbol(",")] : []
+            i !== (c.A_ArrayExpr.elements?.length ?? 0) - 1 ? [symbol(",")] : []
           )
-        )
+        ) ?? [[]]
       ),
       [symbol("]")]
     );
