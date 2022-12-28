@@ -282,3 +282,9 @@ SELECT 'asdasd' ILIKE '%d';
 SELECT array_agg(foo, bar ORDER BY enumsortorder, bar);
 
 SELECT foo FROM bar WHERE 10 NOT IN (1, 2, 4);
+
+SELECT foo IN (SELECT 1);
+
+SELECT NOT bar;
+
+SELECT NOT foo IN (SELECT 1);

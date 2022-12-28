@@ -12,9 +12,11 @@ import {
   or,
   keyword,
   maybeInParens,
+  optional,
+  NOT,
 } from "./util";
 import { select } from "./selectStmt";
-import { SubLink, SubLinkType } from "~/types";
+import { BoolOp, SubLink, SubLinkType } from "~/types";
 import { rawValue, rawValuePostfix } from "./rawExpr";
 
 export const subLinkExists: Rule<{
@@ -92,24 +94,35 @@ export const subLink = or([subLinkArray, subLinkExists, subLinkExpr]);
 
 export const subLinkConnection = (ctx: Context) =>
   rawValuePostfix(
-    sequence([__, IN, __, LPAREN, __, select, __, RPAREN]),
+    sequence([__, optional(NOT), __, IN, __, LPAREN, __, select, __, RPAREN]),
     (c1, v) => {
-      return {
-        value: {
-          SubLink: {
-            subLinkType: SubLinkType.ANY_SUBLINK,
-            testexpr: c1.value,
-            subselect: { SelectStmt: v[5].value },
-            location: v[1].start,
-          },
+      const sublink = {
+        SubLink: {
+          subLinkType: SubLinkType.ANY_SUBLINK,
+          testexpr: c1.value,
+          subselect: { SelectStmt: v[7].value },
+          location: v[1]?.start ?? v[3].start,
         },
+      } as const;
+
+      return {
+        value: v[1]
+          ? {
+              BoolExpr: {
+                boolop: BoolOp.NOT_EXPR,
+                args: [sublink],
+                location: v[1].start,
+              },
+            }
+          : sublink,
         codeComment: combineComments(
           c1.codeComment,
           v[0],
           v[2],
           v[4],
-          v[5].value.codeComment,
-          v[6]
+          v[6],
+          v[7].value.codeComment,
+          v[8]
         ),
       };
     }
