@@ -26,17 +26,36 @@ const groupClauseDecoder: d.Decoder<GroupClause> = d.array(
   })
 );
 
+type FromClause = (
+  | { RangeVar: RangeVar }
+  | { JoinExpr: JoinExpr }
+  | { RangeSubselect: RangeSubselect }
+)[];
+
+export const fromClause: d.Decoder<FromClause> = d.array(
+  d.either3(
+    d.exact({
+      RangeVar: rangeVarDecoder,
+      codeComment: d.optional(d.string),
+    }),
+    d.exact({
+      JoinExpr: joinExprDecoder,
+      codeComment: d.optional(d.string),
+    }),
+    d.exact({
+      RangeSubselect: rangeSubselectDecoder,
+      codeComment: d.optional(d.string),
+    })
+  )
+);
+
 export type SelectStmt = {
   op: "SETOP_NONE";
   limitOption: "LIMIT_OPTION_DEFAULT";
   targetList: {
     ResTarget?: ResTarget;
   }[];
-  fromClause?: (
-    | { RangeVar: RangeVar }
-    | { JoinExpr: JoinExpr }
-    | { RangeSubselect: RangeSubselect }
-  )[];
+  fromClause?: FromClause;
   whereClause?: RawValue;
   groupClause?: GroupClause;
   withClause?: {
@@ -90,24 +109,7 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
       codeComment: d.optional(d.string),
     })
   ),
-  fromClause: d.optional(
-    d.array(
-      d.either3(
-        d.exact({
-          RangeVar: rangeVarDecoder,
-          codeComment: d.optional(d.string),
-        }),
-        d.exact({
-          JoinExpr: joinExprDecoder,
-          codeComment: d.optional(d.string),
-        }),
-        d.exact({
-          RangeSubselect: rangeSubselectDecoder,
-          codeComment: d.optional(d.string),
-        })
-      )
-    )
-  ),
+  fromClause: d.optional(fromClause),
   whereClause: d.optional((blob) => rawValueDecoder(blob)),
   groupClause: d.optional(groupClauseDecoder),
   // intoClause: d.fail,

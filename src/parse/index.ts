@@ -72,6 +72,7 @@ export * from "./explainStmt";
 export * from "./fetchStmt";
 export * from "./funcCall";
 export * from "./grantStmt";
+export * from "./indexElem";
 export * from "./indexStmt";
 export * from "./insertStmt";
 export * from "./joinExpr";

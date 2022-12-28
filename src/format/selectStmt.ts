@@ -1,5 +1,5 @@
 import sortBy from "./sortBy";
-import { CommonTableExpr, SelectStmt } from "~/types";
+import { CommonTableExpr, FromClause, SelectStmt } from "~/types";
 import { rawValue } from "./rawExpr";
 import rangeVar from "./rangeVar";
 import joinExpr from "./joinExpr";
@@ -57,6 +57,33 @@ function commonTableExpr(c: CommonTableExpr): Block {
   ];
 }
 
+export function fromClause(c: FromClause[], codeComments: string[]): Block {
+  return c.flatMap((v, i) => {
+    const commaSepatation = i === (c.length ?? 0) - 1 ? [] : [symbol(",")];
+
+    if ("RangeVar" in v) {
+      return [
+        ...comment(codeComments[i]),
+        rangeVar(v.RangeVar).concat(commaSepatation),
+      ];
+    }
+    if ("JoinExpr" in v) {
+      return [
+        ...comment(codeComments[i]),
+        ...joinExpr(v.JoinExpr).concat(commaSepatation),
+      ];
+    }
+    if ("RangeSubselect" in v) {
+      return [
+        ...comment(codeComments[i]),
+        ...rangeSubselect(v.RangeSubselect).concat([commaSepatation]),
+      ];
+    }
+
+    return [];
+  });
+}
+
 export function innerSelect(c: SelectStmt): Block {
   const withClause: Block = c.withClause
     ? addToFirstLine(
@@ -74,40 +101,17 @@ export function innerSelect(c: SelectStmt): Block {
 
   const select = toTargetList(c);
 
-  const from = c.fromClause
-    ? [
-        [keyword("FROM")],
-        ...indent(
-          toSingleLineIfPossible(
-            c.fromClause.flatMap((v, i) => {
-              const commaSepatation =
-                i === (c.fromClause?.length ?? 0) - 1 ? [] : [symbol(",")];
-
-              if ("RangeVar" in v) {
-                return [
-                  ...comment(c.codeComments?.fromClause?.[i]),
-                  rangeVar(v.RangeVar).concat(commaSepatation),
-                ];
-              }
-              if ("JoinExpr" in v) {
-                return [
-                  ...comment(c.codeComments?.fromClause?.[i]),
-                  ...joinExpr(v.JoinExpr).concat(commaSepatation),
-                ];
-              }
-              if ("RangeSubselect" in v) {
-                return [
-                  ...comment(c.codeComments?.fromClause?.[i]),
-                  ...rangeSubselect(v.RangeSubselect).concat([commaSepatation]),
-                ];
-              }
-
-              return [];
-            })
-          )
-        ),
-      ]
-    : [];
+  const from =
+    c.fromClause && c.codeComments?.fromClause
+      ? [
+          [keyword("FROM")],
+          ...indent(
+            toSingleLineIfPossible(
+              fromClause(c.fromClause, c.codeComments.fromClause)
+            )
+          ),
+        ]
+      : [];
 
   const where = c.whereClause
     ? [

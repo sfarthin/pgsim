@@ -6,8 +6,8 @@ import { RangeSubselect, rangeSubselectDecoder } from "./RangeSubselect";
 export type FromClause =
   | { RangeVar: RangeVar }
   | { JoinExpr: JoinExpr }
-  | { RangeSubselect: RangeSubselect }
-  | { RangeFunction?: unknown };
+  | { RangeSubselect: RangeSubselect };
+// | { RangeFunction?: unknown };
 
 export const fromClauseDecoder: d.Decoder<FromClause> = d.either3(
   d.exact({ JoinExpr: joinExprDecoder }),

@@ -70,6 +70,7 @@ export * from "./format";
 export * from "./funcCall";
 export * from "./grantStmt";
 export * from "./indent";
+export * from "./indexElem";
 export * from "./indexStmt";
 export * from "./insertStmt";
 export * from "./joinExpr";

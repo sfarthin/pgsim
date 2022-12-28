@@ -25,7 +25,7 @@ import {
   identifierIncludingKeyword,
 } from "./util";
 import { rawValue } from "./rawExpr";
-import { SelectStmt } from "~/types";
+import { FromClause, SelectStmt } from "~/types";
 import { sortBy } from "./sortBy";
 import { rangeVar } from "./rangeVar";
 import { joinExpr } from "./joinExpr";
@@ -66,7 +66,7 @@ const groupBy = transform(
   })
 );
 
-const where = transform(
+export const where = transform(
   // 4
   sequence([
     WHERE,
@@ -89,21 +89,24 @@ const where = transform(
   })
 );
 
-const fromClause = transform(
-  sequence([
-    or([joinExpr, rangeVar, rangeSubselect]),
-    zeroToMany(sequence([COMMA, __, or([joinExpr, rangeVar, rangeSubselect])])),
-  ]),
-  (v) => {
-    return {
-      value: [v[0].value, ...v[1].map((n) => n[2].value)],
-      codeComments: [
-        v[0].codeComment,
-        ...v[1].flatMap((n) => [n[1], n[2].codeComment]),
-      ],
-    };
-  }
-);
+export const fromClause: Rule<{ value: FromClause[]; codeComments: string[] }> =
+  transform(
+    sequence([
+      or([joinExpr, rangeVar, rangeSubselect]),
+      zeroToMany(
+        sequence([COMMA, __, or([joinExpr, rangeVar, rangeSubselect])])
+      ),
+    ]),
+    (v) => {
+      return {
+        value: [v[0].value, ...v[1].map((n) => n[2].value)],
+        codeComments: [
+          v[0].codeComment,
+          ...v[1].flatMap((n) => [n[1], n[2].codeComment]),
+        ],
+      };
+    }
+  );
 
 const from = transform(
   sequence([FROM, __, fromClause, __, optional(where)]),
