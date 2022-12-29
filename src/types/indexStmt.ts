@@ -13,6 +13,7 @@ export const indexStmtDecoder = d.exact({
   ),
   indexParams: d.array(d.exact({ IndexElem: indexElemDecoder })),
   unique: d.optional(d.boolean),
+  if_not_exists: d.optional(d.constant(true)),
   whereClause: d.optional(rawValueDecoder),
   codeComment: d.optional(d.string),
   concurrent: d.optional(d.constant(true)),

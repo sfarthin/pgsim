@@ -23,6 +23,9 @@ import {
   COMMA,
   EOS,
   WHERE,
+  IF,
+  NOT,
+  EXISTS,
 } from "./util";
 import { indexElem } from "./indexElem";
 
@@ -43,59 +46,68 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
       __,
       optional(CONCURRENTLY),
       __,
+      optional(sequence([IF, __, NOT, __, EXISTS])), // 8
+      __,
       optional(identifier),
-      __, // 9
-      ON,
-      __,
-      transform(identifier, (value, ctx) => ({ value, pos: ctx.pos })),
-      __,
-      optional(
-        sequence([
-          USING,
-          __,
-          or([
-            keyword("hash" as any),
-            keyword("btree" as any),
-            keyword("gin" as any),
-          ]),
-        ])
-      ), // 14
-      __,
-      LPAREN,
-      __,
-      indexElem, // 18
-      __,
-      zeroToMany(sequence([COMMA, __, indexElem])), // 20
-      __, // 21
-      RPAREN,
-      __,
-      optional(sequence([WHERE, __, rawValue])),
-      __,
+      __, // 11
+      sequence([
+        ON,
+        __,
+        transform(identifier, (value, ctx) => ({ value, pos: ctx.pos })),
+        __,
+        optional(
+          sequence([
+            USING,
+            __,
+            or([
+              keyword("hash" as any),
+              keyword("btree" as any),
+              keyword("gin" as any),
+            ]),
+          ])
+        ), // 4
+        __,
+        LPAREN,
+        __,
+        indexElem, // 8
+        __,
+        zeroToMany(sequence([COMMA, __, indexElem])), // 10
+        __, // 11
+        RPAREN,
+        __,
+        optional(sequence([WHERE, __, rawValue])),
+        __,
+      ]),
       endOfStatement,
     ]),
     (v) => {
+      const postfix = v[12];
+
       return {
-        eos: v[26],
+        eos: v[13],
         value: {
           IndexStmt: {
             ...(v[6] ? { concurrent: true } : {}),
-            ...(v[8] ? { idxname: v[8] } : {}),
+            ...(v[10] ? { idxname: v[10] } : {}),
+            ...(v[8] ? { if_not_exists: true } : {}),
             relation: {
-              relname: v[12].value,
+              relname: postfix[2].value,
               inh: true,
               relpersistence: "p",
-              location: v[12].pos,
+              location: postfix[2].pos,
             },
-            ...(v[14] ? { accessMethod: v[14][2] } : {}),
             accessMethod:
-              v[14]?.[2].value === "hash"
+              postfix[4]?.[2].value === "hash"
                 ? "hash"
-                : v[14]?.[2].value === "gin"
+                : postfix[4]?.[2].value === "gin"
                 ? "gin"
                 : "btree",
-            indexParams: [v[18].value, ...v[20].map((i) => i[2].value)],
+            indexParams: [
+              postfix[8].value,
+              ...postfix[10].map((i) => i[2].value),
+            ],
             ...(v[2] ? { unique: true } : {}),
-            ...(v[24] ? { whereClause: v[24][2].value } : {}),
+            ...(postfix[14] ? { whereClause: postfix[14][2].value } : {}),
             codeComment: combineComments(
               v[1],
               v[3],
@@ -103,19 +115,22 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
               v[7],
               v[9],
               v[11],
-              v[13],
-              v[14]?.[1],
-              v[15],
-              v[17],
-              v[18].codeComment,
-              v[19],
-              ...v[20].flatMap((i) => [i[1], i[2].codeComment]),
-              v[21],
-              v[23],
-              v[24]?.[1],
-              v[24]?.[2]?.codeComment,
-              v[25],
-              v[26].comment
+
+              postfix[1],
+              postfix[3],
+              postfix[4]?.[1],
+              postfix[5],
+              postfix[7],
+              postfix[8].codeComment,
+              postfix[9],
+              ...postfix[10].flatMap((i) => [i[1], i[2].codeComment]),
+              postfix[11],
+              postfix[13],
+              postfix[14]?.[1],
+              postfix[14]?.[2].codeComment,
+              postfix[15],
+
+              v[13].comment
             ),
           },
         },

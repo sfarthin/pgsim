@@ -32,3 +32,5 @@ CREATE INDEX foo ON foobar (foo ASC NULLS LAST, bar ASC NULLS LAST, zazz DESC);
 CREATE INDEX CONCURRENTLY foo_idx ON foo (bar);
 
 CREATE INDEX foobar ON app_installs((data->>'ipadsasdoiasodnioiasdionasniodnioasnio'));
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS foobar ON transactions (one, two);

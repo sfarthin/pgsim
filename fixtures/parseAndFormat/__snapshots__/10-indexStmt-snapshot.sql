@@ -63,3 +63,5 @@ CREATE INDEX foobar
 	ON app_installs (
 		(data->>'ipadsasdoiasodnioiasdionasniodnioasnio')
 	);
+
+CREATE INDEX CONCURRENTLY IF NOT EXISTS foobar ON transactions (one, two);

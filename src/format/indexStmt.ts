@@ -27,6 +27,9 @@ export default function (c: IndexStmt): Block {
           _,
           keyword("INDEX"),
           ...(c.concurrent ? [_, keyword("CONCURRENTLY")] : []),
+          ...(c.if_not_exists
+            ? [_, keyword("IF"), _, keyword("NOT"), _, keyword("EXISTS")]
+            : []),
           ...(c.idxname ? [_, identifier(c.idxname)] : []),
         ],
         indent([
