@@ -28,3 +28,7 @@ CREATE INDEX foo ON foobar (foo ASC);
 
 CREATE INDEX foo ON foobar (foo ASC NULLS FIRST);
 CREATE INDEX foo ON foobar (foo ASC NULLS LAST);
+
+CREATE INDEX CONCURRENTLY foo_idx ON foo (bar);
+
+-- CREATE INDEX foobar ON app_installs((data->>'ip'));

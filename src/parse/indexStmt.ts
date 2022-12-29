@@ -78,6 +78,7 @@ export const indexStmt: Rule<{ eos: EOS; value: { IndexStmt: IndexStmt } }> =
         eos: v[26],
         value: {
           IndexStmt: {
+            ...(v[6] ? { concurrent: true } : {}),
             ...(v[8] ? { idxname: v[8] } : {}),
             relation: {
               relname: v[12].value,

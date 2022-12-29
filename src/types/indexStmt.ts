@@ -33,6 +33,7 @@ export const indexStmtDecoder = d.exact({
   unique: d.optional(d.boolean),
   whereClause: d.optional(rawValueDecoder),
   codeComment: d.optional(d.string),
+  concurrent: d.optional(d.constant(true)),
 });
 
 export type IndexStmt = d.DecoderType<typeof indexStmtDecoder>;
