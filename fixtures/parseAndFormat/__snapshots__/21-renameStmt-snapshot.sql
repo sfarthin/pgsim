@@ -11,3 +11,5 @@ ALTER TABLE foo RENAME COLUMN 'old_name' TO 'new_name';
 -- 9
 -- 10
 ALTER TABLE foo RENAME COLUMN 'old_name' TO 'new_name';
+
+ALTER TABLE foo RENAME TO 'bar';
