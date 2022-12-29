@@ -23,6 +23,7 @@ import {
   aExprFactorial,
   aExprIn,
   aExprLike,
+  aExprJsonAccess,
 } from "./aExpr";
 import { rowExpr } from "./rowExpr";
 import { subLinkConnection, subLink } from "./subLink";
@@ -66,6 +67,7 @@ export const rawValue: Rule<{
         boolConnection,
         aExprFactorial,
         aExprIn,
+        aExprJsonAccess,
         aExprLike,
         aExprDoubleParams,
       ])

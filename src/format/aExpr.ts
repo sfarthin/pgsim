@@ -41,6 +41,7 @@ export default function aExpr(c: AExpr, includeParens?: boolean): Block {
         : rawValue(c.rexpr)
       : null;
     const hasTwoParams = firstCondition && secondCondition;
+    const isJsonAccess = ["->>", "->"].includes(c.name[0].String.str);
 
     if (
       (!firstCondition || firstCondition.length === 1) &&
@@ -51,9 +52,9 @@ export default function aExpr(c: AExpr, includeParens?: boolean): Block {
         [
           [
             ...(firstCondition ? firstCondition[0] : []),
-            ...(hasTwoParams ? [_] : []),
+            ...(hasTwoParams && !isJsonAccess ? [_] : []),
             symbol(c.name[0].String.str),
-            ...(secondCondition ? [_] : []),
+            ...(secondCondition && !isJsonAccess ? [_] : []),
             ...(secondCondition ? secondCondition[0] : []),
           ],
         ],

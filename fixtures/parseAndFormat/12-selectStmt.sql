@@ -182,3 +182,7 @@ SELECT foo in (SELECT 1);
 SELECT not bar;
 
 SELECT foo NOT in (SELECT 1);
+
+select (select 1)->>'ip' from foo;
+
+SELECT foo->1 from bar;

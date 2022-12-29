@@ -17,6 +17,7 @@ import {
 import { RawValue, AExprKind, AExpr, A_Const_String } from "~/types";
 import { rowExpr } from "./rowExpr";
 import { adjustPrecedence } from "./rawValuePrecendence";
+import { aConst } from "./aConst";
 
 // * / %	left	multiplication, division, modulo
 // + -	left	addition, subtraction
@@ -87,6 +88,8 @@ const operatorsWithOneParams = or([
   symbol("-"),
 ]);
 
+const jsonAccessOperator = or([symbol("->>"), symbol("->")]);
+
 export const aExprSingleParm: Rule<{
   codeComment: string;
   value: RawValue;
@@ -141,6 +144,31 @@ export const aExprSingleParm: Rule<{
     };
   }
 );
+
+export const aExprJsonAccess = (ctx: Context) =>
+  connectRawValue(
+    sequence([__, jsonAccessOperator, optional(__), aConst]),
+    (c1, v) => {
+      return {
+        codeComment: combineComments(v[0], v[2], v[3].codeComment),
+        value: {
+          A_Expr: {
+            kind: AExprKind.AEXPR_OP,
+            name: [
+              {
+                String: {
+                  str: v[1].value,
+                },
+              },
+            ],
+            lexpr: c1.value,
+            rexpr: v[3].value,
+            location: v[1].start,
+          },
+        },
+      };
+    }
+  )(ctx);
 
 export const aExprDoubleParams = (ctx: Context) =>
   connectRawValue(
