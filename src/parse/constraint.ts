@@ -434,20 +434,25 @@ const checkConstrant: Rule<{
     CHECK,
     __,
     maybeInParens((blob) => rawValue(blob)),
+    __,
+    optional(sequence([NOT, __, keyword("VALID" as any)])),
   ]),
   (v, ctx) => ({
     codeComment: combineComments(
+      v[0]?.[1],
       v[1],
       v[3],
       v[4].topCodeComment,
-      v[4].bottomCodeComment
+      v[4].bottomCodeComment,
+      v[5],
+      v[6]?.[1]
     ),
     value: {
       contype: ConType.CHECK,
       location: ctx.pos,
       conname: v[0][2],
       raw_expr: v[4].value.value,
-      initially_valid: true,
+      ...(v[6] ? { skip_validation: true } : { initially_valid: true }),
     },
   })
 );

@@ -148,7 +148,12 @@ export function toConstraint(
       return [
         [...con, keyword("CHECK"), _, symbol("(")],
         ...indent(rawValue(constraint.raw_expr)),
-        [symbol(")")],
+        [
+          symbol(")"),
+          ...(constraint.skip_validation
+            ? [_, keyword("NOT"), _, keyword("VALID")]
+            : []),
+        ],
       ];
     default:
       throw new Error(`Unhandled constraint type: ${constraint.contype}`);
