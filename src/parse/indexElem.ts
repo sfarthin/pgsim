@@ -1,4 +1,5 @@
 import { IndexElem } from "~/types";
+import { rawValue } from "./rawExpr";
 import {
   sequence,
   transform,
@@ -9,6 +10,7 @@ import {
   combineComments,
   or,
   keyword,
+  inParens,
 } from "./util";
 
 export const indexElem: Rule<{
@@ -16,7 +18,7 @@ export const indexElem: Rule<{
   codeComment: string;
 }> = transform(
   sequence([
-    identifier,
+    or([identifier, inParens((blob) => rawValue(blob))]),
     __,
     optional(or([keyword("ASC"), keyword("DESC")])),
     __,
@@ -32,7 +34,11 @@ export const indexElem: Rule<{
     return {
       value: {
         IndexElem: {
-          name: v[0],
+          ...(typeof v[0] === "string"
+            ? { name: v[0] }
+            : {
+                expr: v[0].value.value,
+              }),
           ordering:
             v[2]?.value === "ASC"
               ? "SORTBY_ASC"
@@ -47,7 +53,18 @@ export const indexElem: Rule<{
               : "SORTBY_NULLS_DEFAULT",
         },
       },
-      codeComment: combineComments(v[1], v[3], v[4]?.[1]),
+      codeComment: combineComments(
+        ...(typeof v[0] !== "string"
+          ? [
+              v[0].topCodeComment,
+              v[0].value.codeComment,
+              v[0].bottomCodeComment,
+            ]
+          : []),
+        v[1],
+        v[3],
+        v[4]?.[1]
+      ),
     };
   }
 );

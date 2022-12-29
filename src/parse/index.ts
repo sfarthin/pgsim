@@ -70,6 +70,7 @@ export * from "./executeStmt";
 export * from "./expectedReducer";
 export * from "./explainStmt";
 export * from "./fetchStmt";
+export * from "./fromClause";
 export * from "./funcCall";
 export * from "./grantStmt";
 export * from "./indexElem";

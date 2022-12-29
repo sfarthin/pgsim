@@ -161,6 +161,10 @@ export function indent(t: Token): Token;
 export function indent(t: Block): Block;
 export function indent(t: Line): Line;
 export function indent(t: any): any {
+  if (Array.isArray(t) && t.length === 0) {
+    return t;
+  }
+
   // Block
   if (Array.isArray(t) && Array.isArray(t[0])) {
     return (t as Block).map((r) => [{ type: "tab" }, ...r]);

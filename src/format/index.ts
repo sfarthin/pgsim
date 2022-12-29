@@ -67,6 +67,7 @@ export * from "./executeStmt";
 export * from "./explainStmt";
 export * from "./fetchStmt";
 export * from "./format";
+export * from "./fromClause";
 export * from "./funcCall";
 export * from "./grantStmt";
 export * from "./indent";

@@ -1010,6 +1010,20 @@ export const identifier: Rule<string> = (ctx: Context) => {
   return result;
 };
 
+export function inParens<T>(rule: Rule<T>): Rule<{
+  value: T;
+  topCodeComment: string;
+  bottomCodeComment: string;
+  hasParens: boolean;
+}> {
+  return transform(sequence([LPAREN, __, rule, __, RPAREN]), (v) => ({
+    topCodeComment: v[1],
+    value: v[2],
+    bottomCodeComment: v[3],
+    hasParens: true,
+  }));
+}
+
 export function maybeInParens<T>(rule: Rule<T>): Rule<{
   value: T;
   topCodeComment: string;
