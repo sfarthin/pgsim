@@ -30,7 +30,7 @@ export enum AlterTableCmdSubType {
   // /* 21 */ AT_ReAddConstraint = "AT_ReAddConstraint" /* internal to commands/tablecmds.c */,
   // /* 22 */ AT_ReAddDomainConstraint = "AT_ReAddDomainConstraint" /* internal to commands/tablecmds.c */,
   // /* 23 */ AT_AlterConstraint = "AT_AlterConstraint" /* alter constraint */,
-  // /* 24 */ AT_ValidateConstraint = "AT_ValidateConstraint" /* validate constraint */,
+  /* 24 */ AT_ValidateConstraint = "AT_ValidateConstraint" /* validate constraint */,
   // /* 25 */ AT_ValidateConstraintRecurse = "AT_ValidateConstraintRecurse" /* internal to commands/tablecmds.c */,
   // /* 26 */ AT_AddIndexConstraint = "AT_AddIndexConstraint" /* add constraint using existing index */,
   /* 27 */ AT_DropConstraint = "AT_DropConstraint" /* drop constraint */,
@@ -79,6 +79,24 @@ export enum AlterTableCmdSubType {
   // /* 70 */ AT_DropIdentity = "AT_DropIdentity" /* DROP IDENTITY */,
   // /* 71 */ AT_ReAddStatistics = "AT_ReAddStatistics" /* internal to commands/tablecmds.c */,
 }
+
+/**
+ * validate column
+ */
+
+export type AlterTableValidateConstraint = {
+  subtype: AlterTableCmdSubType.AT_ValidateConstraint;
+  behavior: DropBehavior;
+  codeComment?: string;
+  name: string;
+};
+export const alterTableValidateConstraintDecoder: d.Decoder<AlterTableValidateConstraint> =
+  d.exact({
+    subtype: d.constant(AlterTableCmdSubType.AT_ValidateConstraint),
+    behavior: dropBehaviorDecoder,
+    codeComment: d.optional(d.string),
+    name: d.string,
+  });
 
 /**
  * Add Column
@@ -405,7 +423,8 @@ export type AlterTableCmd =
   | AlterTableAttachPartition
   | AlterTableSetDefault
   | AlterTableDropNotNull
-  | AlterTableSetNotNull;
+  | AlterTableSetNotNull
+  | AlterTableValidateConstraint;
 
 export const alterTableCmdDecoder: d.Decoder<AlterTableCmd> = d.dispatch(
   "subtype",
@@ -427,6 +446,8 @@ export const alterTableCmdDecoder: d.Decoder<AlterTableCmd> = d.dispatch(
     [AlterTableCmdSubType.AT_ColumnDefault]: alterTableSetDefaultDecoder,
     [AlterTableCmdSubType.AT_DropNotNull]: alterTableDropNotNullDecoder,
     [AlterTableCmdSubType.AT_SetNotNull]: alterTableSetNotNullDecoder,
+    [AlterTableCmdSubType.AT_ValidateConstraint]:
+      alterTableValidateConstraintDecoder,
   }
 );
 

@@ -132,6 +132,11 @@ function alterTableCmd(c: AlterTableCmd): Block {
         ? addToFirstLine([...cmd, _], constraints)
         : [cmd];
     }
+    case AlterTableCmdSubType.AT_ValidateConstraint: {
+      return [
+        [keyword("VALIDATE"), _, keyword("CONSTRAINT"), _, identifier(c.name)],
+      ];
+    }
   }
   throw new Error(`Cannot handle ${c.subtype}`);
 }

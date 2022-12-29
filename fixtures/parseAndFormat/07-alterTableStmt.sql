@@ -70,3 +70,5 @@ ALTER TABLE internal_transactions
 ALTER TABLE foo ALTER COLUMN bar TYPE some_enum USING source::some_enum AND 1 = 1 OR 4=4 AND 3=3;
 
 ALTER TABLE foo ADD CONSTRAINT foo_check CHECK (bar IS NOT NULL) NOT VALID;
+
+ALTER TABLE foo VALIDATE CONSTRAINT foo_bar;

@@ -9,6 +9,7 @@ import {
   AlterTableColumnType,
   AlterTableDropConstraint,
   AlterTableSetNotNull,
+  AlterTableValidateConstraint,
 } from "~/types";
 import {
   sequence,
@@ -36,11 +37,22 @@ import {
   TYPE,
   CONSTRAINT,
   USING,
+  VALIDATE,
 } from "./util";
 import { typeName } from "./typeName";
 import { constraint } from "./constraint";
 import { defaultConstraint } from "./constraint";
 import { rawValue } from "./rawExpr";
+
+const alterTableValidateConstraint: Rule<AlterTableValidateConstraint> =
+  transform(sequence([VALIDATE, __, CONSTRAINT, __, identifier]), (v) => {
+    return {
+      subtype: AlterTableCmdSubType.AT_ValidateConstraint,
+      name: v[4],
+      behavior: "DROP_RESTRICT",
+      codeComment: combineComments(v[1], v[3]),
+    };
+  });
 
 const alterTableAddConstraint: Rule<AlterTableAddConstraint> = transform(
   sequence([ADD, __, constraint]),
@@ -286,4 +298,5 @@ export const alterTableCmd: Rule<AlterTableCmd> = or([
   alterTableSetNotNull,
   alterTableDropDefault,
   alterTableColumnType,
+  alterTableValidateConstraint,
 ]);

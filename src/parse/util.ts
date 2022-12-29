@@ -758,6 +758,7 @@ const keywordList = [
   "UNIQUE",
   "UPDATE",
   "USING",
+  "VALIDATE",
   "VALUE",
   "VALUES",
   "VIEW",
@@ -920,6 +921,7 @@ export const THEN = keyword("THEN");
 export const TYPE = keyword("TYPE" as any); // <-- One exeption where we can use it ad an identifier
 export const UNIQUE = keyword("UNIQUE");
 export const USING = keyword("USING");
+export const VALIDATE = keyword("VALIDATE");
 export const VALUE = keyword("VALUE");
 export const VALUES = keyword("VALUES");
 export const VIEW = keyword("VIEW");
