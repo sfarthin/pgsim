@@ -1,9 +1,8 @@
 import { DeleteStmt } from "~/types";
 import rangeVar from "./rangeVar";
 import { rawValue } from "./rawExpr";
-import { fromClause } from "./selectStmt";
+import { fromClause } from "./fromClause";
 import {
-  addToFirstLine,
   addToLastLine,
   Block,
   comment,

@@ -1,8 +1,6 @@
 import sortBy from "./sortBy";
-import { CommonTableExpr, FromClause, SelectStmt } from "~/types";
+import { CommonTableExpr, SelectStmt } from "~/types";
 import { rawValue } from "./rawExpr";
-import rangeVar from "./rangeVar";
-import joinExpr from "./joinExpr";
 import columnRef from "./columnRef";
 import {
   toSingleLineIfPossible,
@@ -17,7 +15,7 @@ import {
   addToFirstLine,
 } from "./util";
 import aConst from "./aConst";
-import rangeSubselect from "./rangeSubselect";
+import { fromClause } from "./fromClause";
 
 function toTargetList(c: SelectStmt): Block {
   const targetList = c.targetList.flatMap((v, i) => {
@@ -55,33 +53,6 @@ function commonTableExpr(c: CommonTableExpr): Block {
     ...indent(toSingleLineIfPossible(innerSelect(c.ctequery.SelectStmt))),
     [symbol(")")],
   ];
-}
-
-export function fromClause(c: FromClause[], codeComments: string[]): Block {
-  return c.flatMap((v, i) => {
-    const commaSepatation = i === (c.length ?? 0) - 1 ? [] : [symbol(",")];
-
-    if ("RangeVar" in v) {
-      return [
-        ...comment(codeComments[i]),
-        rangeVar(v.RangeVar).concat(commaSepatation),
-      ];
-    }
-    if ("JoinExpr" in v) {
-      return [
-        ...comment(codeComments[i]),
-        ...joinExpr(v.JoinExpr).concat(commaSepatation),
-      ];
-    }
-    if ("RangeSubselect" in v) {
-      return [
-        ...comment(codeComments[i]),
-        ...rangeSubselect(v.RangeSubselect).concat([commaSepatation]),
-      ];
-    }
-
-    return [];
-  });
 }
 
 export function innerSelect(c: SelectStmt): Block {

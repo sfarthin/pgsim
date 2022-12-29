@@ -25,13 +25,11 @@ import {
   identifierIncludingKeyword,
 } from "./util";
 import { rawValue } from "./rawExpr";
-import { FromClause, SelectStmt } from "~/types";
+import { SelectStmt } from "~/types";
 import { sortBy } from "./sortBy";
-import { rangeVar } from "./rangeVar";
-import { joinExpr } from "./joinExpr";
 import { columnRef } from "./columnRef";
 import { aConst, aConstInteger } from "./aConst";
-import { rangeSubselect } from "./rangeSubselect";
+import { fromClause } from "./fromClause";
 
 const groupBy = transform(
   sequence([
@@ -88,25 +86,6 @@ export const where = transform(
     },
   })
 );
-
-export const fromClause: Rule<{ value: FromClause[]; codeComments: string[] }> =
-  transform(
-    sequence([
-      or([joinExpr, rangeVar, rangeSubselect]),
-      zeroToMany(
-        sequence([COMMA, __, or([joinExpr, rangeVar, rangeSubselect])])
-      ),
-    ]),
-    (v) => {
-      return {
-        value: [v[0].value, ...v[1].map((n) => n[2].value)],
-        codeComments: [
-          v[0].codeComment,
-          ...v[1].flatMap((n) => [n[1], n[2].codeComment]),
-        ],
-      };
-    }
-  );
 
 const from = transform(
   sequence([FROM, __, fromClause, __, optional(where)]),

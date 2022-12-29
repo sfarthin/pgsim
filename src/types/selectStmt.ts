@@ -1,13 +1,11 @@
 import * as d from "decoders";
 import { rawValueDecoder, RawValue } from "./rawExpr";
-import { RangeVar, rangeVarDecoder } from "./rangeVar";
 import { SortBy, sortByDecoder } from "./sortBy";
-import { JoinExpr, joinExprDecoder } from "./joinExpr";
 import { ColumnRef, columnRefDecoder } from "./columnRef";
 import { ResTarget, resTargetDecoder } from "./resTarget";
-import { aConstIntegerDecoder, A_Const, A_Const_Integer } from "./constant";
+import { aConstIntegerDecoder, A_Const } from "./constant";
 import dispatch from "./dispatch";
-import { RangeSubselect, rangeSubselectDecoder } from "./RangeSubselect";
+import { FromClause, fromClauseDecoder } from "./fromClause";
 
 export type CommonTableExpr = {
   ctename: string;
@@ -26,36 +24,13 @@ const groupClauseDecoder: d.Decoder<GroupClause> = d.array(
   })
 );
 
-type FromClause = (
-  | { RangeVar: RangeVar }
-  | { JoinExpr: JoinExpr }
-  | { RangeSubselect: RangeSubselect }
-)[];
-
-export const fromClause: d.Decoder<FromClause> = d.array(
-  d.either3(
-    d.exact({
-      RangeVar: rangeVarDecoder,
-      codeComment: d.optional(d.string),
-    }),
-    d.exact({
-      JoinExpr: joinExprDecoder,
-      codeComment: d.optional(d.string),
-    }),
-    d.exact({
-      RangeSubselect: rangeSubselectDecoder,
-      codeComment: d.optional(d.string),
-    })
-  )
-);
-
 export type SelectStmt = {
   op: "SETOP_NONE";
   limitOption: "LIMIT_OPTION_DEFAULT";
   targetList: {
     ResTarget?: ResTarget;
   }[];
-  fromClause?: FromClause;
+  fromClause?: FromClause[];
   whereClause?: RawValue;
   groupClause?: GroupClause;
   withClause?: {
@@ -109,7 +84,7 @@ export const selectStmtDecoder: d.Decoder<SelectStmt> = d.exact({
       codeComment: d.optional(d.string),
     })
   ),
-  fromClause: d.optional(fromClause),
+  fromClause: d.optional(d.array(fromClauseDecoder)),
   whereClause: d.optional((blob) => rawValueDecoder(blob)),
   groupClause: d.optional(groupClauseDecoder),
   // intoClause: d.fail,

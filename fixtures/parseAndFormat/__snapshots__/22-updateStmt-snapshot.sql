@@ -53,3 +53,5 @@ UPDATE
 	foo
 SET
 	bar = ARRAY[770, 630, 207, 403, 310, 423, 246, 318, 680, 299, 1025];
+
+UPDATE foo SET bar = NULL FROM monkey WHERE 1 = 1;

@@ -14,10 +14,12 @@ import {
   EOS,
   WHERE,
   optional,
+  FROM,
 } from "./util";
 import { UpdateStmt, ResTarget, RangeVar } from "~/types";
 import { rawValue } from "./rawExpr";
 import { rangeVar } from "./rangeVar";
+import { fromClause } from "./fromClause";
 
 const resTarget: Rule<{
   value: { ResTarget: ResTarget };
@@ -68,18 +70,21 @@ export const updateStmt: Rule<{ eos: EOS; value: { UpdateStmt: UpdateStmt } }> =
       resTarget, // 6
       zeroToMany(sequence([__, COMMA, __, resTarget])),
       __,
-      optional(whereClause), // 9
+      optional(sequence([FROM, __, fromClause])), // 9
+      __,
+      optional(whereClause), // 11
       __,
       endOfStatement,
     ]),
     (v) => {
       return {
-        eos: v[11],
+        eos: v[13],
         value: {
           UpdateStmt: {
             relation: v[2].value,
             targetList: [v[6].value, ...v[7].map((k) => k[3].value)],
-            ...(v[9] ? { whereClause: v[9].value } : {}),
+            ...(v[9] ? { fromClause: v[9][2].value } : {}),
+            ...(v[11] ? { whereClause: v[11].value } : {}),
             codeComment: combineComments(
               v[1],
               v[2].codeComment,
@@ -88,9 +93,11 @@ export const updateStmt: Rule<{ eos: EOS; value: { UpdateStmt: UpdateStmt } }> =
               v[6].codeComment,
               ...v[7].flatMap((k) => [k[0], k[2], k[3].codeComment]),
               v[8],
-              v[9]?.codeComment,
+              ...(v[9] ? [v[9][1], ...v[9][2].codeComments] : []),
               v[10],
-              v[11].comment
+              v[11]?.codeComment,
+              v[12],
+              v[13].comment
             ),
           },
         },

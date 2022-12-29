@@ -13,7 +13,8 @@ import {
   optional,
   USING,
 } from "./util";
-import { fromClause, where } from "./selectStmt";
+import { where } from "./selectStmt";
+import { fromClause } from "./fromClause";
 
 export const deleteStmt: Rule<{
   value: { DeleteStmt: DeleteStmt };

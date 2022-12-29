@@ -1,12 +1,12 @@
 import * as d from "decoders";
 import { rangeVarDecoder } from "./rangeVar";
 import { rawValueDecoder } from "./rawExpr";
-import { fromClause } from "./selectStmt";
+import { fromClauseDecoder } from "./fromClause";
 
 export const deleteStmtDecoder = d.exact({
   relation: rangeVarDecoder,
   whereClause: d.optional(rawValueDecoder),
-  usingClause: d.optional(fromClause),
+  usingClause: d.optional(d.array(fromClauseDecoder)),
   codeComment: d.optional(d.string),
 });
 
